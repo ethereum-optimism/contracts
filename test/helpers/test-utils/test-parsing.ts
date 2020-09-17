@@ -3,6 +3,7 @@ import { expect } from '../../setup'
 /* External Imports */
 import { Contract } from 'ethers'
 import { cloneDeep } from 'lodash'
+import { ethers } from '@nomiclabs/buidler'
 
 /* Internal Imports */
 import { getModifiableStorageFactory } from '../storage/contract-storage'
@@ -68,7 +69,8 @@ const fixtureDeployContracts = async (): Promise <{
   OVM_SafetyChecker: Contract,
   OVM_StateManager: Contract,
   OVM_ExecutionManager: Contract,
-  OVM_CallHelper: Contract
+  OVM_CallHelper: Contract,
+  OVM_CreateStorer: Contract
 }> => {
   const Factory__OVM_SafetyChecker = await getModifiableStorageFactory(
     'OVM_SafetyChecker'
@@ -82,17 +84,22 @@ const fixtureDeployContracts = async (): Promise <{
   const Factory__Helper_CodeContractForCalls = await getModifiableStorageFactory(
     'Helper_CodeContractForCalls'
   )
+  const Factory__Helper_CreateEMResponsesStorer = await ethers.getContractFactory(
+    'Helper_CreateEMResponsesStorer'
+  )
 
   const OVM_SafetyChecker = await Factory__OVM_SafetyChecker.deploy()
   const OVM_StateManager = await Factory__OVM_StateManager.deploy()
   const OVM_ExecutionManager = await Factory__OVM_ExecutionManager.deploy(OVM_SafetyChecker.address)
   const OVM_CallHelper = await Factory__Helper_CodeContractForCalls.deploy()
+  const OVM_CreateStorer = await Factory__Helper_CreateEMResponsesStorer.deploy()
 
   return {
     OVM_SafetyChecker,
     OVM_StateManager,
     OVM_ExecutionManager,
     OVM_CallHelper,
+    OVM_CreateStorer
   }
 }
 
@@ -122,11 +129,13 @@ export const runExecutionManagerTest = (
         let OVM_StateManager: Contract
         let OVM_ExecutionManager: Contract
         let OVM_CallHelper: Contract
+        let OVM_CreateStorer: Contract
         beforeEach(async () => {
           const contracts = await fixtureDeployContracts()
           OVM_StateManager = contracts.OVM_StateManager
           OVM_ExecutionManager = contracts.OVM_ExecutionManager
           OVM_CallHelper = contracts.OVM_CallHelper
+          OVM_CreateStorer = contracts.OVM_CreateStorer
         })
 
         let replacedParams: TestParameters
@@ -167,7 +176,9 @@ export const runExecutionManagerTest = (
             const testGenerator = getTestGenerator(
               replacedParams.steps[idx],
               OVM_ExecutionManager,
-              OVM_CallHelper
+              OVM_CallHelper,
+              OVM_CreateStorer,
+              (await ethers.getContractFactory('Helper_CodeContractForCreates')).interface
             )
 
             const callResult = await OVM_ExecutionManager.provider.call({
