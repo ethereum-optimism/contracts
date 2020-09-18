@@ -25,6 +25,8 @@ contract Helper_CodeContractForCalls is Helper_CodeContractDataTypes {
         CALLResponse[] memory EMResponses = new CALLResponse[](numSteps);
         for (uint i = 0; i < numSteps; i++) {
             bytes memory dataToSend = callsToEM[i];
+            console.log("calling EM with data:");
+            console.logBytes(dataToSend);
             (bool success, bytes memory responseData) = address(msg.sender).call(dataToSend);
             console.log("step to EM had result:");
             console.logBool(success);

@@ -27,7 +27,7 @@ const setPlaceholderStrings = (
     } else if (kv === '$OVM_CALL_HELPER') {
       return ovmCallHelper.address
     } else if (kv.startsWith('$DUMMY_OVM_ADDRESS_')) {
-      return '0x' + kv.split('$DUMMY_OVM_ADDRESS_')[1].padStart(40, '0')
+      return '0x' + (kv.split('$DUMMY_OVM_ADDRESS_')[1] + '0').repeat(20)
     } else {
       return kv
     }
@@ -72,7 +72,7 @@ const fixtureDeployContracts = async (): Promise <{
   OVM_CallHelper: Contract,
   OVM_CreateStorer: Contract
 }> => {
-  const Factory__OVM_SafetyChecker = await getModifiableStorageFactory(
+  const Factory__OVM_SafetyChecker = await ethers.getContractFactory(
     'OVM_SafetyChecker'
   )
   const Factory__OVM_StateManager = await getModifiableStorageFactory(
@@ -162,11 +162,9 @@ export const runExecutionManagerTest = (
 
         afterEach(async () => {
           await OVM_ExecutionManager.__checkContractStorage({
-            ...replacedTest.preState.ExecutionManager,
             ...replacedTest.postState.ExecutionManager
           })
           await OVM_StateManager.__checkContractStorage({
-            ...replacedTest.preState.StateManager,
             ...replacedTest.postState.StateManager
           })
         })

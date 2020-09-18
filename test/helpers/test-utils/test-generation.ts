@@ -168,6 +168,14 @@ export const getTestGenerator = (
         ovmCreateHelper,
         step
       )
+    case 'ovmCREATE':
+      return new ovmCREATEGenerator(
+        ovmExecutionManager,
+        ovmCallHelper,
+        ovmCreateStorer,
+        ovmCreateHelper,
+        step
+      )
     default:
       return new DefaultTestGenerator(
         ovmExecutionManager,
