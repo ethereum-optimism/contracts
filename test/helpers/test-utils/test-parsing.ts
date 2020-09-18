@@ -8,7 +8,7 @@ import { ethers } from '@nomiclabs/buidler'
 /* Internal Imports */
 import { getModifiableStorageFactory } from '../storage/contract-storage'
 import { GAS_LIMIT } from '../constants'
-import { getTestGenerator } from './test-generation'
+import { getTestGenerator, getInitcode } from './test-generation'
 import { TestParameters, TestDefinition, isTestDefinition } from './test.types'
 
 const setPlaceholderStrings = (
@@ -24,6 +24,8 @@ const setPlaceholderStrings = (
       return ovmExecutionManager.address
     } else if (kv === '$OVM_STATE_MANAGER') {
       return ovmStateManager.address
+    } else if (kv === '$OVM_CALL_HELPER_CODE') {
+      return getInitcode('Helper_CodeContractForCalls')
     } else if (kv === '$OVM_CALL_HELPER') {
       return ovmCallHelper.address
     } else if (kv.startsWith('$DUMMY_OVM_ADDRESS_')) {

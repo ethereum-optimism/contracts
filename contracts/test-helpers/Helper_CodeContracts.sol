@@ -32,16 +32,11 @@ contract Helper_CodeContractForCalls is Helper_CodeContractDataTypes {
             console.logBool(success);
             EMResponses[i].success = success;
             if (_isOVMCreateCall(dataToSend)) {
-                console.log("above was a create-type call.  doing retrieval.");
-                // console.logBytes(dataToSend);
-                // console.log("storer address is:");
-                // console.logAddress(_createEMResponsesStorer);
                 EMResponses[i].data = abi.encode(
                     responseData,
                     _getStoredEMREsponsesInCreate(_createEMResponsesStorer)
                 );
             } else {
-                console.log("above was not a create-type call.");
                 EMResponses[i].data = responseData;
             }
         }
@@ -49,13 +44,7 @@ contract Helper_CodeContractForCalls is Helper_CodeContractDataTypes {
     }
 
     function _getStoredEMREsponsesInCreate(address _createEMResponsesStorer) internal returns(bytes memory) {
-        console.log("runSteps is attempting to retrieve CREATE results using storer address of ");
-        console.logAddress(_createEMResponsesStorer);
         (bool success, bytes memory data) = _createEMResponsesStorer.call(abi.encodeWithSignature("getLastResponses()"));
-        console.log("call to retrieval had result:");
-        console.logBool(success);
-        console.log("with data:");
-        console.logBytes(data);
         return data;
     }
 
@@ -82,7 +71,7 @@ contract Helper_CodeContractForCreates is Helper_CodeContractForCalls {
         bytes memory _codeToDeploy,
         address _createEMResponsesStorer
     ) {  
-        console.log("in constructor");
+        console.log("In CREATE helper (deployment)");
         CALLResponse[] memory responses = runSteps(callsToEM, _shouldRevert, _createEMResponsesStorer);
         Helper_CreateEMResponsesStorer(_createEMResponsesStorer).store(responses);
         uint lengthToDeploy = _codeToDeploy.length;
@@ -96,25 +85,16 @@ contract Helper_CodeContractForCreates is Helper_CodeContractForCalls {
 contract Helper_CreateEMResponsesStorer is Helper_CodeContractDataTypes {
     CALLResponse[] responses;
 
-    constructor() {
-        console.log("can log in constructor");
-        console.logAddress(address(this));
-    }
-
     function store(
         CALLResponse[] memory _responses
     ) public {
-        console.log("helper is storing responses...");
+        console.log("create storer helper is storing responses...");
         for (uint i = 0; i < _responses.length; i++) {
             responses.push();
             responses[i] = _responses[i];
         }
-        console.log("helper is successfully stored this many responses:");
+        console.log("helper successfully stored this many responses:");
         console.logUint(responses.length);
-        console.log("first memory response is:");
-        console.logBytes(_responses[0].data);
-        console.log("first stored response is:");
-        console.logBytes(responses[0].data);
     }
 
     function getLastResponses() public returns(CALLResponse[] memory) {

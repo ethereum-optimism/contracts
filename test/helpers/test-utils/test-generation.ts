@@ -18,7 +18,7 @@ export const getInitcode = (name: string): string => {
 
 export interface TestCallGenerator {
   getCalldata(): string
-  getReturnData(): string
+  getReturnData(): string // get expected
 }
 
 export class DefaultTestGenerator implements TestCallGenerator {
