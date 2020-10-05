@@ -10,9 +10,12 @@ import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolve
 import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.sol";
 import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitmentChain.sol";
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
+// TODO: Use an interface here once done with the contract.
+import { OVM_BondManager } from "../OVM_BondManager.sol";
 
 /* Contract Imports */
 import { OVM_BaseChain } from "./OVM_BaseChain.sol";
+
 
 /**
  * @title OVM_StateCommitmentChain
@@ -25,7 +28,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
 
     iOVM_CanonicalTransactionChain internal ovmCanonicalTransactionChain;
     iOVM_FraudVerifier internal ovmFraudVerifier;
-
+    OVM_BondManager internal ovmBondManager;
 
     /***************
      * Constructor *
@@ -41,6 +44,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
     {
         ovmCanonicalTransactionChain = iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain"));
         ovmFraudVerifier = iOVM_FraudVerifier(resolve("OVM_FraudVerifier"));
+        ovmBondManager = OVM_BondManager(resolve("OVM_BondManager"));
     }
 
 
@@ -58,6 +62,12 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
         override
         public
     {
+        // Stake!
+        require(
+            ovmBondManager.stake(msg.sender, batches.length + 1),
+            "Sequencer does not have enough collateral posted"
+        );
+
         require(
             _batch.length > 0,
             "Cannot submit an empty state batch."

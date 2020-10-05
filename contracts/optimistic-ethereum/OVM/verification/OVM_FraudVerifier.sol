@@ -14,6 +14,7 @@ import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManage
 import { iOVM_StateManagerFactory } from "../../iOVM/execution/iOVM_StateManagerFactory.sol";
 import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitmentChain.sol";
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
+import { OVM_BondManager } from "./../OVM_BondManager.sol";
 
 contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
 
@@ -178,13 +179,25 @@ contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
             "Invalid post-state root inclusion proof."
         );
 
-        require(
-            _postStateRoot != transitioner.getPostStateRoot(),
-            "State transition has not been proven fraudulent."
-        );
+        // If the post state root did not match, then there was fraud and we should
+        // delete the batch
+        bool isFraud;
+        if (_postStateRoot != transitioner.getPostStateRoot()) {
+            ovmStateCommitmentChain.deleteStateBatch(
+                _postStateRootBatchHeader
+            );
+            isFraud = true;
+        } else {
+            isFraud = false;
+        }
 
-        ovmStateCommitmentChain.deleteStateBatch(
-            _postStateRootBatchHeader
+        // now that we have verified the pre/post state roots, pass them to the
+        // bond manager to free up the bonds or slash accordingly
+        OVM_BondManager(resolve("OVM_BondManager")).finalize(
+            _preStateRoot,
+            // TODO: Check that this is the correct index.
+            _postStateRootBatchHeader.batchIndex,
+            isFraud
         );
     }
 

@@ -13,6 +13,7 @@ import { iOVM_StateTransitioner } from "../../iOVM/verification/iOVM_StateTransi
 import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManager.sol";
 import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
 import { iOVM_StateManagerFactory } from "../../iOVM/execution/iOVM_StateManagerFactory.sol";
+import { OVM_BondManager } from "../OVM_BondManager.sol";
 
 /* Logging Imports */
 import { console } from "@nomiclabs/buidler/console.sol";
@@ -39,6 +40,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
 
     iOVM_ExecutionManager internal ovmExecutionManager;
     iOVM_StateManager internal ovmStateManager;
+    OVM_BondManager internal ovmBondManager;
 
 
     /*******************************************
@@ -70,6 +72,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
     )
         Lib_AddressResolver(_libAddressManager)
     {
+        // TODO: Can this be removed?
         stateTransitionIndex = _stateTransitionIndex;
         preStateRoot = _preStateRoot;
         postStateRoot = _preStateRoot;
@@ -77,6 +80,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
 
         ovmExecutionManager = iOVM_ExecutionManager(resolve("OVM_ExecutionManager"));
         ovmStateManager = iOVM_StateManagerFactory(resolve("OVM_StateManagerFactory")).create(address(this));
+        ovmBondManager = OVM_BondManager(resolve("OVM_BondManager"));
     }
 
 
@@ -201,6 +205,8 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
                 isFresh: false
             })
         );
+
+        ovmBondManager.storeWitnessProvider(preStateRoot, msg.sender);
     }
 
     /**
@@ -232,6 +238,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
         );
 
         ovmStateManager.putEmptyAccount(_ovmContractAddress);
+        ovmBondManager.storeWitnessProvider(preStateRoot, msg.sender);
     }
 
     /**
@@ -288,6 +295,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
             _key,
             _value
         );
+        ovmBondManager.storeWitnessProvider(preStateRoot, msg.sender);
     }
 
 
@@ -354,6 +362,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
             _stateTrieWitness,
             postStateRoot
         );
+        ovmBondManager.storeWitnessProvider(preStateRoot, msg.sender);
     }
 
     /**
@@ -397,6 +406,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
             _stateTrieWitness,
             postStateRoot
         );
+        ovmBondManager.storeWitnessProvider(preStateRoot, msg.sender);
     }
 
 
