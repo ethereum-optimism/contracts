@@ -329,6 +329,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
         ovmExecutionManager.run(_transaction, address(ovmStateManager));
 
         phase = TransitionPhase.POST_EXECUTION;
+        ovmBondManager.storeWitnessProvider(preStateRoot, msg.sender);
     }
 
 
