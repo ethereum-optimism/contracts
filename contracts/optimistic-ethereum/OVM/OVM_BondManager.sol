@@ -33,7 +33,16 @@ contract OVM_BondManager is Lib_AddressResolver {
 
     /// A bond posted by a sequencer
     /// The bonds posted by each sequencer
-    mapping(address => uint256) public bonds;
+    struct Bond {
+        uint256 locked;
+        uint256 withdrawing;
+        uint256 withdrawalTimestamp;
+
+    }
+    mapping(address => Bond) public bonds;
+
+    /// The dispute period
+    uint256 public forceInclusionPeriodSeconds = 7 days;
 
     // Per pre-state root, store the number of state provisions that were made
     // and how many of these calls were made by each user. Payouts will then be
@@ -49,9 +58,6 @@ contract OVM_BondManager is Lib_AddressResolver {
     /// For each pre-state root, there's an array of witnessProviders that must be rewarded
     /// for posting witnesses
     mapping(bytes32 => Rewards) public witnessProviders;
-
-    /// Mapping of pre-state root to sequencer
-    mapping(uint256 => address) public sequencers;
 
     /// Initializes with a ERC20 token to be used for the fidelity bonds
     /// and with the Address Manager
@@ -76,27 +82,55 @@ contract OVM_BondManager is Lib_AddressResolver {
 
     /// Slashes + distributes rewards or frees up the sequencer's bond, only called by
     /// `FraudVerifier.finalizeFraudVerification`
-    function finalize(bytes32 _preStateRoot, uint256 batchIndex, bool isFraud) public {
+    function finalize(bytes32 _preStateRoot, uint256 batchIndex, address publisher, uint256 timestamp) public {
         require(msg.sender == resolve("OVM_FraudVerifier"), "ERR not callable by non fraud verifier");
-
-        // TODO: can this be removed?
-        require(sequencers[batchIndex] != address(0), "err: sequencer already claimed");
         require(witnessProviders[_preStateRoot].canClaim == false, "err users already claimed");
 
-        if (isFraud) {
-            // allow users to claim from that state root's
-            // pool of collateral (effectively slashing the sequencer)
-            witnessProviders[_preStateRoot].canClaim = true;
-        } else {
-            // refund collateral to the sequencer for that batch
-            // TODO: Should this actually be refunded? Can't there be more than 1
-            // cases of fraud for a batch e.g. because of multiple invalid state
-            // transitions? should these be penalized multiple times?
-            bonds[sequencers[batchIndex]] += requiredCollateral;
+        // allow users to claim from that state root's
+        // pool of collateral (effectively slashing the sequencer)
+        witnessProviders[_preStateRoot].canClaim = true;
+
+        Bond storage bond = bonds[publisher];
+
+        // always slash 1 round of collateral, if possible
+        if (bond.locked >= requiredCollateral) {
+            bond.locked -= requiredCollateral;
         }
 
-        // Reset the storage slot to disallow this from being called multiple times
-        delete sequencers[batchIndex];
+        // if the publisher has a pending withdrawal that's within the published
+        // block's challenge period
+        if (
+            bond.withdrawalTimestamp != 0 && 
+            bond.withdrawalTimestamp <= timestamp + forceInclusionPeriodSeconds &&
+            bond.withdrawing >= requiredCollateral
+        ) {
+            bond.withdrawing -= requiredCollateral;
+        }
+    }
+
+    /// Starts the withdrawal for a publisher
+    function startWithdrawal() public {
+        Bond storage bond = bonds[msg.sender];
+        require(bond.withdrawalTimestamp == 0, "withdrawal already pending");
+        require(bond.locked >= requiredCollateral);
+        bond.locked -= requiredCollateral;
+
+        bond.withdrawing += requiredCollateral;
+        bond.withdrawalTimestamp = block.timestamp;
+    }
+
+    /// Finalizes a pending withdrawal from a publisher
+    function finalizeWithdrawal() public {
+        Bond storage bond = bonds[msg.sender];
+        require(bond.withdrawalTimestamp + forceInclusionPeriodSeconds <= block.timestamp, "not enough time has passed");
+        require(bond.withdrawing >= requiredCollateral, "did you get slashed");
+        bond.withdrawing -= requiredCollateral;
+        bond.withdrawalTimestamp = 0;
+        
+        require(
+            token.transfer(msg.sender, requiredCollateral),
+            Errors.ERC20_ERR
+        );
     }
 
     // Claims the user's proportion of the provided state
@@ -106,8 +140,9 @@ contract OVM_BondManager is Lib_AddressResolver {
         // only allow claiming if fraud was proven in `finalize`
         require(rewards.canClaim, "Cannot claim rewards");
 
-        // proportional allocation
-        uint256 amount = (requiredCollateral * rewards.numClaims[msg.sender]) / rewards.total;
+        // proportional allocation - only reward 50% (rest gets locked in the
+        // contract forever
+        uint256 amount = (requiredCollateral * rewards.numClaims[msg.sender]) / (2 * rewards.total);
 
         // reset the user's claims so they cannot double claim
         rewards.numClaims[msg.sender] = 0;
@@ -121,21 +156,11 @@ contract OVM_BondManager is Lib_AddressResolver {
     ////////////////////////
 
     // Stakes the user for the provided batch index
-    function stake(address who, uint256 batchIndex) public returns (bool) {
+    function stake(address who, uint256 batchIndex) public view returns (bool) {
         // only callable by the state commitment chain in the `appendBatch` call
+        // TOOD: Should add a msg.sig check?
         require(msg.sender == ovmCanonicalStateCommitmentChain);
-
-        // `batchIndex` MUST BE a strictly increasing number in the state commitment chain
-        // this check can be removed if that invariant is guaranteed
-        require(sequencers[batchIndex] == address(0), "already staked for this batch");
-
-        // lock up the collateral
-        require(bonds[who] >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
-        bonds[who] -= requiredCollateral;
-
-        // store the sequencer's address as the proposer of the provided batch idx
-        sequencers[batchIndex] = who;
-
+        require(bonds[who].locked >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
         return true;
     }
 
@@ -148,18 +173,7 @@ contract OVM_BondManager is Lib_AddressResolver {
         );
 
         // This cannot overflow
-        bonds[msg.sender] += amount;
-    }
-
-    /// Sequencers call this function to withdraw collateral that they were able
-    /// to reclaim as a result of no fraud proof being initialized for their batch
-    function withdraw(uint256 amount) public {
-        require(bonds[msg.sender] >= amount);
-        bonds[msg.sender] -= amount;
-        require(
-            token.transfer(msg.sender, amount),
-            Errors.ERC20_ERR
-        );
+        bonds[msg.sender].locked += amount;
     }
 
     /// Sets the required collateral for posting a state root

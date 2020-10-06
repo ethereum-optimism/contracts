@@ -83,9 +83,11 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
             elements[i] = abi.encodePacked(_batch[i]);
         }
 
+        // Pass the block's timestamp and the publisher of the data
+        // to be used in the fraud proofs
         _appendBatch(
             elements,
-            abi.encodePacked(block.timestamp)
+            abi.encodePacked(block.timestamp, msg.sender)
         );
     }
 

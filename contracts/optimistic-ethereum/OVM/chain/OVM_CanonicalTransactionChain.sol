@@ -33,7 +33,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
     uint256 internal forceInclusionPeriodSeconds;
     uint256 internal lastOVMTimestamp;
 
-
     /***************
      * Constructor *
      ***************/
@@ -150,6 +149,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         });
 
         _appendBatch(batchHeader);
+
         lastOVMTimestamp = _queueElement.timestamp;
     }
 }

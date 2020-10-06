@@ -179,25 +179,26 @@ contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
             "Invalid post-state root inclusion proof."
         );
 
-        // If the post state root did not match, then there was fraud and we should
-        // delete the batch
-        bool isFraud;
-        if (_postStateRoot != transitioner.getPostStateRoot()) {
-            ovmStateCommitmentChain.deleteStateBatch(
-                _postStateRootBatchHeader
-            );
-            isFraud = true;
-        } else {
-            isFraud = false;
-        }
+        // If the post state root did not match, then there was fraud and we should delete the batch
+        require(
+            _postStateRoot != transitioner.getPostStateRoot(),
+            "State roots must be different for finalization"
+        );
 
-        // now that we have verified the pre/post state roots, pass them to the
-        // bond manager to free up the bonds or slash accordingly
+        // delete the state batch
+        ovmStateCommitmentChain.deleteStateBatch(
+            _postStateRootBatchHeader
+        );
+
+        // Get the timestamp and publisher for that block
+        (uint256 timestamp, address publisher) = abi.decode(_postStateRootBatchHeader.extraData, (uint256, address));
+
+        // slash the bonds at the bond manager
         OVM_BondManager(resolve("OVM_BondManager")).finalize(
             _preStateRoot,
-            // TODO: Check that this is the correct index.
             _postStateRootBatchHeader.batchIndex,
-            isFraud
+            publisher,
+            timestamp
         );
     }
 
