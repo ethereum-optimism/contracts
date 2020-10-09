@@ -28,6 +28,7 @@ describe('OVM_StateCommitmentChain', () => {
   })
 
   let Mock__OVM_CanonicalTransactionChain: MockContract
+  let Mock__OVM_BondManager: MockContract
   before(async () => {
     Mock__OVM_CanonicalTransactionChain = smockit(
       await ethers.getContractFactory('OVM_CanonicalTransactionChain')
@@ -38,6 +39,17 @@ describe('OVM_StateCommitmentChain', () => {
       'OVM_CanonicalTransactionChain',
       Mock__OVM_CanonicalTransactionChain
     )
+
+    Mock__OVM_BondManager = smockit(
+      await ethers.getContractFactory('OVM_BondManager')
+    )
+
+    await setProxyTarget(
+      AddressManager,
+      'OVM_BondManager',
+      Mock__OVM_BondManager
+    )
+    Mock__OVM_BondManager.smocked.stake.will.return.with(true)
   })
 
   let Factory__OVM_StateCommitmentChain: ContractFactory
@@ -114,7 +126,10 @@ describe('OVM_StateCommitmentChain', () => {
         batch.length
       )
       await OVM_StateCommitmentChain.appendStateBatch(batch)
-      batchHeader.extraData = toHexString32(await getEthTime(ethers.provider))
+      batchHeader.extraData = ethers.utils.solidityPack(
+            ['uint256', 'address'],
+            [await getEthTime(ethers.provider), await signer.getAddress()],
+      )
     })
 
     describe('when the sender is not the OVM_FraudVerifier', () => {
