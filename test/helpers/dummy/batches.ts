@@ -8,8 +8,8 @@ export const DUMMY_BATCH_HEADERS = [
     batchSize: 0,
     prevTotalElements: 0,
     extraData: ethers.utils.defaultAbiCoder.encode(
-        ['uint256', 'address'],
-        [NULL_BYTES32, NON_ZERO_ADDRESS],
+      ['uint256', 'address'],
+      [NULL_BYTES32, NON_ZERO_ADDRESS]
     ),
   },
 ]

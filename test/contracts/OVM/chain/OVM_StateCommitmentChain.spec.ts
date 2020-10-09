@@ -127,8 +127,8 @@ describe('OVM_StateCommitmentChain', () => {
       )
       await OVM_StateCommitmentChain.appendStateBatch(batch)
       batchHeader.extraData = ethers.utils.solidityPack(
-            ['uint256', 'address'],
-            [await getEthTime(ethers.provider), await signer.getAddress()],
+        ['uint256', 'address'],
+        [await getEthTime(ethers.provider), await signer.getAddress()]
       )
     })
 
