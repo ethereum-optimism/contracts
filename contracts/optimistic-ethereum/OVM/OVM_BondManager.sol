@@ -100,7 +100,7 @@ contract OVM_BondManager is Lib_AddressResolver {
     }
 
     // Claims the user's proportion of the provided state
-    function payout(bytes32 _preStateRoot) public {
+    function claim(bytes32 _preStateRoot) public {
         Rewards storage rewards = witnessProviders[_preStateRoot];
 
         // only allow claiming if fraud was proven in `finalize`
@@ -164,7 +164,7 @@ contract OVM_BondManager is Lib_AddressResolver {
 
     /// Sets the required collateral for posting a state root
     /// Callable only by the contract's deployer.
-    function setRequiredCollatreal(uint256 newValue) public {
+    function setRequiredCollateral(uint256 newValue) public {
         require(newValue > requiredCollateral, Errors.LOW_VALUE);
         require(msg.sender == owner, Errors.NOT_OWNER);
         requiredCollateral = newValue;

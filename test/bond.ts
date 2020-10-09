@@ -131,7 +131,7 @@ describe('BondManager', () => {
 
     it('bumps required collateral', async () => {
       // sets collateral to 2 eth, which is more than what we have deposited
-      await bondManager.setRequiredCollatreal(ethers.utils.parseEther('2'))
+      await bondManager.setRequiredCollateral(ethers.utils.parseEther('2'))
       await expect(
         bondManager.connect(canonicalStateCommitmentChain).stake(sender, 1)
       ).to.be.reverted
@@ -139,7 +139,7 @@ describe('BondManager', () => {
 
     it('cannot lower collateral reqs', async () => {
       await expect(
-        bondManager.setRequiredCollatreal(ethers.utils.parseEther('0.99'))
+        bondManager.setRequiredCollateral(ethers.utils.parseEther('0.99'))
       ).to.be.revertedWith(
         'BondManager: New collateral value must be greater than the previous one'
       )
@@ -147,7 +147,7 @@ describe('BondManager', () => {
 
     it('only owner can adjust collateral', async () => {
       await expect(
-        bondManager.connect(wallets[2]).setRequiredCollatreal(amount.add(1))
+        bondManager.connect(wallets[2]).setRequiredCollateral(amount.add(1))
       ).to.be.revertedWith(
         "BondManager: Only the contract's owner can call this function"
       )
@@ -197,7 +197,7 @@ describe('BondManager', () => {
     })
 
     it('cannot claim before canClaim is set', async () => {
-      await expect(bondManager.payout(preStateRoot)).to.be.revertedWith(
+      await expect(bondManager.claim(preStateRoot)).to.be.revertedWith(
         'Cannot claim rewards'
       )
     })
@@ -225,8 +225,8 @@ describe('BondManager', () => {
         const balanceBefore1 = await token.balanceOf(witnessProvider.address)
         const balanceBefore2 = await token.balanceOf(witnessProvider2.address)
 
-        await bondManager.connect(witnessProvider).payout(preStateRoot)
-        await bondManager.connect(witnessProvider2).payout(preStateRoot)
+        await bondManager.connect(witnessProvider).claim(preStateRoot)
+        await bondManager.connect(witnessProvider2).claim(preStateRoot)
 
         const balanceAfter1 = await token.balanceOf(witnessProvider.address)
         const balanceAfter2 = await token.balanceOf(witnessProvider2.address)
@@ -237,14 +237,14 @@ describe('BondManager', () => {
 
       it('cannot double claim', async () => {
         const balance1 = await token.balanceOf(witnessProvider.address)
-        await bondManager.connect(witnessProvider).payout(preStateRoot)
+        await bondManager.connect(witnessProvider).claim(preStateRoot)
         const balance2 = await token.balanceOf(witnessProvider.address)
         expect(balance2).to.be.eq(balance1.add(amount.mul(2).div(3)))
 
         // re-claiming does not give the user any extra funds
         // TODO: Should we revert instead and require that the user has >0 claim
         // votes?
-        await bondManager.connect(witnessProvider).payout(preStateRoot)
+        await bondManager.connect(witnessProvider).claim(preStateRoot)
         const balance3 = await token.balanceOf(witnessProvider.address)
         expect(balance3).to.be.eq(balance2)
       })
