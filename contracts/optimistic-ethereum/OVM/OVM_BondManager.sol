@@ -14,8 +14,17 @@ library Errors {
     string constant ERC20_ERR = "BondManager: Could not post bond";
     string constant NOT_ENOUGH_COLLATERAL = "BondManager: Sequencer is not sufficiently collateralized";
     string constant LOW_VALUE = "BondManager: New collateral value must be greater than the previous one";
-    string constant NOT_OWNER = "BondManager: Only the contract's owner can call this function";
-    string constant TRANSITIONER_INCOMPLETE = "BondManager: Transitioner is still calculating the post state root";
+    string constant ALREADY_FINALIZED = "BondManager: Fraud proof for this pre-state root has already been finalized";
+    string constant SLASHED = "BondManager: Cannot finalize withdrawal, you probably got slashed";
+    string constant CANNOT_CLAIM = "BondManager: Cannot claim yet. Dispute must be finalized first";
+
+    string constant WITHDRAWAL_PENDING = "BondManager: Withdrawal already pending";
+    string constant TOO_EARLY = "BondManager: Too early to finalize your withdrawal";
+
+    string constant ONLY_OWNER = "BondManager: Only the contract's owner can call this function";
+    string constant ONLY_TRANSITIONER = "BondManager: Only the transitioner for this pre-state root may call this function";
+    string constant ONLY_FRAUD_VERIFIER = "BondManager: Only the fraud verifier may call this function";
+    string constant ONLY_STATE_COMMITMENT_CHAIN = "BondManager: Only the state commitment chain may call this function";
 }
 
 contract OVM_BondManager is Lib_AddressResolver {
@@ -74,7 +83,7 @@ contract OVM_BondManager is Lib_AddressResolver {
     function storeWitnessProvider(bytes32 _preStateRoot, address who) public {
         // The sender must be the transitioner that corresponds to the claimed pre-state root
         address transitioner = address(iOVM_FraudVerifier(resolve("OVM_FraudVerifier")).getStateTransitioner(_preStateRoot));
-        require(transitioner == msg.sender);
+        require(transitioner == msg.sender, Errors.ONLY_TRANSITIONER);
 
         witnessProviders[_preStateRoot].total += 1;
         witnessProviders[_preStateRoot].numClaims[who] += 1;
@@ -83,8 +92,8 @@ contract OVM_BondManager is Lib_AddressResolver {
     /// Slashes + distributes rewards or frees up the sequencer's bond, only called by
     /// `FraudVerifier.finalizeFraudVerification`
     function finalize(bytes32 _preStateRoot, uint256 batchIndex, address publisher, uint256 timestamp) public {
-        require(msg.sender == resolve("OVM_FraudVerifier"), "ERR not callable by non fraud verifier");
-        require(witnessProviders[_preStateRoot].canClaim == false, "err users already claimed");
+        require(msg.sender == resolve("OVM_FraudVerifier"), Errors.ONLY_FRAUD_VERIFIER);
+        require(witnessProviders[_preStateRoot].canClaim == false, Errors.ALREADY_FINALIZED);
 
         // allow users to claim from that state root's
         // pool of collateral (effectively slashing the sequencer)
@@ -111,8 +120,8 @@ contract OVM_BondManager is Lib_AddressResolver {
     /// Starts the withdrawal for a publisher
     function startWithdrawal() public {
         Bond storage bond = bonds[msg.sender];
-        require(bond.withdrawalTimestamp == 0, "withdrawal already pending");
-        require(bond.locked >= requiredCollateral);
+        require(bond.withdrawalTimestamp == 0, Errors.WITHDRAWAL_PENDING);
+        require(bond.locked >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
         bond.locked -= requiredCollateral;
 
         bond.withdrawing += requiredCollateral;
@@ -122,8 +131,12 @@ contract OVM_BondManager is Lib_AddressResolver {
     /// Finalizes a pending withdrawal from a publisher
     function finalizeWithdrawal() public {
         Bond storage bond = bonds[msg.sender];
-        require(bond.withdrawalTimestamp + forceInclusionPeriodSeconds <= block.timestamp, "not enough time has passed");
-        require(bond.withdrawing >= requiredCollateral, "did you get slashed");
+
+        require(
+            block.timestamp >= bond.withdrawalTimestamp + forceInclusionPeriodSeconds, 
+            Errors.TOO_EARLY
+        );
+        require(bond.withdrawing >= requiredCollateral, Errors.SLASHED);
         bond.withdrawing -= requiredCollateral;
         bond.withdrawalTimestamp = 0;
         
@@ -138,7 +151,7 @@ contract OVM_BondManager is Lib_AddressResolver {
         Rewards storage rewards = witnessProviders[_preStateRoot];
 
         // only allow claiming if fraud was proven in `finalize`
-        require(rewards.canClaim, "Cannot claim rewards");
+        require(rewards.canClaim, Errors.CANNOT_CLAIM);
 
         // proportional allocation - only reward 50% (rest gets locked in the
         // contract forever
@@ -157,9 +170,7 @@ contract OVM_BondManager is Lib_AddressResolver {
 
     // Stakes the user for the provided batch index
     function stake(address who, uint256 batchIndex) public view returns (bool) {
-        // only callable by the state commitment chain in the `appendBatch` call
-        // TOOD: Should add a msg.sig check?
-        require(msg.sender == ovmCanonicalStateCommitmentChain);
+        require(msg.sender == ovmCanonicalStateCommitmentChain, Errors.ONLY_STATE_COMMITMENT_CHAIN);
         require(bonds[who].locked >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
         return true;
     }
@@ -180,7 +191,7 @@ contract OVM_BondManager is Lib_AddressResolver {
     /// Callable only by the contract's deployer.
     function setRequiredCollateral(uint256 newValue) public {
         require(newValue > requiredCollateral, Errors.LOW_VALUE);
-        require(msg.sender == owner, Errors.NOT_OWNER);
+        require(msg.sender == owner, Errors.ONLY_OWNER);
         requiredCollateral = newValue;
     }
 

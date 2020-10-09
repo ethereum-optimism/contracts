@@ -182,7 +182,7 @@ contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
         // If the post state root did not match, then there was fraud and we should delete the batch
         require(
             _postStateRoot != transitioner.getPostStateRoot(),
-            "State roots must be different for finalization"
+            "State transition has not been proven fraudulent."
         );
 
         // delete the state batch

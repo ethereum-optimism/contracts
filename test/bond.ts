@@ -1,5 +1,5 @@
 import { waffle, ethers as deployer } from '@nomiclabs/buidler'
-import { smoddit, smockit, MockContract } from '@eth-optimism/smock'
+import { smoddit, smockit } from '@eth-optimism/smock'
 import { expect } from 'chai'
 import { ethers, Contract, BigNumber } from 'ethers'
 
@@ -91,29 +91,25 @@ describe('BondManager', () => {
   })
 
   describe('required collateral adjustment', () => {
-      it('bumps required collateral', async () => {
-          // sets collateral to 2 eth, which is more than what we have deposited
-          await bondManager.setRequiredCollateral(ethers.utils.parseEther('2'))
-          await expect(
-              bondManager.connect(canonicalStateCommitmentChain).stake(sender, 1)
-          ).to.be.reverted
-      })
+    it('bumps required collateral', async () => {
+      // sets collateral to 2 eth, which is more than what we have deposited
+      await bondManager.setRequiredCollateral(ethers.utils.parseEther('2'))
+      await expect(
+        bondManager.connect(canonicalStateCommitmentChain).stake(sender, 1)
+      ).to.be.revertedWith(Errors.NOT_ENOUGH_COLLATERAL)
+    })
 
-      it('cannot lower collateral reqs', async () => {
-          await expect(
-              bondManager.setRequiredCollateral(ethers.utils.parseEther('0.99'))
-          ).to.be.revertedWith(
-          'BondManager: New collateral value must be greater than the previous one'
-          )
-      })
+    it('cannot lower collateral reqs', async () => {
+      await expect(
+        bondManager.setRequiredCollateral(ethers.utils.parseEther('0.99'))
+      ).to.be.revertedWith(Errors.LOW_VALUE)
+    })
 
-      it('only owner can adjust collateral', async () => {
-          await expect(
-              bondManager.connect(wallets[2]).setRequiredCollateral(amount.add(1))
-          ).to.be.revertedWith(
-          "BondManager: Only the contract's owner can call this function"
-          )
-      })
+    it('only owner can adjust collateral', async () => {
+      await expect(
+        bondManager.connect(wallets[2]).setRequiredCollateral(amount.add(1))
+      ).to.be.revertedWith(Errors.ONLY_OWNER)
+    })
   })
 
   describe('collateral management', () => {
@@ -136,17 +132,21 @@ describe('BondManager', () => {
 
     it('stake is true after depositing', async () => {
       const batchIdx = 1
-      expect(await bondManager
-        .connect(canonicalStateCommitmentChain)
-        .stake(sender, batchIdx)).to.be.true
+      expect(
+        await bondManager
+          .connect(canonicalStateCommitmentChain)
+          .stake(sender, batchIdx)
+      ).to.be.true
     })
 
     it('stake reverts after starting a withdrawal', async () => {
       const batchIdx = 1
       await bondManager.startWithdrawal()
-      await expect(bondManager
-        .connect(canonicalStateCommitmentChain)
-        .stake(sender, batchIdx)).to.be.revertedWith("BondManager: Sequencer is not sufficiently collateralized")
+      await expect(
+        bondManager
+          .connect(canonicalStateCommitmentChain)
+          .stake(sender, batchIdx)
+      ).to.be.revertedWith(Errors.NOT_ENOUGH_COLLATERAL)
     })
 
     it('can start a withdrawal', async () => {
@@ -159,13 +159,21 @@ describe('BondManager', () => {
 
     it('can only withdraw after the dispute period', async () => {
       await bondManager.startWithdrawal()
-      await expect(bondManager.finalizeWithdrawal()).to.be.reverted
+      await expect(bondManager.finalizeWithdrawal()).to.be.revertedWith(
+        Errors.TOO_EARLY
+      )
 
       const { withdrawalTimestamp } = await bondManager.bonds(sender)
       const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
       await mineBlock(deployer.provider, timestamp)
 
+      const balanceBefore = await token.balanceOf(sender)
       await bondManager.finalizeWithdrawal()
+      const bond = await bondManager.bonds(sender)
+      expect(bond.locked).to.eq(0)
+      expect(bond.withdrawing).to.eq(0)
+      expect(bond.withdrawalTimestamp).to.eq(0)
+      expect(await token.balanceOf(sender)).to.eq(balanceBefore.add(amount))
     })
   })
 
@@ -207,13 +215,13 @@ describe('BondManager', () => {
             preStateRoot,
             witnessProvider.address
           )
-        ).to.be.reverted
+        ).to.be.revertedWith(Errors.ONLY_TRANSITIONER)
       })
     })
 
     it('cannot claim before canClaim is set', async () => {
       await expect(bondManager.claim(preStateRoot)).to.be.revertedWith(
-        'Cannot claim rewards'
+        Errors.CANNOT_CLAIM
       )
     })
 
@@ -257,8 +265,6 @@ describe('BondManager', () => {
         expect(balance2).to.be.eq(balance1.add(half.mul(2).div(3)))
 
         // re-claiming does not give the user any extra funds
-        // TODO: Should we revert instead and require that the user has >0 claim
-        // votes?
         await bondManager.connect(witnessProvider).claim(preStateRoot)
         const balance3 = await token.balanceOf(witnessProvider.address)
         expect(balance3).to.be.eq(balance2)
@@ -275,8 +281,9 @@ describe('BondManager', () => {
       })
 
       it('only fraud verifier can finalize', async () => {
-        await expect(bondManager.finalize(preStateRoot, batchIdx, sender, 0)).to.be
-          .reverted
+        await expect(
+          bondManager.finalize(preStateRoot, batchIdx, sender, 0)
+        ).to.be.revertedWith(Errors.ONLY_FRAUD_VERIFIER)
       })
 
       it('proving fraud allows claiming', async () => {
@@ -290,10 +297,10 @@ describe('BondManager', () => {
         // cannot double finalize
         await expect(
           bondManager.finalize(preStateRoot, batchIdx, sender, 0)
-        ).to.be.revertedWith('err users already claimed')
+        ).to.be.revertedWith(Errors.ALREADY_FINALIZED)
       })
 
-      it('proving fraud cancels pending withdrawals if the withdrawal was during the batch\'s proving window', async () => {
+      it("proving fraud cancels pending withdrawals if the withdrawal was during the batch's proving window", async () => {
         // override the fraud verifier
         await manager.setAddress('OVM_FraudVerifier', sender)
 
@@ -302,14 +309,21 @@ describe('BondManager', () => {
         const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
 
         // a dispute is created about a block that intersects
-        const disputeTimestamp = withdrawalTimestamp - 100;
-        await bondManager.finalize(preStateRoot, batchIdx, sender, disputeTimestamp)
+        const disputeTimestamp = withdrawalTimestamp - 100
+        await bondManager.finalize(
+          preStateRoot,
+          batchIdx,
+          sender,
+          disputeTimestamp
+        )
 
         await mineBlock(deployer.provider, timestamp)
-        await expect(bondManager.finalizeWithdrawal()).to.be.reverted
+        await expect(bondManager.finalizeWithdrawal()).to.be.revertedWith(
+          Errors.SLASHED
+        )
       })
 
-      it('proving fraud late does not cancels pending withdrawals', async () => {
+      it('proving fraud late does not cancel pending withdrawals', async () => {
         // override the fraud verifier
         await manager.setAddress('OVM_FraudVerifier', sender)
 
@@ -329,8 +343,28 @@ describe('BondManager', () => {
         // override the fraud verifier
         await manager.setAddress('OVM_FraudVerifier', sender)
         await bondManager.finalize(preStateRoot, batchIdx, sender, 0)
-        await expect(bondManager.startWithdrawal()).to.be.reverted
+        await expect(bondManager.startWithdrawal()).to.be.revertedWith(
+          Errors.NOT_ENOUGH_COLLATERAL
+        )
       })
     })
   })
 })
+
+// Errors from the bond manager smart contract
+enum Errors {
+  ERC20_ERR = 'BondManager: Could not post bond',
+  NOT_ENOUGH_COLLATERAL = 'BondManager: Sequencer is not sufficiently collateralized',
+  LOW_VALUE = 'BondManager: New collateral value must be greater than the previous one',
+  ALREADY_FINALIZED = 'BondManager: Fraud proof for this pre-state root has already been finalized',
+  SLASHED = 'BondManager: Cannot finalize withdrawal, you probably got slashed',
+  CANNOT_CLAIM = 'BondManager: Cannot claim yet. Dispute must be finalized first',
+
+  WITHDRAWAL_PENDING = 'BondManager: Withdrawal already pending',
+  TOO_EARLY = 'BondManager: Too early to finalize your withdrawal',
+
+  ONLY_OWNER = "BondManager: Only the contract's owner can call this function",
+  ONLY_TRANSITIONER = 'BondManager: Only the transitioner for this pre-state root may call this function',
+  ONLY_FRAUD_VERIFIER = 'BondManager: Only the fraud verifier may call this function',
+  ONLY_STATE_COMMITMENT_CHAIN = 'BondManager: Only the state commitment chain may call this function',
+}
