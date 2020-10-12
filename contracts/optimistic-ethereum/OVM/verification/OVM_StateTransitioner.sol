@@ -72,7 +72,6 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
     )
         Lib_AddressResolver(_libAddressManager)
     {
-        // TODO: Can this be removed?
         stateTransitionIndex = _stateTransitionIndex;
         preStateRoot = _preStateRoot;
         postStateRoot = _preStateRoot;

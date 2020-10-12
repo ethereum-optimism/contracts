@@ -16,7 +16,6 @@ describe('BondManager', () => {
   let txChain: Contract
   let manager: Contract
 
-  const canonicalStateCommitmentChain = wallets[1]
   const stateTransitioner = wallets[3]
   const witnessProvider = wallets[4]
   const witnessProvider2 = wallets[5]
@@ -73,12 +72,6 @@ describe('BondManager', () => {
     )
     await manager.setAddress('OVM_FraudVerifier', fraudVerifier.address)
 
-    // Fake state commitment chain for the `isCollateralized` call
-    await manager.setAddress(
-      'OVM_CanonicalStateCommitmentChain',
-      canonicalStateCommitmentChain.address
-    )
-
     // deploy a test erc20 token to be used for the bonds
     token = await (await deployer.getContractFactory('TestERC20')).deploy()
     await token.mint(sender, ethers.utils.parseEther('100'))
@@ -94,9 +87,9 @@ describe('BondManager', () => {
     it('bumps required collateral', async () => {
       // sets collateral to 2 eth, which is more than what we have deposited
       await bondManager.setRequiredCollateral(ethers.utils.parseEther('2'))
-      await expect(
-        bondManager.connect(canonicalStateCommitmentChain).isCollateralized(sender, 1)
-      ).to.be.revertedWith(Errors.NOT_ENOUGH_COLLATERAL)
+      await expect(bondManager.isCollateralized(sender, 1)).to.be.revertedWith(
+        Errors.NOT_ENOUGH_COLLATERAL
+      )
     })
 
     it('cannot lower collateral reqs', async () => {
@@ -132,20 +125,14 @@ describe('BondManager', () => {
 
     it('isCollateralized is true after depositing', async () => {
       const batchIdx = 1
-      expect(
-        await bondManager
-          .connect(canonicalStateCommitmentChain)
-          .isCollateralized(sender, batchIdx)
-      ).to.be.true
+      expect(await bondManager.isCollateralized(sender, batchIdx)).to.be.true
     })
 
     it('isCollateralized reverts after starting a withdrawal', async () => {
       const batchIdx = 1
       await bondManager.startWithdrawal()
       await expect(
-        bondManager
-          .connect(canonicalStateCommitmentChain)
-          .isCollateralized(sender, batchIdx)
+        bondManager.isCollateralized(sender, batchIdx)
       ).to.be.revertedWith(Errors.NOT_ENOUGH_COLLATERAL)
     })
 
@@ -279,7 +266,7 @@ describe('BondManager', () => {
         await bondManager.deposit(amount)
         // override the fraud verifier
         bondManager.smodify.put({
-            ovmFraudVerifier: sender
+          ovmFraudVerifier: sender,
         })
       })
 

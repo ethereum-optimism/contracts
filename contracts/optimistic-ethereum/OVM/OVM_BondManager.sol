@@ -28,17 +28,10 @@ library Errors {
 }
 
 contract OVM_BondManager is Lib_AddressResolver {
-    /// Owner used to bump the security bond size
-    address public owner;
 
-    /// The bond token
-    ERC20 immutable public token;
-
-    /// The fraud verifier contract, used to get data about transitioners for a pre-state root
-    address public ovmFraudVerifier;
-    address public ovmCanonicalStateCommitmentChain;
-
-    uint256 requiredCollateral = 1 ether;
+    /*******************
+     * Data Structures *
+     *******************/
 
     /// A bond posted by a sequencer
     /// The bonds posted by each sequencer
@@ -48,10 +41,6 @@ contract OVM_BondManager is Lib_AddressResolver {
         uint256 withdrawalTimestamp;
 
     }
-    mapping(address => Bond) public bonds;
-
-    /// The dispute period
-    uint256 public disputePeriodSeconds = 7 days;
 
     // Per pre-state root, store the number of state provisions that were made
     // and how many of these calls were made by each user. Payouts will then be
@@ -64,9 +53,43 @@ contract OVM_BondManager is Lib_AddressResolver {
         // value of `totalClaims`
         mapping(address => uint256) numClaims;
     }
+
+    /****************************
+     * Constants and Parameters *
+     ****************************/
+
+    /// The dispute period
+    uint256 public constant disputePeriodSeconds = 7 days;
+
+    /// The minimum collateral a sequencer must post
+    uint256 public requiredCollateral = 1 ether;
+
+    /// Owner used to bump the security bond size
+    address immutable public owner;
+
+    /*******************************************
+     * Contract Variables: Contract References *
+     *******************************************/
+
+    /// The bond token
+    ERC20 immutable public token;
+
+    /// The fraud verifier contract, used to get data about transitioners for a pre-state root
+    address public ovmFraudVerifier;
+
+    /*******************************************
+     * Contract Variables: Internal Accounting  *
+     *******************************************/
+
+    mapping(address => Bond) public bonds;
+
     /// For each pre-state root, there's an array of witnessProviders that must be rewarded
     /// for posting witnesses
     mapping(bytes32 => Rewards) public witnessProviders;
+
+    /***************
+     * Constructor *
+     ***************/
 
     /// Initializes with a ERC20 token to be used for the fidelity bonds
     /// and with the Address Manager
@@ -76,8 +99,11 @@ contract OVM_BondManager is Lib_AddressResolver {
         owner = msg.sender;
         token = _token;
         ovmFraudVerifier = resolve("OVM_FraudVerifier");
-        ovmCanonicalStateCommitmentChain = resolve("OVM_CanonicalStateCommitmentChain");
     }
+
+    /********************
+     * Public Functions *
+     ********************/
 
     /// Adds `who` to the list of witnessProviders for the provided `preStateRoot`.
     function storeWitnessProvider(bytes32 _preStateRoot, address who) public {
@@ -117,6 +143,18 @@ contract OVM_BondManager is Lib_AddressResolver {
         }
     }
 
+    /// Sequencers call this function to post collateral which will be used for
+    /// the `appendBatch` call
+    function deposit(uint256 amount) public {
+        require(
+            token.transferFrom(msg.sender, address(this), amount),
+            Errors.ERC20_ERR
+        );
+
+        // This cannot overflow
+        bonds[msg.sender].locked += amount;
+    }
+
     /// Starts the withdrawal for a publisher
     function startWithdrawal() public {
         Bond storage bond = bonds[msg.sender];
@@ -146,7 +184,7 @@ contract OVM_BondManager is Lib_AddressResolver {
         );
     }
 
-    // Claims the user's proportion of the provided state
+    /// Claims the user's reward for the witnesses they provided
     function claim(bytes32 _preStateRoot) public {
         Rewards storage rewards = witnessProviders[_preStateRoot];
 
@@ -164,29 +202,6 @@ contract OVM_BondManager is Lib_AddressResolver {
         require(token.transfer(msg.sender, amount), Errors.ERC20_ERR);
     }
 
-    ////////////////////////
-    // Collateral Management
-    ////////////////////////
-
-    // Checks if the user is collateralized for the batchIndex
-    function isCollateralized(address who, uint256 batchIndex) public view returns (bool) {
-        require(msg.sender == ovmCanonicalStateCommitmentChain, Errors.ONLY_STATE_COMMITMENT_CHAIN);
-        require(bonds[who].locked >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
-        return true;
-    }
-
-    /// Sequencers call this function to post collateral which will be used for
-    /// the `appendBatch` call
-    function deposit(uint256 amount) public {
-        require(
-            token.transferFrom(msg.sender, address(this), amount),
-            Errors.ERC20_ERR
-        );
-
-        // This cannot overflow
-        bonds[msg.sender].locked += amount;
-    }
-
     /// Sets the required collateral for posting a state root
     /// Callable only by the contract's deployer.
     function setRequiredCollateral(uint256 newValue) public {
@@ -195,6 +210,13 @@ contract OVM_BondManager is Lib_AddressResolver {
         requiredCollateral = newValue;
     }
 
+    /// Checks if the user is collateralized for the batchIndex
+    function isCollateralized(address who, uint256 batchIndex) public view returns (bool) {
+        require(bonds[who].locked >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
+        return true;
+    }
+
+    /// Gets how many witnesses the user has provided for the state root
     function getNumberOfClaims(bytes32 preStateRoot, address who) public view returns (uint256) {
         return witnessProviders[preStateRoot].numClaims[who];
     }
