@@ -49,7 +49,7 @@ describe('OVM_StateCommitmentChain', () => {
       'OVM_BondManager',
       Mock__OVM_BondManager
     )
-    Mock__OVM_BondManager.smocked.stake.will.return.with(true)
+    Mock__OVM_BondManager.smocked.isCollateralized.will.return.with(true)
   })
 
   let Factory__OVM_StateCommitmentChain: ContractFactory

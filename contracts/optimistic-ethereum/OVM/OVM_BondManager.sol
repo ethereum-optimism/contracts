@@ -168,8 +168,8 @@ contract OVM_BondManager is Lib_AddressResolver {
     // Collateral Management
     ////////////////////////
 
-    // Stakes the user for the provided batch index
-    function stake(address who, uint256 batchIndex) public view returns (bool) {
+    // Checks if the user is collateralized for the batchIndex
+    function isCollateralized(address who, uint256 batchIndex) public view returns (bool) {
         require(msg.sender == ovmCanonicalStateCommitmentChain, Errors.ONLY_STATE_COMMITMENT_CHAIN);
         require(bonds[who].locked >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
         return true;

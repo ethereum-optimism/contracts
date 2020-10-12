@@ -64,7 +64,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
     {
         // Stake!
         require(
-            ovmBondManager.stake(msg.sender, batches.length + 1),
+            ovmBondManager.isCollateralized(msg.sender, batches.length + 1),
             "Sequencer does not have enough collateral posted"
         );
 

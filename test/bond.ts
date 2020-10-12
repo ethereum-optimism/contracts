@@ -73,7 +73,7 @@ describe('BondManager', () => {
     )
     await manager.setAddress('OVM_FraudVerifier', fraudVerifier.address)
 
-    // Fake state commitment chain for the `stake` call
+    // Fake state commitment chain for the `isCollateralized` call
     await manager.setAddress(
       'OVM_CanonicalStateCommitmentChain',
       canonicalStateCommitmentChain.address
@@ -95,7 +95,7 @@ describe('BondManager', () => {
       // sets collateral to 2 eth, which is more than what we have deposited
       await bondManager.setRequiredCollateral(ethers.utils.parseEther('2'))
       await expect(
-        bondManager.connect(canonicalStateCommitmentChain).stake(sender, 1)
+        bondManager.connect(canonicalStateCommitmentChain).isCollateralized(sender, 1)
       ).to.be.revertedWith(Errors.NOT_ENOUGH_COLLATERAL)
     })
 
@@ -130,22 +130,22 @@ describe('BondManager', () => {
       expect(bond.withdrawalTimestamp).to.eq(0)
     })
 
-    it('stake is true after depositing', async () => {
+    it('isCollateralized is true after depositing', async () => {
       const batchIdx = 1
       expect(
         await bondManager
           .connect(canonicalStateCommitmentChain)
-          .stake(sender, batchIdx)
+          .isCollateralized(sender, batchIdx)
       ).to.be.true
     })
 
-    it('stake reverts after starting a withdrawal', async () => {
+    it('isCollateralized reverts after starting a withdrawal', async () => {
       const batchIdx = 1
       await bondManager.startWithdrawal()
       await expect(
         bondManager
           .connect(canonicalStateCommitmentChain)
-          .stake(sender, batchIdx)
+          .isCollateralized(sender, batchIdx)
       ).to.be.revertedWith(Errors.NOT_ENOUGH_COLLATERAL)
     })
 
@@ -275,7 +275,7 @@ describe('BondManager', () => {
       const batchIdx = 1
 
       beforeEach(async () => {
-        // stake so that sequencers map is not empty
+        // isCollateralized so that sequencers map is not empty
         await token.approve(bondManager.address, ethers.constants.MaxUint256)
         await bondManager.deposit(amount)
       })
