@@ -51,7 +51,7 @@ contract OVM_BondManager is Lib_AddressResolver {
     mapping(address => Bond) public bonds;
 
     /// The dispute period
-    uint256 public forceInclusionPeriodSeconds = 7 days;
+    uint256 public disputePeriodSeconds = 7 days;
 
     // Per pre-state root, store the number of state provisions that were made
     // and how many of these calls were made by each user. Payouts will then be
@@ -110,7 +110,7 @@ contract OVM_BondManager is Lib_AddressResolver {
         // block's challenge period
         if (
             bond.withdrawalTimestamp != 0 && 
-            bond.withdrawalTimestamp <= timestamp + forceInclusionPeriodSeconds &&
+            bond.withdrawalTimestamp <= timestamp + disputePeriodSeconds &&
             bond.withdrawing >= requiredCollateral
         ) {
             bond.withdrawing -= requiredCollateral;
@@ -133,7 +133,7 @@ contract OVM_BondManager is Lib_AddressResolver {
         Bond storage bond = bonds[msg.sender];
 
         require(
-            block.timestamp >= bond.withdrawalTimestamp + forceInclusionPeriodSeconds, 
+            block.timestamp >= bond.withdrawalTimestamp + disputePeriodSeconds, 
             Errors.TOO_EARLY
         );
         require(bond.withdrawing >= requiredCollateral, Errors.SLASHED);
