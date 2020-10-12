@@ -174,7 +174,10 @@ export class ExecutionManagerTestRunner {
 
     this.contracts.OVM_StateManager = await (
       await smoddit('OVM_StateManager')
-    ).deploy(this.contracts.OVM_ExecutionManager.address)
+    ).deploy(await this.contracts.OVM_ExecutionManager.signer.getAddress())
+    await this.contracts.OVM_StateManager.setExecutionManager(
+      this.contracts.OVM_ExecutionManager.address
+    )
 
     this.contracts.Helper_TestRunner = await (
       await ethers.getContractFactory('Helper_TestRunner')
