@@ -35,7 +35,7 @@ contract OVM_BondManager is Lib_AddressResolver {
     ERC20 immutable public token;
 
     /// The fraud verifier contract, used to get data about transitioners for a pre-state root
-    // address public ovmFraudVerifier;
+    address public ovmFraudVerifier;
     address public ovmCanonicalStateCommitmentChain;
 
     uint256 requiredCollateral = 1 ether;
@@ -75,14 +75,14 @@ contract OVM_BondManager is Lib_AddressResolver {
     {
         owner = msg.sender;
         token = _token;
-        // ovmFraudVerifier = resolve("OVM_FraudVerifier"); // TODO: Re-enable this
+        ovmFraudVerifier = resolve("OVM_FraudVerifier");
         ovmCanonicalStateCommitmentChain = resolve("OVM_CanonicalStateCommitmentChain");
     }
 
     /// Adds `who` to the list of witnessProviders for the provided `preStateRoot`.
     function storeWitnessProvider(bytes32 _preStateRoot, address who) public {
         // The sender must be the transitioner that corresponds to the claimed pre-state root
-        address transitioner = address(iOVM_FraudVerifier(resolve("OVM_FraudVerifier")).getStateTransitioner(_preStateRoot));
+        address transitioner = address(iOVM_FraudVerifier(ovmFraudVerifier).getStateTransitioner(_preStateRoot));
         require(transitioner == msg.sender, Errors.ONLY_TRANSITIONER);
 
         witnessProviders[_preStateRoot].total += 1;
@@ -92,7 +92,7 @@ contract OVM_BondManager is Lib_AddressResolver {
     /// Slashes + distributes rewards or frees up the sequencer's bond, only called by
     /// `FraudVerifier.finalizeFraudVerification`
     function finalize(bytes32 _preStateRoot, uint256 batchIndex, address publisher, uint256 timestamp) public {
-        require(msg.sender == resolve("OVM_FraudVerifier"), Errors.ONLY_FRAUD_VERIFIER);
+        require(msg.sender == ovmFraudVerifier, Errors.ONLY_FRAUD_VERIFIER);
         require(witnessProviders[_preStateRoot].canClaim == false, Errors.ALREADY_FINALIZED);
 
         // allow users to claim from that state root's

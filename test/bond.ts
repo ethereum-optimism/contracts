@@ -275,9 +275,12 @@ describe('BondManager', () => {
       const batchIdx = 1
 
       beforeEach(async () => {
-        // isCollateralized so that sequencers map is not empty
         await token.approve(bondManager.address, ethers.constants.MaxUint256)
         await bondManager.deposit(amount)
+        // override the fraud verifier
+        bondManager.smodify.put({
+            ovmFraudVerifier: sender
+        })
       })
 
       it('only fraud verifier can finalize', async () => {
@@ -287,8 +290,6 @@ describe('BondManager', () => {
       })
 
       it('proving fraud allows claiming', async () => {
-        // override the fraud verifier
-        await manager.setAddress('OVM_FraudVerifier', sender)
         await bondManager.finalize(preStateRoot, batchIdx, sender, 0)
 
         expect((await bondManager.witnessProviders(preStateRoot)).canClaim).to
@@ -301,9 +302,6 @@ describe('BondManager', () => {
       })
 
       it("proving fraud cancels pending withdrawals if the withdrawal was during the batch's proving window", async () => {
-        // override the fraud verifier
-        await manager.setAddress('OVM_FraudVerifier', sender)
-
         await bondManager.startWithdrawal()
         const { withdrawalTimestamp } = await bondManager.bonds(sender)
         const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
@@ -324,9 +322,6 @@ describe('BondManager', () => {
       })
 
       it('proving fraud late does not cancel pending withdrawals', async () => {
-        // override the fraud verifier
-        await manager.setAddress('OVM_FraudVerifier', sender)
-
         await bondManager.startWithdrawal()
         const { withdrawalTimestamp } = await bondManager.bonds(sender)
         const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
@@ -340,8 +335,6 @@ describe('BondManager', () => {
       })
 
       it('proving fraud prevents starting a withdrawal due to slashing', async () => {
-        // override the fraud verifier
-        await manager.setAddress('OVM_FraudVerifier', sender)
         await bondManager.finalize(preStateRoot, batchIdx, sender, 0)
         await expect(bondManager.startWithdrawal()).to.be.revertedWith(
           Errors.NOT_ENOUGH_COLLATERAL
