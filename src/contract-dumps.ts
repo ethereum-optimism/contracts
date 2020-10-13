@@ -67,11 +67,9 @@ const sanitizeStorageDump = (
     deadAddress: string
   }>
 ): StorageDump => {
-  for (let i = 0; i < accounts.length; i++) {
-    accounts[i].originalAddress = remove0x(
-      accounts[i].originalAddress
-    ).toLowerCase()
-    accounts[i].deadAddress = remove0x(accounts[i].deadAddress).toLowerCase()
+  for (const account of accounts) {
+    account.originalAddress = remove0x(account.originalAddress).toLowerCase()
+    account.deadAddress = remove0x(account.deadAddress).toLowerCase()
   }
 
   for (const [key, value] of Object.entries(storageDump)) {
