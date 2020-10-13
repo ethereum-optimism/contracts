@@ -175,7 +175,6 @@ describe('OVM_FraudVerifier', () => {
       Mock__OVM_CanonicalTransactionChain.smocked.verifyElement.will.return.with(
         true
       )
-      Mock__OVM_BondManager.smocked.finalize.will.return()
 
       await OVM_FraudVerifier.initializeFraudVerification(
         NULL_BYTES32,
