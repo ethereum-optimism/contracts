@@ -15,6 +15,7 @@ describe('BondManager', () => {
   let token: Contract
   let txChain: Contract
   let manager: Contract
+  let fraudVerifier: Contract
 
   const stateTransitioner = wallets[3]
   const witnessProvider = wallets[4]
@@ -56,18 +57,11 @@ describe('BondManager', () => {
     await manager.setAddress('OVM_CanonicalTransactionChain', txChain.address)
 
     // deploy the fraud verifier and mock its pre-state root transitioner
-    const fraudVerifier = await (await smoddit('OVM_FraudVerifier')).deploy(
-      manager.address
-    )
-    expect(await fraudVerifier.getStateTransitioner(preStateRoot)).to.eq(
-      ethers.constants.AddressZero
-    )
-    fraudVerifier.smodify.put({
-      transitioners: {
-        [preStateRoot]: stateTransitioner.address,
-      },
-    })
-    expect(await fraudVerifier.getStateTransitioner(preStateRoot)).to.eq(
+    fraudVerifier = await (
+      await deployer.getContractFactory('Mock_FraudVerifier')
+    ).deploy()
+    await fraudVerifier.setStateTransitioner(
+      preStateRoot,
       stateTransitioner.address
     )
     await manager.setAddress('OVM_FraudVerifier', fraudVerifier.address)
@@ -81,6 +75,7 @@ describe('BondManager', () => {
       manager.address
     )
     await manager.setAddress('OVM_BondManager', bondManager.address)
+    await fraudVerifier.setBondManager(bondManager.address)
   })
 
   describe('required collateral adjustment', () => {
@@ -264,10 +259,6 @@ describe('BondManager', () => {
       beforeEach(async () => {
         await token.approve(bondManager.address, ethers.constants.MaxUint256)
         await bondManager.deposit(amount)
-        // override the fraud verifier
-        bondManager.smodify.put({
-          ovmFraudVerifier: sender,
-        })
       })
 
       it('only fraud verifier can finalize', async () => {
@@ -277,14 +268,14 @@ describe('BondManager', () => {
       })
 
       it('proving fraud allows claiming', async () => {
-        await bondManager.finalize(preStateRoot, batchIdx, sender, 0)
+        await fraudVerifier.finalize(preStateRoot, batchIdx, sender, 0)
 
         expect((await bondManager.witnessProviders(preStateRoot)).canClaim).to
           .be.true
 
         // cannot double finalize
         await expect(
-          bondManager.finalize(preStateRoot, batchIdx, sender, 0)
+          fraudVerifier.finalize(preStateRoot, batchIdx, sender, 0)
         ).to.be.revertedWith(Errors.ALREADY_FINALIZED)
       })
 
@@ -295,7 +286,7 @@ describe('BondManager', () => {
 
         // a dispute is created about a block that intersects
         const disputeTimestamp = withdrawalTimestamp - 100
-        await bondManager.finalize(
+        await fraudVerifier.finalize(
           preStateRoot,
           batchIdx,
           sender,
@@ -315,14 +306,14 @@ describe('BondManager', () => {
 
         // a dispute is created, but since the fraud period is already over
         // it doesn't matter
-        await bondManager.finalize(preStateRoot, batchIdx, sender, 0)
+        await fraudVerifier.finalize(preStateRoot, batchIdx, sender, 0)
 
         await mineBlock(deployer.provider, timestamp)
         await bondManager.finalizeWithdrawal()
       })
 
       it('proving fraud prevents starting a withdrawal due to slashing', async () => {
-        await bondManager.finalize(preStateRoot, batchIdx, sender, 0)
+        await fraudVerifier.finalize(preStateRoot, batchIdx, sender, 0)
         await expect(bondManager.startWithdrawal()).to.be.revertedWith(
           Errors.NOT_ENOUGH_COLLATERAL
         )
