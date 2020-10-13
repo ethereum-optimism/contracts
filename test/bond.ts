@@ -157,6 +157,17 @@ describe('BondManager', () => {
       expect(bond.withdrawalTimestamp).to.eq(0)
       expect(await token.balanceOf(sender)).to.eq(balanceBefore.add(amount))
     })
+
+    it('is not collateralized after withdrawing', async () => {
+      await bondManager.startWithdrawal()
+      const { withdrawalTimestamp } = await bondManager.bonds(sender)
+      const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
+      await mineBlock(deployer.provider, timestamp)
+      await bondManager.finalizeWithdrawal()
+      await expect(bondManager.isCollateralized(sender, 1)).to.be.revertedWith(
+        Errors.NOT_ENOUGH_COLLATERAL
+      )
+    })
   })
 
   describe('dispute resolution', () => {
