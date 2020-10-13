@@ -211,7 +211,7 @@ contract OVM_BondManager is Lib_AddressResolver {
     }
 
     /// Checks if the user is collateralized for the batchIndex
-    function isCollateralized(address who, uint256 batchIndex) public view returns (bool) {
+    function isCollateralized(address who) public view returns (bool) {
         require(bonds[who].locked >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
         return true;
     }

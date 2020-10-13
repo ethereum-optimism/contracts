@@ -82,7 +82,7 @@ describe('BondManager', () => {
     it('bumps required collateral', async () => {
       // sets collateral to 2 eth, which is more than what we have deposited
       await bondManager.setRequiredCollateral(ethers.utils.parseEther('2'))
-      await expect(bondManager.isCollateralized(sender, 1)).to.be.revertedWith(
+      await expect(bondManager.isCollateralized(sender)).to.be.revertedWith(
         Errors.NOT_ENOUGH_COLLATERAL
       )
     })
@@ -119,16 +119,14 @@ describe('BondManager', () => {
     })
 
     it('isCollateralized is true after depositing', async () => {
-      const batchIdx = 1
-      expect(await bondManager.isCollateralized(sender, batchIdx)).to.be.true
+      expect(await bondManager.isCollateralized(sender)).to.be.true
     })
 
     it('isCollateralized reverts after starting a withdrawal', async () => {
-      const batchIdx = 1
       await bondManager.startWithdrawal()
-      await expect(
-        bondManager.isCollateralized(sender, batchIdx)
-      ).to.be.revertedWith(Errors.NOT_ENOUGH_COLLATERAL)
+      await expect(bondManager.isCollateralized(sender)).to.be.revertedWith(
+        Errors.NOT_ENOUGH_COLLATERAL
+      )
     })
 
     it('can start a withdrawal', async () => {
@@ -164,7 +162,7 @@ describe('BondManager', () => {
       const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
       await mineBlock(deployer.provider, timestamp)
       await bondManager.finalizeWithdrawal()
-      await expect(bondManager.isCollateralized(sender, 1)).to.be.revertedWith(
+      await expect(bondManager.isCollateralized(sender)).to.be.revertedWith(
         Errors.NOT_ENOUGH_COLLATERAL
       )
     })
