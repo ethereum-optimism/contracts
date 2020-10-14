@@ -12,11 +12,11 @@ interface ERC20 {
 /// All the errors which may be encountered on the bond manager
 library Errors {
     string constant ERC20_ERR = "BondManager: Could not post bond";
-    string constant NOT_ENOUGH_COLLATERAL = "BondManager: Sequencer is not sufficiently collateralized";
     string constant LOW_VALUE = "BondManager: New collateral value must be greater than the previous one";
     string constant HIGH_VALUE = "BondManager: New collateral value cannot be more than 5x of the previous one";
     string constant ALREADY_FINALIZED = "BondManager: Fraud proof for this pre-state root has already been finalized";
     string constant SLASHED = "BondManager: Cannot finalize withdrawal, you probably got slashed";
+    string constant WRONG_STATE = "BondManager: Wrong bond state for proposer";
     string constant CANNOT_CLAIM = "BondManager: Cannot claim yet. Dispute must be finalized first";
 
     string constant WITHDRAWAL_PENDING = "BondManager: Withdrawal already pending";
@@ -34,14 +34,22 @@ contract OVM_BondManager is Lib_AddressResolver {
      * Data Structures *
      *******************/
 
+    /// The lifecycle of a proposer's bond
+    enum State {
+        // Before depositing or after getting slashed, a user is uncollateralized
+        NOT_COLLATERALIZED,
+        // After depositing, a user is collateralized
+        COLLATERALIZED,
+        // After a user has initiated a withdrawal
+        WITHDRAWING
+    }
+
     /// A bond posted by a proposer
     struct Bond {
-        // The amount a proposer has posted as collateral
-        uint256 locked;
-        // The amount a proposer is currently withdrawing
-        uint256 withdrawing;
+        // The user's state
+        State state;
         // The timestamp at which a proposer issued their withdrawal request
-        uint256 withdrawalTimestamp;
+        uint32 withdrawalTimestamp;
     }
 
     // Per pre-state root, store the number of state provisions that were made
@@ -134,20 +142,22 @@ contract OVM_BondManager is Lib_AddressResolver {
 
         Bond storage bond = bonds[publisher];
 
-        // always slash 1 round of collateral, if possible
-        if (bond.locked >= requiredCollateral) {
-            bond.locked -= requiredCollateral;
-        }
-
-        // if the publisher has a pending withdrawal that's within the published
-        // block's challenge period
+        // if the fraud proof's dispute period does not intersect with the 
+        // withdrawal's timestamp, then the user should not be slashed
+        // e.g if a user at day 10 submits a withdrawal, and a fraud proof
+        // from day 1 gets published, the user won't be slashed since day 8 (1d + 7d)
+        // is before the user started their withdrawal. on the contrary, if the user
+        // had started their withdrawal at, say, day 6, they would be slashed
         if (
             bond.withdrawalTimestamp != 0 && 
-            bond.withdrawalTimestamp <= timestamp + disputePeriodSeconds &&
-            bond.withdrawing >= requiredCollateral
+            uint256(bond.withdrawalTimestamp) > timestamp + disputePeriodSeconds &&
+            bond.state == State.WITHDRAWING
         ) {
-            bond.withdrawing -= requiredCollateral;
+            return;
         }
+
+        // slash!
+        bond.state = State.NOT_COLLATERALIZED;
     }
 
     /// Sequencers call this function to post collateral which will be used for
@@ -159,18 +169,17 @@ contract OVM_BondManager is Lib_AddressResolver {
         );
 
         // This cannot overflow
-        bonds[msg.sender].locked += amount;
+        bonds[msg.sender].state = State.COLLATERALIZED;
     }
 
     /// Starts the withdrawal for a publisher
     function startWithdrawal() public {
         Bond storage bond = bonds[msg.sender];
         require(bond.withdrawalTimestamp == 0, Errors.WITHDRAWAL_PENDING);
-        require(bond.locked >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
-        bond.locked -= requiredCollateral;
+        require(bond.state == State.COLLATERALIZED, Errors.WRONG_STATE);
 
-        bond.withdrawing += requiredCollateral;
-        bond.withdrawalTimestamp = block.timestamp;
+        bond.state = State.WITHDRAWING;
+        bond.withdrawalTimestamp = uint32(block.timestamp);
     }
 
     /// Finalizes a pending withdrawal from a publisher
@@ -178,11 +187,13 @@ contract OVM_BondManager is Lib_AddressResolver {
         Bond storage bond = bonds[msg.sender];
 
         require(
-            block.timestamp >= bond.withdrawalTimestamp + disputePeriodSeconds, 
+            block.timestamp >= uint256(bond.withdrawalTimestamp) + disputePeriodSeconds, 
             Errors.TOO_EARLY
         );
-        require(bond.withdrawing >= requiredCollateral, Errors.SLASHED);
-        bond.withdrawing -= requiredCollateral;
+        require(bond.state == State.WITHDRAWING, Errors.SLASHED);
+        
+        // refunds!
+        bond.state = State.NOT_COLLATERALIZED;
         bond.withdrawalTimestamp = 0;
         
         require(
@@ -220,8 +231,7 @@ contract OVM_BondManager is Lib_AddressResolver {
 
     /// Checks if the user is collateralized for the batchIndex
     function isCollateralized(address who) public view returns (bool) {
-        require(bonds[who].locked >= requiredCollateral, Errors.NOT_ENOUGH_COLLATERAL);
-        return true;
+        return bonds[who].state == State.COLLATERALIZED;
     }
 
     /// Gets how many witnesses the user has provided for the state root

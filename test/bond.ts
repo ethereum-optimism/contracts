@@ -13,7 +13,6 @@ describe('BondManager', () => {
 
   let bondManager: Contract
   let token: Contract
-  let txChain: Contract
   let manager: Contract
   let fraudVerifier: Contract
 
@@ -23,7 +22,7 @@ describe('BondManager', () => {
 
   const sender = wallets[0].address
 
-  const disputePeriod = 3600
+  const ONE_WEEK = 3600 * 24 * 7
 
   const preStateRoot =
     '0x1111111111111111111111111111111111111111111111111111111111111111'
@@ -49,12 +48,6 @@ describe('BondManager', () => {
       'OVM_StateManagerFactory',
       stateManagerFactory.address
     )
-
-    txChain = await (await smoddit('OVM_CanonicalTransactionChain')).deploy(
-      manager.address,
-      disputePeriod // 100 seconds fraud period
-    )
-    await manager.setAddress('OVM_CanonicalTransactionChain', txChain.address)
 
     // deploy the fraud verifier and mock its pre-state root transitioner
     fraudVerifier = await (
@@ -82,9 +75,7 @@ describe('BondManager', () => {
     it('bumps required collateral', async () => {
       // sets collateral to 2 eth, which is more than what we have deposited
       await bondManager.setRequiredCollateral(ethers.utils.parseEther('2'))
-      await expect(bondManager.isCollateralized(sender)).to.be.revertedWith(
-        Errors.NOT_ENOUGH_COLLATERAL
-      )
+      expect(await bondManager.isCollateralized(sender)).to.be.false
     })
 
     it('cannot lower collateral reqs', async () => {
@@ -119,8 +110,7 @@ describe('BondManager', () => {
       const balanceAfter = await token.balanceOf(sender)
       expect(balanceAfter).to.be.eq(balanceBefore.sub(amount))
       const bond = await bondManager.bonds(sender)
-      expect(bond.locked).to.eq(amount)
-      expect(bond.withdrawing).to.eq(0)
+      expect(bond.state).to.eq(State.COLLATERALIZED)
       expect(bond.withdrawalTimestamp).to.eq(0)
     })
 
@@ -128,18 +118,15 @@ describe('BondManager', () => {
       expect(await bondManager.isCollateralized(sender)).to.be.true
     })
 
-    it('isCollateralized reverts after starting a withdrawal', async () => {
+    it('isCollateralized is false after starting a withdrawal', async () => {
       await bondManager.startWithdrawal()
-      await expect(bondManager.isCollateralized(sender)).to.be.revertedWith(
-        Errors.NOT_ENOUGH_COLLATERAL
-      )
+      expect(await bondManager.isCollateralized(sender)).to.be.false
     })
 
     it('can start a withdrawal', async () => {
       await bondManager.startWithdrawal()
       const bond = await bondManager.bonds(sender)
-      expect(bond.locked).to.eq(0)
-      expect(bond.withdrawing).to.eq(amount)
+      expect(bond.state).to.eq(State.WITHDRAWING)
       expect(bond.withdrawalTimestamp).to.not.eq(0)
     })
 
@@ -150,14 +137,13 @@ describe('BondManager', () => {
       )
 
       const { withdrawalTimestamp } = await bondManager.bonds(sender)
-      const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
+      const timestamp = withdrawalTimestamp + ONE_WEEK
       await mineBlock(deployer.provider, timestamp)
 
       const balanceBefore = await token.balanceOf(sender)
       await bondManager.finalizeWithdrawal()
       const bond = await bondManager.bonds(sender)
-      expect(bond.locked).to.eq(0)
-      expect(bond.withdrawing).to.eq(0)
+      expect(bond.state).to.eq(State.NOT_COLLATERALIZED)
       expect(bond.withdrawalTimestamp).to.eq(0)
       expect(await token.balanceOf(sender)).to.eq(balanceBefore.add(amount))
     })
@@ -165,12 +151,10 @@ describe('BondManager', () => {
     it('is not collateralized after withdrawing', async () => {
       await bondManager.startWithdrawal()
       const { withdrawalTimestamp } = await bondManager.bonds(sender)
-      const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
+      const timestamp = withdrawalTimestamp + ONE_WEEK
       await mineBlock(deployer.provider, timestamp)
       await bondManager.finalizeWithdrawal()
-      await expect(bondManager.isCollateralized(sender)).to.be.revertedWith(
-        Errors.NOT_ENOUGH_COLLATERAL
-      )
+      expect(await bondManager.isCollateralized(sender)).to.be.false
     })
   })
 
@@ -297,7 +281,7 @@ describe('BondManager', () => {
       it("proving fraud cancels pending withdrawals if the withdrawal was during the batch's proving window", async () => {
         await bondManager.startWithdrawal()
         const { withdrawalTimestamp } = await bondManager.bonds(sender)
-        const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
+        const timestamp = withdrawalTimestamp + ONE_WEEK
 
         // a dispute is created about a block that intersects
         const disputeTimestamp = withdrawalTimestamp - 100
@@ -317,34 +301,49 @@ describe('BondManager', () => {
       it('proving fraud late does not cancel pending withdrawals', async () => {
         await bondManager.startWithdrawal()
         const { withdrawalTimestamp } = await bondManager.bonds(sender)
-        const timestamp = withdrawalTimestamp.toNumber() + 7 * 3600 * 24
 
         // a dispute is created, but since the fraud period is already over
         // it doesn't matter
-        await fraudVerifier.finalize(preStateRoot, batchIdx, sender, 0)
+        const disputeTimestamp = withdrawalTimestamp - ONE_WEEK - 1
+        await fraudVerifier.finalize(
+          preStateRoot,
+          batchIdx,
+          sender,
+          disputeTimestamp
+        )
 
-        await mineBlock(deployer.provider, timestamp)
+        const finalizeWithdrawalTimestamp = withdrawalTimestamp + ONE_WEEK
+        await mineBlock(deployer.provider, finalizeWithdrawalTimestamp)
         await bondManager.finalizeWithdrawal()
       })
 
       it('proving fraud prevents starting a withdrawal due to slashing', async () => {
         await fraudVerifier.finalize(preStateRoot, batchIdx, sender, 0)
         await expect(bondManager.startWithdrawal()).to.be.revertedWith(
-          Errors.NOT_ENOUGH_COLLATERAL
+          Errors.WRONG_STATE
         )
       })
     })
   })
 })
 
+enum State {
+  // Before depositing or after getting slashed, a user is uncollateralized
+  NOT_COLLATERALIZED,
+  // After depositing, a user is collateralized
+  COLLATERALIZED,
+  // After a user has initiated a withdrawal
+  WITHDRAWING,
+}
+
 // Errors from the bond manager smart contract
 enum Errors {
   ERC20_ERR = 'BondManager: Could not post bond',
-  NOT_ENOUGH_COLLATERAL = 'BondManager: Sequencer is not sufficiently collateralized',
   LOW_VALUE = 'BondManager: New collateral value must be greater than the previous one',
   HIGH_VALUE = 'BondManager: New collateral value cannot be more than 5x of the previous one',
   ALREADY_FINALIZED = 'BondManager: Fraud proof for this pre-state root has already been finalized',
   SLASHED = 'BondManager: Cannot finalize withdrawal, you probably got slashed',
+  WRONG_STATE = 'BondManager: Wrong bond state for proposer',
   CANNOT_CLAIM = 'BondManager: Cannot claim yet. Dispute must be finalized first',
 
   WITHDRAWAL_PENDING = 'BondManager: Withdrawal already pending',
