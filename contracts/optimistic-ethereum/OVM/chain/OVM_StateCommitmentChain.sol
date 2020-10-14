@@ -62,10 +62,10 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
         override
         public
     {
-        // Stake!
+        // Proposers must have previously staked at the BondManager
         require(
             ovmBondManager.isCollateralized(msg.sender),
-            "Sequencer does not have enough collateral posted"
+            "Proposer does not have enough collateral posted"
         );
 
         require(

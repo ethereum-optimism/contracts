@@ -93,6 +93,12 @@ describe('BondManager', () => {
       ).to.be.revertedWith(Errors.LOW_VALUE)
     })
 
+    it('cannot increase collateral reqs to more than 5x of current value', async () => {
+      await expect(
+        bondManager.setRequiredCollateral(ethers.utils.parseEther('10.1'))
+      ).to.be.revertedWith(Errors.HIGH_VALUE)
+    })
+
     it('only owner can adjust collateral', async () => {
       await expect(
         bondManager.connect(wallets[2]).setRequiredCollateral(amount.add(1))
@@ -336,6 +342,7 @@ enum Errors {
   ERC20_ERR = 'BondManager: Could not post bond',
   NOT_ENOUGH_COLLATERAL = 'BondManager: Sequencer is not sufficiently collateralized',
   LOW_VALUE = 'BondManager: New collateral value must be greater than the previous one',
+  HIGH_VALUE = 'BondManager: New collateral value cannot be more than 5x of the previous one',
   ALREADY_FINALIZED = 'BondManager: Fraud proof for this pre-state root has already been finalized',
   SLASHED = 'BondManager: Cannot finalize withdrawal, you probably got slashed',
   CANNOT_CLAIM = 'BondManager: Cannot claim yet. Dispute must be finalized first',

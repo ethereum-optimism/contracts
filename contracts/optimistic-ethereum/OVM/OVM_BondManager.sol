@@ -14,6 +14,7 @@ library Errors {
     string constant ERC20_ERR = "BondManager: Could not post bond";
     string constant NOT_ENOUGH_COLLATERAL = "BondManager: Sequencer is not sufficiently collateralized";
     string constant LOW_VALUE = "BondManager: New collateral value must be greater than the previous one";
+    string constant HIGH_VALUE = "BondManager: New collateral value cannot be more than 5x of the previous one";
     string constant ALREADY_FINALIZED = "BondManager: Fraud proof for this pre-state root has already been finalized";
     string constant SLASHED = "BondManager: Cannot finalize withdrawal, you probably got slashed";
     string constant CANNOT_CLAIM = "BondManager: Cannot claim yet. Dispute must be finalized first";
@@ -33,19 +34,21 @@ contract OVM_BondManager is Lib_AddressResolver {
      * Data Structures *
      *******************/
 
-    /// A bond posted by a sequencer
-    /// The bonds posted by each sequencer
+    /// A bond posted by a proposer
     struct Bond {
+        // The amount a proposer has posted as collateral
         uint256 locked;
+        // The amount a proposer is currently withdrawing
         uint256 withdrawing;
+        // The timestamp at which a proposer issued their withdrawal request
         uint256 withdrawalTimestamp;
-
     }
 
     // Per pre-state root, store the number of state provisions that were made
     // and how many of these calls were made by each user. Payouts will then be
     // claimed by users proportionally for that dispute.
     struct Rewards {
+        // Flag to check if rewards for a fraud proof are claimable
         bool canClaim;
         // Total number of `storeWitnessProvider` calls made
         uint256 total;
@@ -64,6 +67,9 @@ contract OVM_BondManager is Lib_AddressResolver {
     /// The minimum collateral a sequencer must post
     uint256 public requiredCollateral = 1 ether;
 
+    /// The maximum multiplier for updating the `requiredCollateral`
+    uint256 public constant MAX = 5;
+
     /// Owner used to bump the security bond size
     address immutable public owner;
 
@@ -77,10 +83,11 @@ contract OVM_BondManager is Lib_AddressResolver {
     /// The fraud verifier contract, used to get data about transitioners for a pre-state root
     address public ovmFraudVerifier;
 
-    /*******************************************
+    /********************************************
      * Contract Variables: Internal Accounting  *
      *******************************************/
 
+    /// The bonds posted by each proposer
     mapping(address => Bond) public bonds;
 
     /// For each pre-state root, there's an array of witnessProviders that must be rewarded
@@ -206,6 +213,7 @@ contract OVM_BondManager is Lib_AddressResolver {
     /// Callable only by the contract's deployer.
     function setRequiredCollateral(uint256 newValue) public {
         require(newValue > requiredCollateral, Errors.LOW_VALUE);
+        require(newValue < MAX * requiredCollateral, Errors.HIGH_VALUE);
         require(msg.sender == owner, Errors.ONLY_OWNER);
         requiredCollateral = newValue;
     }
