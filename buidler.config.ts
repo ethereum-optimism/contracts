@@ -7,6 +7,7 @@ import {
 
 usePlugin('@nomiclabs/buidler-ethers')
 usePlugin('@nomiclabs/buidler-waffle')
+usePlugin('buidler-typechain')
 
 import '@eth-optimism/smock/build/src/buidler-plugins/compiler-storage-layout'
 
@@ -24,6 +25,10 @@ const config: BuidlerConfig = {
     version: '0.7.0',
     optimizer: { enabled: true, runs: 200 },
   },
+  typechain: {
+    outDir: 'build/types',
+    target: 'ethers-v5'
+  }
 }
 
 export default config
