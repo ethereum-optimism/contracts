@@ -27,8 +27,8 @@ const config: BuidlerConfig = {
   },
   typechain: {
     outDir: 'build/types',
-    target: 'ethers-v5'
-  }
+    target: 'ethers-v5',
+  },
 }
 
 export default config
