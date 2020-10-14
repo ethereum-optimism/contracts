@@ -14,9 +14,12 @@ import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManage
 import { iOVM_StateManagerFactory } from "../../iOVM/execution/iOVM_StateManagerFactory.sol";
 import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitmentChain.sol";
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
+
+/* Contract Imports */
+import { OVM_FraudContributor } from "./../OVM_FraudContributor.sol";
 import { OVM_BondManager } from "./../OVM_BondManager.sol";
 
-contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
+contract OVM_FraudVerifier is OVM_FraudContributor, iOVM_FraudVerifier, Lib_AddressResolver {
 
     /*******************************************
      * Contract Variables: Contract References *
@@ -24,7 +27,6 @@ contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
 
     iOVM_StateCommitmentChain internal ovmStateCommitmentChain;
     iOVM_CanonicalTransactionChain internal ovmCanonicalTransactionChain;
-    OVM_BondManager internal ovmBondManager;
 
     
     /*******************************************
@@ -98,6 +100,7 @@ contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
     )
         override
         public
+        contributesToFraud(_preStateRoot)
     {
         if (_hasStateTransitioner(_preStateRoot)) {
             return;
@@ -129,8 +132,6 @@ contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
             _preStateRoot,
             Lib_OVMCodec.hashTransaction(_transaction)
         );
-
-        ovmBondManager.storeWitnessProvider(_preStateRoot, msg.sender);
     }
 
     /**
@@ -152,6 +153,7 @@ contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
     )
         override
         public
+        contributesToFraud(_preStateRoot)
     {
         iOVM_StateTransitioner transitioner = transitioners[_preStateRoot];
 
@@ -196,8 +198,6 @@ contract OVM_FraudVerifier is iOVM_FraudVerifier, Lib_AddressResolver {
 
         // Get the timestamp and publisher for that block
         (uint256 timestamp, address publisher) = abi.decode(_postStateRootBatchHeader.extraData, (uint256, address));
-
-        ovmBondManager.storeWitnessProvider(_preStateRoot, msg.sender);
 
         // slash the bonds at the bond manager
         ovmBondManager.finalize(

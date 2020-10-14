@@ -159,43 +159,40 @@ describe('BondManager', () => {
   })
 
   describe('dispute resolution', () => {
+    const user1Gas = [382100, 500000]
+    const user2Gas = 100000
+
+    const totalUser1Gas = user1Gas[0] + user1Gas[1]
+    const totalGas = totalUser1Gas + user2Gas
+
     beforeEach(async () => {
       await bondManager
         .connect(stateTransitioner)
-        .storeWitnessProvider(preStateRoot, witnessProvider.address)
+        .recordGasSpent(preStateRoot, witnessProvider.address, user1Gas[0])
       await bondManager
         .connect(stateTransitioner)
-        .storeWitnessProvider(preStateRoot, witnessProvider.address)
+        .recordGasSpent(preStateRoot, witnessProvider.address, user1Gas[1])
       await bondManager
         .connect(stateTransitioner)
-        .storeWitnessProvider(preStateRoot, witnessProvider2.address)
+        .recordGasSpent(preStateRoot, witnessProvider2.address, user2Gas)
     })
 
     describe('post witnesses', () => {
       it('can post witnesses from the transitioner for a state root', async () => {
         const reward = await bondManager.witnessProviders(preStateRoot)
         expect(reward.canClaim).to.be.false
-        expect(reward.total).to.be.equal(3)
+        expect(reward.total).to.be.equal(totalGas)
         expect(
-          await bondManager.getNumberOfClaims(
-            preStateRoot,
-            witnessProvider.address
-          )
-        ).to.be.equal(2)
+          await bondManager.getGasSpent(preStateRoot, witnessProvider.address)
+        ).to.be.equal(totalUser1Gas)
         expect(
-          await bondManager.getNumberOfClaims(
-            preStateRoot,
-            witnessProvider2.address
-          )
-        ).to.be.equal(1)
+          await bondManager.getGasSpent(preStateRoot, witnessProvider2.address)
+        ).to.be.equal(user2Gas)
       })
 
       it('cannot post witnesses from non-transitioners for that state root', async () => {
         await expect(
-          bondManager.storeWitnessProvider(
-            preStateRoot,
-            witnessProvider.address
-          )
+          bondManager.recordGasSpent(preStateRoot, witnessProvider.address, 100)
         ).to.be.revertedWith(Errors.ONLY_TRANSITIONER)
       })
     })
@@ -235,15 +232,21 @@ describe('BondManager', () => {
         const balanceAfter1 = await token.balanceOf(witnessProvider.address)
         const balanceAfter2 = await token.balanceOf(witnessProvider2.address)
 
-        expect(balanceAfter1).to.be.eq(balanceBefore1.add(half.mul(2).div(3)))
-        expect(balanceAfter2).to.be.eq(balanceBefore2.add(half.div(3)))
+        expect(balanceAfter1).to.be.eq(
+          balanceBefore1.add(half.mul(totalUser1Gas).div(totalGas))
+        )
+        expect(balanceAfter2).to.be.eq(
+          balanceBefore2.add(half.mul(user2Gas).div(totalGas))
+        )
       })
 
       it('cannot double claim', async () => {
         const balance1 = await token.balanceOf(witnessProvider.address)
         await bondManager.connect(witnessProvider).claim(preStateRoot)
         const balance2 = await token.balanceOf(witnessProvider.address)
-        expect(balance2).to.be.eq(balance1.add(half.mul(2).div(3)))
+        expect(balance2).to.be.eq(
+          balance1.add(half.mul(totalUser1Gas).div(totalGas))
+        )
 
         // re-claiming does not give the user any extra funds
         await bondManager.connect(witnessProvider).claim(preStateRoot)

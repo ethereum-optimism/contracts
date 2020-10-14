@@ -58,11 +58,11 @@ contract OVM_BondManager is Lib_AddressResolver {
     struct Rewards {
         // Flag to check if rewards for a fraud proof are claimable
         bool canClaim;
-        // Total number of `storeWitnessProvider` calls made
+        // Total number of `recordGasSpent` calls made
         uint256 total;
-        // The sum of all values inside this map MUST be equal to the
-        // value of `totalClaims`
-        mapping(address => uint256) numClaims;
+        // The gas spent by each user to provide witness data. The sum of all 
+        // values inside this map MUST be equal to the value of `total`
+        mapping(address => uint256) gasSpent;
     }
 
     /****************************
@@ -121,13 +121,13 @@ contract OVM_BondManager is Lib_AddressResolver {
      ********************/
 
     /// Adds `who` to the list of witnessProviders for the provided `preStateRoot`.
-    function storeWitnessProvider(bytes32 _preStateRoot, address who) public {
+    function recordGasSpent(bytes32 _preStateRoot, address who, uint256 gasSpent) public {
         // The sender must be the transitioner that corresponds to the claimed pre-state root
         address transitioner = address(iOVM_FraudVerifier(ovmFraudVerifier).getStateTransitioner(_preStateRoot));
         require(transitioner == msg.sender, Errors.ONLY_TRANSITIONER);
 
-        witnessProviders[_preStateRoot].total += 1;
-        witnessProviders[_preStateRoot].numClaims[who] += 1;
+        witnessProviders[_preStateRoot].total += gasSpent;
+        witnessProviders[_preStateRoot].gasSpent[who] += gasSpent;
     }
 
     /// Slashes + distributes rewards or frees up the sequencer's bond, only called by
@@ -211,10 +211,10 @@ contract OVM_BondManager is Lib_AddressResolver {
 
         // proportional allocation - only reward 50% (rest gets locked in the
         // contract forever
-        uint256 amount = (requiredCollateral * rewards.numClaims[msg.sender]) / (2 * rewards.total);
+        uint256 amount = (requiredCollateral * rewards.gasSpent[msg.sender]) / (2 * rewards.total);
 
-        // reset the user's claims so they cannot double claim
-        rewards.numClaims[msg.sender] = 0;
+        // reset the user's spent gas so they cannot double claim
+        rewards.gasSpent[msg.sender] = 0;
 
         // transfer
         require(token.transfer(msg.sender, amount), Errors.ERC20_ERR);
@@ -235,7 +235,7 @@ contract OVM_BondManager is Lib_AddressResolver {
     }
 
     /// Gets how many witnesses the user has provided for the state root
-    function getNumberOfClaims(bytes32 preStateRoot, address who) public view returns (uint256) {
-        return witnessProviders[preStateRoot].numClaims[who];
+    function getGasSpent(bytes32 preStateRoot, address who) public view returns (uint256) {
+        return witnessProviders[preStateRoot].gasSpent[who];
     }
 }
