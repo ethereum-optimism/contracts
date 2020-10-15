@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.7.0;
+pragma solidity >0.6.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -18,6 +18,7 @@ import { console } from "@nomiclabs/buidler/console.sol";
 
 /**
  * @title OVM_L2CrossDomainMessenger
+ * @dev L2 CONTRACT (COMPILED)
  */
 contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCrossDomainMessenger, Lib_AddressResolver {
 

@@ -176,7 +176,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
         nodes: [
           {
             key: storageKey,
-            val: '0x' + '01'.padStart(64, '0'),
+            val: Mock__OVM_L2CrossDomainMessenger.address,
           },
         ],
         secure: true,

@@ -199,7 +199,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
         L2MessageInclusionProof memory _proof
     )
         internal
-        pure
+        view
         returns (
             bool
         )
@@ -231,7 +231,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
 
         return Lib_SecureMerkleTrie.verifyInclusionProof(
             abi.encodePacked(storageKey),
-            abi.encodePacked(uint256(1)),
+            abi.encodePacked(resolve("OVM_L2CrossDomainMessenger")),
             _proof.storageTrieWitness,
             account.storageRoot
         );
