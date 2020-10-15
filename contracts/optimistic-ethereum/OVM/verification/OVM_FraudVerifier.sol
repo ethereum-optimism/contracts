@@ -100,7 +100,7 @@ contract OVM_FraudVerifier is OVM_FraudContributor, iOVM_FraudVerifier, Lib_Addr
     )
         override
         public
-        contributesToFraud(_preStateRoot)
+        contributesToFraudProof(_preStateRoot)
     {
         if (_hasStateTransitioner(_preStateRoot)) {
             return;
@@ -153,7 +153,7 @@ contract OVM_FraudVerifier is OVM_FraudContributor, iOVM_FraudVerifier, Lib_Addr
     )
         override
         public
-        contributesToFraud(_preStateRoot)
+        contributesToFraudProof(_preStateRoot)
     {
         iOVM_StateTransitioner transitioner = transitioners[_preStateRoot];
 

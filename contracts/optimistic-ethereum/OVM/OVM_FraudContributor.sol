@@ -10,7 +10,7 @@ contract OVM_FraudContributor {
 
     /// Decorate your functions with this modifier to store how much total gas was
     /// consumed by the sender, to reward users fairly
-    modifier contributesToFraud(bytes32 preStateRoot) {
+    modifier contributesToFraudProof(bytes32 preStateRoot) {
         uint startGas = gasleft();
         _;
         uint gasSpent = startGas - gasleft();

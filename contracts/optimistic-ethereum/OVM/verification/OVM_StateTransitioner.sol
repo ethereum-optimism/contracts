@@ -173,7 +173,7 @@ contract OVM_StateTransitioner is OVM_FraudContributor, iOVM_StateTransitioner, 
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
-        contributesToFraud(preStateRoot)
+        contributesToFraudProof(preStateRoot)
     {
         // Exit quickly to avoid unnecessary work.
         require(
@@ -221,7 +221,7 @@ contract OVM_StateTransitioner is OVM_FraudContributor, iOVM_StateTransitioner, 
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
-        contributesToFraud(preStateRoot)
+        contributesToFraudProof(preStateRoot)
     {
         // Exit quickly to avoid unnecessary work.
         require(
@@ -257,7 +257,7 @@ contract OVM_StateTransitioner is OVM_FraudContributor, iOVM_StateTransitioner, 
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
-        contributesToFraud(preStateRoot)
+        contributesToFraudProof(preStateRoot)
     {
         // Exit quickly to avoid unnecessary work.
         require(
@@ -312,7 +312,7 @@ contract OVM_StateTransitioner is OVM_FraudContributor, iOVM_StateTransitioner, 
     )
         override
         public
-        contributesToFraud(preStateRoot)
+        contributesToFraudProof(preStateRoot)
     {
         require(
             Lib_OVMCodec.hashTransaction(_transaction) == transactionHash,
@@ -351,7 +351,7 @@ contract OVM_StateTransitioner is OVM_FraudContributor, iOVM_StateTransitioner, 
         override
         public
         onlyDuringPhase(TransitionPhase.POST_EXECUTION)
-        contributesToFraud(preStateRoot)
+        contributesToFraudProof(preStateRoot)
     {
         require(
             ovmStateManager.commitAccount(_ovmContractAddress) == true,
@@ -384,7 +384,7 @@ contract OVM_StateTransitioner is OVM_FraudContributor, iOVM_StateTransitioner, 
         override
         public
         onlyDuringPhase(TransitionPhase.POST_EXECUTION)
-        contributesToFraud(preStateRoot)
+        contributesToFraudProof(preStateRoot)
     {
         require(
             ovmStateManager.commitContractStorage(_ovmContractAddress, _key) == true,
