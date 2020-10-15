@@ -6,6 +6,7 @@ import { ContractFactory, Contract } from 'ethers'
 import { MockContract, smockit } from '@eth-optimism/smock'
 import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
 import { keccak256 } from 'ethers/lib/utils'
+import { remove0x } from '../../../helpers'
 
 const ELEMENT_TEST_SIZES = [1, 2, 4, 8, 16]
 
@@ -70,8 +71,10 @@ describe('OVM_L2ToL1MessagePasser', () => {
           )
 
           expect(
-            await OVM_L2ToL1MessagePasser.sentMessages(keccak256(message))
-          ).to.equal(Helper_PrecompileCaller.address)
+            await OVM_L2ToL1MessagePasser.sentMessages(
+              keccak256(message + remove0x(Helper_PrecompileCaller.address))
+            )
+          ).to.equal(true)
         }
       })
     }

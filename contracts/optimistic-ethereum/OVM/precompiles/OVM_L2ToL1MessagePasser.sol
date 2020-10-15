@@ -15,7 +15,7 @@ contract OVM_L2ToL1MessagePasser is iOVM_L2ToL1MessagePasser {
      * Contract Variables *
      **********************/
 
-    mapping (bytes32 => address) public sentMessages;
+    mapping (bytes32 => bool) public sentMessages;
 
 
     /********************
@@ -32,6 +32,11 @@ contract OVM_L2ToL1MessagePasser is iOVM_L2ToL1MessagePasser {
         override
         public
     {
-        sentMessages[keccak256(_message)] = msg.sender;
+        sentMessages[keccak256(
+            abi.encodePacked(
+                _message,
+                msg.sender
+            )
+        )] = true;
     }
 }
