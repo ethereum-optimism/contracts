@@ -355,8 +355,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
      */
     function verifyTransaction(
         Lib_OVMCodec.Transaction  memory _transaction,
-        TransactionChainElement memory _txChainElement
-        // TODO: Add witness to verify inclusion in CTC
+        TransactionChainElement memory _txChainElement,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
     )
         public
         view
@@ -364,41 +364,13 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
             bool _isVerified
         )
     {
-        // TODO: Verify inclusion in the CTC
-
-        if (_txChainElement.isSequenced == false) {
-            return _verifyQueueTransaction(_transaction, _txChainElement.queueIndex);
+        if (_txChainElement.isSequenced == true) {
+            return _verifySequencerTransaction(_transaction, _txChainElement, _inclusionProof);
         } else {
-            OVM_ExecutionManager em = OVM_ExecutionManager(resolve("OVM_ExecutionManager"));
-            console.log(em.getMaxTransactionGasLimit());
-            console.log(decompressionPrecompileAddress);
-            return true;
+            return _verifyQueueTransaction(_transaction, _txChainElement.queueIndex, _inclusionProof);
         }
     }
 
-    function _verifyQueueTransaction(
-        Lib_OVMCodec.Transaction memory _transaction,
-        uint256 _queueIndex
-    )
-        internal
-        view
-        returns (
-            bool isVerified
-        )
-    {
-        Lib_OVMCodec.QueueElement memory ele = getQueueElement(_queueIndex);
-        bytes memory txEncoded = abi.encode(
-            _transaction.l1TxOrigin,
-            _transaction.entrypoint,
-            _transaction.gasLimit,
-            _transaction.data
-        );
-        bytes32 transactionHash = keccak256(txEncoded);
-        require(ele.queueRoot == transactionHash, "Invalid queue tx: transaction hash does not match.");
-        require(ele.timestamp == _transaction.timestamp, "Invalid queue tx: timestamp does not match.");
-        require(ele.blockNumber == _transaction.blockNumber, "Invalid queue tx: blockNumber does not match.");
-        return true;
-    }
 
 
 
@@ -616,5 +588,119 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
                 _element.txData
             )
         );
+    }
+
+    /************************************************
+     * Internal Functions: Transaction Verification *
+     ************************************************/
+
+    /**
+     * Verifies a sequencer transaction, returning true if it was indeed included in the CTC
+     * @param _transaction The transaction we are verifying inclusion of.
+     * @param _txChainElement The chain element that the transaction is claimed to be a part of.
+     * @param _inclusionProof An inclusion proof into the CTC at a particular index.
+     * @return _isVerified True if the transaction was included in the specified location, else false.
+     */
+    function _verifySequencerTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        TransactionChainElement memory _txChainElement,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
+    )
+        internal
+        view
+        returns (
+            bool _isVerified
+        )
+    {
+        OVM_ExecutionManager em = OVM_ExecutionManager(resolve("OVM_ExecutionManager"));
+        uint256 gasLimit = em.getMaxTransactionGasLimit();
+        address decompressionAddress = decompressionPrecompileAddress;
+        bytes32 leafHash = _getSequencerChainElementLeafHash(_txChainElement);
+
+        // TODO: Verify inclusion proof points to the computed leafHash
+        // require(verifyElement(_inclusionProof, leafHash), "Invalid sequencer tx: inclusion proof invalid.")
+
+        require(_transaction.blockNumber == _txChainElement.blockNumber, "Invalid sequencer tx: blockNumber.");
+        require(_transaction.timestamp == _txChainElement.timestamp, "Invalid sequencer tx: timestamp.");
+        require(_transaction.entrypoint == decompressionAddress, "Invalid sequencer tx: entrypoint.");
+        require(_transaction.gasLimit == gasLimit, "Invalid sequencer tx: gasLimit.");
+        require(keccak256(_transaction.data) == keccak256(_txChainElement.txData), "Invalid sequencer tx: data.");
+        require(_transaction.l1TxOrigin == address(0), "Invalid sequencer tx: l1TxOrigin.");
+        require(_transaction.l1QueueOrigin == Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE, "Invalid sequencer tx: l1QueueOrigin.");
+
+        return true;
+    }
+
+    /**
+     * Computes the sequencerChainElement leaf hash
+     * @param _txChainElement The chain element which is hashed to calculate the leaf.
+     * @return _leafHash The hash of the chain element (using the special chain element leaf encoding).
+     */
+    function _getSequencerChainElementLeafHash(
+        TransactionChainElement memory _txChainElement
+    )
+        internal
+        view
+        returns(
+            bytes32 _leafHash
+        )
+    {
+        bytes memory txData = _txChainElement.txData;
+        uint256 txDataLength = _txChainElement.txData.length;
+        bytes memory _chainElement = new bytes(BYTES_TILL_TX_DATA + txDataLength);
+        bytes32 leafHash;
+        uint _timestamp = _txChainElement.timestamp;
+        uint _blockNumber = _txChainElement.blockNumber;
+
+        assembly {
+            let chainElementStart := add(_chainElement, 0x20)
+            mstore8(chainElementStart, 1)
+            mstore8(add(chainElementStart, 1), 0)
+            mstore(add(chainElementStart, 2), _timestamp)
+            mstore(add(chainElementStart, 34), _blockNumber)
+
+            // Copy the txData into memory using identity precompile
+            pop(staticcall(gas(), 0x04, add(txData, 0x20), txDataLength, add(chainElementStart, 66), txDataLength))
+
+            // Calculate the hash
+            leafHash := keccak256(chainElementStart, add(BYTES_TILL_TX_DATA, txDataLength))
+        }
+        return _leafHash;
+    }
+
+    /**
+     * Verifies a queue transaction, returning true if it was indeed included in the CTC
+     * @param _transaction The transaction we are verifying inclusion of.
+     * @param _queueIndex The queueIndex of the queued transaction.
+     * @param _inclusionProof An inclusion proof into the CTC at a particular index (should point to queue tx).
+     * @return _isVerified True if the transaction was included in the specified location, else false.
+     */
+    function _verifyQueueTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        uint256 _queueIndex,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
+    )
+        internal
+        view
+        returns (
+            bool _isVerified
+        )
+    {
+        bytes32 leafHash = _getQueueLeafHash(_inclusionProof.index);
+        // TODO: Verify inclusion proof
+        // require(verifyElement(_inclusionProof, leafHash), "Invalid queue tx: inclusion proof invalid.")
+
+        Lib_OVMCodec.QueueElement memory ele = getQueueElement(_queueIndex);
+        bytes memory txEncoded = abi.encode(
+            _transaction.l1TxOrigin,
+            _transaction.entrypoint,
+            _transaction.gasLimit,
+            _transaction.data
+        );
+        bytes32 transactionHash = keccak256(txEncoded);
+        require(ele.queueRoot == transactionHash, "Invalid queue tx: transaction hash does not match.");
+        require(ele.timestamp == _transaction.timestamp, "Invalid queue tx: timestamp does not match.");
+        require(ele.blockNumber == _transaction.blockNumber, "Invalid queue tx: blockNumber does not match.");
+        return true;
     }
 }

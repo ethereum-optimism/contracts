@@ -18,6 +18,7 @@ import {
   getEthTime,
   getNextBlockNumber,
   increaseEthTime,
+  ZERO_ADDRESS
 } from '../../../helpers'
 import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
 
@@ -504,11 +505,15 @@ describe.only('OVM_CanonicalTransactionChain', () => {
           timestamp: 0,
           blockNumber: 0,
           txData: '0x00'
+        },
+        {
+          index: 0,
+          siblings: []
         }
       )).to.equal(true)
     })
 
-    it.only('should successfully verify against a valid sequencer transaction', async () => {
+    it('should successfully verify against a valid sequencer transaction', async () => {
       const entrypoint = DECOMPRESSION_ADDRESS
       const gasLimit = MAX_GAS_LIMIT
       const data = '0x' + '12'.repeat(1234)
@@ -521,8 +526,8 @@ describe.only('OVM_CanonicalTransactionChain', () => {
         {
           timestamp,
           blockNumber,
-          l1QueueOrigin: 1,
-          l1TxOrigin: await OVM_CanonicalTransactionChain.signer.getAddress(),
+          l1QueueOrigin: 0,
+          l1TxOrigin: ZERO_ADDRESS,
           entrypoint,
           gasLimit,
           data
@@ -530,9 +535,13 @@ describe.only('OVM_CanonicalTransactionChain', () => {
         {
           isSequenced: true,
           queueIndex: 0,
-          timestamp: 0,
-          blockNumber: 0,
-          txData: '0x00'
+          timestamp,
+          blockNumber,
+          txData: data
+        },
+        {
+          index: 0,
+          siblings: []
         }
       )).to.equal(true)
     })
