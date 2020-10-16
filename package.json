@@ -16,7 +16,7 @@
     "build:dump": "ts-node \"bin/take-dump.ts\"",
     "build:copy": "copyfiles -u 2 \"contracts/optimistic-ethereum/**/*.sol\" \"build/contracts\"",
     "test": "yarn run test:contracts",
-    "test:contracts": "buidler test --show-stack-traces",
+    "test:contracts": "buidler test --show-stack-traces /Users/oliphant/workspace/contracts-v2/test/contracts/OVM/execution/OVM_ExecutionManager/print-methods.spec.ts",
     "lint": "yarn run lint:typescript",
     "lint:typescript": "tslint --format stylish --project .",
     "lint:fix": "yarn run lint:fix:typescript",
