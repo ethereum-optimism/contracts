@@ -15,6 +15,7 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 
 /* Contract Imports */
 import { OVM_BaseChain } from "./OVM_BaseChain.sol";
+import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
 /* Logging Imports */
 import { console } from "@nomiclabs/buidler/console.sol";
@@ -46,6 +47,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
     uint256 internal forceInclusionPeriodSeconds;
     uint256 internal lastOVMTimestamp;
     address internal sequencer;
+    address internal decompressionPrecompileAddress;
 
     using Lib_TimeboundRingBuffer for TimeboundRingBuffer;
     TimeboundRingBuffer internal queue;
@@ -67,6 +69,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         Lib_AddressResolver(_libAddressManager)
     {
         sequencer = resolve("OVM_Sequencer");
+        decompressionPrecompileAddress = resolve("OVM_DecompressionPrecompileAddress");
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
 
         queue.init(100, 50, 10000000000); // TODO: Update once we have arbitrary condition
@@ -350,25 +353,53 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
      * Verifies whether a transaction is included in the chain.
      * @return _isVerified True if the transaction exists in the CTC, false if not.
      */
-    function verifyTransaction()
+    function verifyTransaction(
+        Lib_OVMCodec.Transaction  memory _transaction,
+        TransactionChainElement memory _txChainElement
+        // TODO: Add witness to verify inclusion in CTC
+    )
         public
         view
         returns (
-            uint40 _totalElements,
-            uint32 _nextQueueIndex
+            bool _isVerified
         )
     {
-        bytes28 extraData = batches.getExtraData();
+        // TODO: Verify inclusion in the CTC
 
-        uint40 totalElements;
-        uint32 nextQueueIndex;
-        assembly {
-            totalElements := and(shr(32, extraData), 0x000000000000000000000000000000000000000000000000000000ffffffffff)
-            nextQueueIndex := shr(40, and(shr(32, extraData), 0xffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000))
+        if (_txChainElement.isSequenced == false) {
+            return _verifyQueueTransaction(_transaction, _txChainElement.queueIndex);
+        } else {
+            OVM_ExecutionManager em = OVM_ExecutionManager(resolve("OVM_ExecutionManager"));
+            console.log(em.getMaxTransactionGasLimit());
+            console.log(decompressionPrecompileAddress);
+            return true;
         }
-
-        return (totalElements, nextQueueIndex);
     }
+
+    function _verifyQueueTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        uint256 _queueIndex
+    )
+        internal
+        view
+        returns (
+            bool isVerified
+        )
+    {
+        Lib_OVMCodec.QueueElement memory ele = getQueueElement(_queueIndex);
+        bytes memory txEncoded = abi.encode(
+            _transaction.l1TxOrigin,
+            _transaction.entrypoint,
+            _transaction.gasLimit,
+            _transaction.data
+        );
+        bytes32 transactionHash = keccak256(txEncoded);
+        require(ele.queueRoot == transactionHash, "Invalid queue tx: transaction hash does not match.");
+        require(ele.timestamp == _transaction.timestamp, "Invalid queue tx: timestamp does not match.");
+        require(ele.blockNumber == _transaction.blockNumber, "Invalid queue tx: blockNumber does not match.");
+        return true;
+    }
+
 
 
     /**********************
