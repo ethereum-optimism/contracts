@@ -346,6 +346,30 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         );
     }
 
+    /**
+     * Verifies whether a transaction is included in the chain.
+     * @return _isVerified True if the transaction exists in the CTC, false if not.
+     */
+    function verifyTransaction()
+        public
+        view
+        returns (
+            uint40 _totalElements,
+            uint32 _nextQueueIndex
+        )
+    {
+        bytes28 extraData = batches.getExtraData();
+
+        uint40 totalElements;
+        uint32 nextQueueIndex;
+        assembly {
+            totalElements := and(shr(32, extraData), 0x000000000000000000000000000000000000000000000000000000ffffffffff)
+            nextQueueIndex := shr(40, and(shr(32, extraData), 0xffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000))
+        }
+
+        return (totalElements, nextQueueIndex);
+    }
+
 
     /**********************
      * Internal Functions *
