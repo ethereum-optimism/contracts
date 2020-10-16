@@ -189,7 +189,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
             "Must append more than zero transactions."
         );
 
-        (uint40 totalElements, uint32 nextQueueIndex) = _getLatestBatchContext();
+        (, uint32 nextQueueIndex) = _getLatestBatchContext();
 
         bytes32[] memory leaves = new bytes32[](_numQueuedTransactions);
         for (uint i = 0; i < _numQueuedTransactions; i++) {
@@ -250,7 +250,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
             BatchContext memory context = _contexts[i];
             _validateBatchContext(context, nextQueueIndex);
 
-            for (uint32 i = 0; i < context.numSequencedTransactions; i++) {
+            for (uint32 j = 0; j < context.numSequencedTransactions; j++) {
                 leaves[transactionIndex] = _hashTransactionChainElement(
                     TransactionChainElement({
                         isSequenced: true,
@@ -264,7 +264,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
                 transactionIndex++;
             }
 
-            for (uint32 i = 0; i < context.numSubsequentQueueTransactions; i++) {
+            for (uint32 j = 0; j < context.numSubsequentQueueTransactions; j++) {
                 leaves[transactionIndex] = _getQueueLeafHash(nextQueueIndex);
                 nextQueueIndex++;
                 transactionIndex++;
@@ -330,7 +330,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         uint32 _nextQueueIndex
     )
         internal
-        view
+        pure
         returns (
             bytes28 _context
         )
@@ -418,6 +418,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         uint32 _nextQueueIndex
     )
         internal
+        view
     {
         if (queue.getLength() == 0) {
             return;
