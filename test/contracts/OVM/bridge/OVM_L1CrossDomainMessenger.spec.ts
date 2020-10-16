@@ -171,7 +171,11 @@ describe('OVM_L1CrossDomainMessenger', () => {
 
       const precompile = '0x4200000000000000000000000000000000000000'
 
-      const storageKey = keccak256(keccak256(calldata) + '00'.repeat(32))
+      const storageKey = keccak256(
+        keccak256(
+          calldata + remove0x(Mock__OVM_L2CrossDomainMessenger.address)
+        ) + '00'.repeat(32)
+      )
       const storageGenerator = await TrieTestGenerator.fromNodes({
         nodes: [
           {
