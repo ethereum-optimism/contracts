@@ -48,6 +48,10 @@ const getSequencerLeafHash = (
   )
 }
 
+const ELEMENT_TEST_SIZES = [1, 2, 4, 8, 16]
+const DECOMPRESSION_ADDRESS = '0x4200000000000000000000000000000000000008'
+const MAX_GAS_LIMIT = 8_000_000
+
 const getTransactionHash = (
   sender: string,
   target: string,
@@ -146,7 +150,7 @@ const encodeBatchContext = (context: BatchContext): string => {
   )
 }
 
-describe('OVM_CanonicalTransactionChain', () => {
+describe.only('OVM_CanonicalTransactionChain', () => {
   let signer: Signer
   let sequencer: Signer
   before(async () => {
