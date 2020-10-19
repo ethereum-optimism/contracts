@@ -50,14 +50,6 @@ interface iOVM_CanonicalTransactionChain is iOVM_BaseChain {
         uint256 blockNumber;
     }
 
-    struct TransactionChainElement {
-        bool isSequenced;
-        uint256 queueIndex;  // QUEUED TX ONLY
-        uint256 timestamp;   // SEQUENCER TX ONLY
-        uint256 blockNumber; // SEQUENCER TX ONLY
-        bytes txData;        // SEQUENCER TX ONLY
-    }
-
 
     /********************
      * Public Functions *
@@ -110,4 +102,11 @@ interface iOVM_CanonicalTransactionChain is iOVM_BaseChain {
         // BatchContext[] _contexts,
         // bytes[] _transactionDataFields
     ) external;
+
+    function verifyTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        Lib_OVMCodec.TransactionChainElement memory _txChainElement,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
+    ) external view returns (bool);
 }

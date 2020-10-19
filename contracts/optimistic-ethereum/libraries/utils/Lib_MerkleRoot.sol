@@ -7,7 +7,6 @@ library Lib_MerkleRoot {
 
     function getMerkleRoot(bytes32[] memory elements)
         internal view returns (bytes32) {
-
         // compute tree depth
         uint pow2 = 1;
         uint depth = 0;

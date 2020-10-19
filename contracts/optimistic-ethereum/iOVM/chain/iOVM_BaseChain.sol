@@ -23,8 +23,8 @@ interface iOVM_BaseChain {
      ****************************************/
 
     function verifyElement(
-        bytes calldata _element,
-        Lib_OVMCodec.ChainBatchHeader calldata _batchHeader,
-        Lib_OVMCodec.ChainInclusionProof calldata _proof
+        bytes memory _element,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _proof
     ) external view returns (bool _verified);
 }

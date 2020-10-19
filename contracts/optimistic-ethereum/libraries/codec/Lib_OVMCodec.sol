@@ -72,12 +72,20 @@ library Lib_OVMCodec {
 
     struct Transaction {
         uint256 timestamp;
-        uint256 number;
+        uint256 blockNumber;
         QueueOrigin l1QueueOrigin;
-        address l1Txorigin;
+        address l1TxOrigin;
         address entrypoint;
         uint256 gasLimit;
         bytes data;
+    }
+
+    struct TransactionChainElement {
+        bool isSequenced;
+        uint256 queueIndex;  // QUEUED TX ONLY
+        uint256 timestamp;   // SEQUENCER TX ONLY
+        uint256 blockNumber; // SEQUENCER TX ONLY
+        bytes txData;        // SEQUENCER TX ONLY
     }
 
     struct QueueElement {
@@ -138,9 +146,9 @@ library Lib_OVMCodec {
     {
         return abi.encodePacked(
             _transaction.timestamp,
-            _transaction.number,
+            _transaction.blockNumber,
             _transaction.l1QueueOrigin,
-            _transaction.l1Txorigin,
+            _transaction.l1TxOrigin,
             _transaction.entrypoint,
             _transaction.gasLimit,
             _transaction.data

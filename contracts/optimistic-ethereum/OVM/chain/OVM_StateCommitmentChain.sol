@@ -116,6 +116,25 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
      * Public Functions: Batch Status *
      **********************************/
 
+    function verifyStateCommitment(
+        bytes32 _element,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _proof
+    )
+        override
+        public
+        view
+        returns (
+            bool
+        )
+    {
+        return verifyElement(
+            _element,
+            _batchHeader,
+            _proof
+        );
+    }
+
     function insideFraudProofWindow(
         Lib_OVMCodec.ChainBatchHeader memory _batchHeader
     )

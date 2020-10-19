@@ -24,5 +24,11 @@ interface iOVM_StateCommitmentChain is iOVM_BaseChain {
      * Public Functions: Batch Status *
      **********************************/
 
+
+    function verifyStateCommitment(
+        bytes32 _element,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _proof
+    ) external view returns (bool _verified);
     function insideFraudProofWindow(Lib_OVMCodec.ChainBatchHeader memory _batchHeader) external view returns (bool _inside);
 }

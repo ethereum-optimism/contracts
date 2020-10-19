@@ -84,11 +84,40 @@ contract OVM_BaseChain is iOVM_BaseChain {
      * @return _verified Whether or not the element was included in the batch.
      */
     function verifyElement(
-        bytes calldata _element,
+        bytes memory _element,
         Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
         Lib_OVMCodec.ChainInclusionProof memory _proof
     )
         override
+        public
+        view
+        returns (
+            bool _verified
+        )
+    {
+        require(
+            _hashBatchHeader(_batchHeader) == batches.get(uint32(_batchHeader.batchIndex)),
+            "Invalid batch header."
+        );
+
+        require(
+            Lib_MerkleUtils.verify(
+                _batchHeader.batchRoot,
+                _element,
+                _proof.index,
+                _proof.siblings
+            ),
+            "Invalid inclusion proof."
+        );
+
+        return true;
+    }
+
+    function verifyElement(
+        bytes32 _element,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _proof
+    )
         public
         view
         returns (
@@ -205,11 +234,13 @@ contract OVM_BaseChain is iOVM_BaseChain {
             bytes32 _hash
         )
     {
-        return keccak256(abi.encodePacked(
-            _batchHeader.batchRoot,
-            _batchHeader.batchSize,
-            _batchHeader.prevTotalElements,
-            _batchHeader.extraData
-        ));
+        return keccak256(
+            abi.encode(
+                _batchHeader.batchRoot,
+                _batchHeader.batchSize,
+                _batchHeader.prevTotalElements,
+                _batchHeader.extraData
+            )
+        );
     }
 }

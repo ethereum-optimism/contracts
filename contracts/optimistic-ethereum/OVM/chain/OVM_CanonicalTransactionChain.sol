@@ -15,6 +15,7 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 
 /* Contract Imports */
 import { OVM_BaseChain } from "./OVM_BaseChain.sol";
+import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
 /* Logging Imports */
 import { console } from "@nomiclabs/buidler/console.sol";
@@ -48,6 +49,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
     uint256 internal forceInclusionPeriodSeconds;
     uint256 internal lastOVMTimestamp;
     address internal sequencer;
+    address internal decompressionPrecompileAddress;
     Lib_RingBuffer.RingBuffer internal queue;
     Lib_RingBuffer.RingBuffer internal chain;
 
@@ -63,6 +65,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         Lib_AddressResolver(_libAddressManager)
     {
         sequencer = resolve("OVM_Sequencer");
+        decompressionPrecompileAddress = resolve("OVM_DecompressionPrecompileAddress");
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
     }
 
@@ -328,6 +331,44 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         );
     }
 
+    /**
+     * Verifies whether a transaction is included in the chain.
+     * @param _transaction Transaction to verify.
+     * @param _txChainElement Transaction chain element corresponding to the transaction.
+     * @param _batchHeader Header of the batch the transaction was included in.
+     * @param _inclusionProof Inclusion proof for the provided transaction chain element.
+     * @return True if the transaction exists in the CTC, false if not.
+     */
+    function verifyTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        Lib_OVMCodec.TransactionChainElement memory _txChainElement,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
+    )
+        override
+        public
+        view
+        returns (
+            bool
+        )
+    {
+        if (_txChainElement.isSequenced == true) {
+            return _verifySequencerTransaction(
+                _transaction,
+                _txChainElement,
+                _batchHeader,
+                _inclusionProof
+            );
+        } else {
+            return _verifyQueueTransaction(
+                _transaction,
+                _txChainElement.queueIndex,
+                _batchHeader,
+                _inclusionProof
+            );
+        }
+    }
+
 
     /**********************
      * Internal Functions *
@@ -342,7 +383,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         uint256 _index
     )
         internal
-        view
+        pure
         returns (
             BatchContext memory
         )
@@ -461,7 +502,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         );
 
         return _hashTransactionChainElement(
-            TransactionChainElement({
+            Lib_OVMCodec.TransactionChainElement({
                 isSequenced: false,
                 queueIndex: _index,
                 timestamp: 0,
@@ -484,7 +525,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         uint256 _txDataLength
     )
         internal
-        view
+        pure
         returns (
             bytes32
         )
@@ -507,6 +548,45 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
             calldatacopy(add(chainElementStart, BYTES_TILL_TX_DATA), add(_nextTransactionPtr, 3), _txDataLength)
             
             leafHash := keccak256(chainElementStart, add(BYTES_TILL_TX_DATA, _txDataLength))
+        }
+
+        return leafHash;
+    }
+
+    /**
+     * Retrieves the hash of a sequencer element.
+     * @param _txChainElement The chain element which is hashed to calculate the leaf.
+     * @return Hash of the sequencer element.
+     */
+    function _getSequencerLeafHash(
+        Lib_OVMCodec.TransactionChainElement memory _txChainElement
+    )
+        internal
+        view
+        returns(
+            bytes32
+        )
+    {
+        bytes memory txData = _txChainElement.txData;
+        uint256 txDataLength = _txChainElement.txData.length;
+
+        bytes memory chainElement = new bytes(BYTES_TILL_TX_DATA + txDataLength);
+        uint256 ctxTimestamp = _txChainElement.timestamp;
+        uint256 ctxBlockNumber = _txChainElement.blockNumber;
+
+        bytes32 leafHash;
+        assembly {
+            let chainElementStart := add(chainElement, 0x20)
+
+            mstore8(chainElementStart, 1)
+            mstore8(add(chainElementStart, 1), 0)
+
+            mstore(add(chainElementStart, 2), ctxTimestamp)
+            mstore(add(chainElementStart, 34), ctxBlockNumber)
+
+            pop(staticcall(gas(), 0x04, add(txData, 0x20), txDataLength, add(chainElementStart, 66), txDataLength))
+
+            leafHash := keccak256(chainElementStart, add(BYTES_TILL_TX_DATA, txDataLength))
         }
 
         return leafHash;
@@ -581,15 +661,15 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
     /**
      * Hashes a transaction chain element.
      * @param _element Chain element to hash.
-     * @return _hash Hash of the chain element.
+     * @return Hash of the chain element.
      */
     function _hashTransactionChainElement(
-        TransactionChainElement memory _element
+        Lib_OVMCodec.TransactionChainElement memory _element
     )
         internal
         pure
         returns (
-            bytes32 _hash
+            bytes32
         )
     {
         return keccak256(
@@ -601,5 +681,103 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
                 _element.txData
             )
         );
+    }
+
+    /**
+     * Verifies a sequencer transaction, returning true if it was indeed included in the CTC
+     * @param _transaction The transaction we are verifying inclusion of.
+     * @param _txChainElement The chain element that the transaction is claimed to be a part of.
+     * @param _batchHeader Header of the batch the transaction was included in.
+     * @param _inclusionProof An inclusion proof into the CTC at a particular index.
+     * @return True if the transaction was included in the specified location, else false.
+     */
+    function _verifySequencerTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        Lib_OVMCodec.TransactionChainElement memory _txChainElement,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
+    )
+        internal
+        view
+        returns (
+            bool
+        )
+    {
+        OVM_ExecutionManager ovmExecutionManager = OVM_ExecutionManager(resolve("OVM_ExecutionManager"));
+        uint256 gasLimit = ovmExecutionManager.getMaxTransactionGasLimit();
+        bytes32 leafHash = _getSequencerLeafHash(_txChainElement);
+
+        require(
+            verifyElement(
+                leafHash,
+                _batchHeader,
+                _inclusionProof
+            ),
+            "Invalid Sequencer transaction inclusion proof."
+        );
+
+        require(
+            _transaction.blockNumber        == _txChainElement.blockNumber
+            && _transaction.timestamp       == _txChainElement.timestamp
+            && _transaction.entrypoint      == decompressionPrecompileAddress
+            && _transaction.gasLimit        == gasLimit
+            && _transaction.l1TxOrigin      == address(0)
+            && _transaction.l1QueueOrigin   == Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE
+            && keccak256(_transaction.data) == keccak256(_txChainElement.txData),
+            "Invalid Sequencer transaction."
+        );
+
+        return true;
+    }
+
+    /**
+     * Verifies a queue transaction, returning true if it was indeed included in the CTC
+     * @param _transaction The transaction we are verifying inclusion of.
+     * @param _queueIndex The queueIndex of the queued transaction.
+     * @param _batchHeader Header of the batch the transaction was included in.
+     * @param _inclusionProof An inclusion proof into the CTC at a particular index (should point to queue tx).
+     * @return True if the transaction was included in the specified location, else false.
+     */
+    function _verifyQueueTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        uint256 _queueIndex,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
+    )
+        internal
+        view
+        returns (
+            bool
+        )
+    {
+        bytes32 leafHash = _getQueueLeafHash(_inclusionProof.index);
+
+        require(
+            verifyElement(
+                leafHash,
+                _batchHeader,
+                _inclusionProof
+            ),
+            "Invalid Queue transaction inclusion proof."
+        );
+
+        bytes32 transactionHash = keccak256(
+            abi.encode(
+                _transaction.l1TxOrigin,
+                _transaction.entrypoint,
+                _transaction.gasLimit,
+                _transaction.data
+            )
+        );
+
+        Lib_OVMCodec.QueueElement memory el = getQueueElement(_queueIndex);
+        require(
+            el.queueRoot      == transactionHash
+            && el.timestamp   == _transaction.timestamp
+            && el.blockNumber == _transaction.blockNumber,
+            "Invalid Queue transaction."
+        );
+
+        return true;
     }
 }
