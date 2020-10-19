@@ -21,6 +21,11 @@ library Lib_OVMCodec {
     bytes32 constant internal KECCAK256_RLP_NULL_BYTES = keccak256(RLP_NULL_BYTES);
     bytes32 constant internal KECCAK256_NULL_BYTES = keccak256(NULL_BYTES);
 
+    // Ring buffer IDs
+    bytes32 constant internal RING_BUFFER_SCC_BATCHES = keccak256("RING_BUFFER_SCC_BATCHES");
+    bytes32 constant internal RING_BUFFER_CTC_BATCHES = keccak256("RING_BUFFER_CTC_BATCHES");
+    bytes32 constant internal RING_BUFFER_CTC_QUEUE = keccak256("RING_BUFFER_CTC_QUEUE");
+
 
     /*********
      * Enums *

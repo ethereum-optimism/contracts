@@ -6,8 +6,7 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
-import { Lib_MerkleRoot } from "../../libraries/utils/Lib_MerkleRoot.sol";
-import { Lib_RingBuffer } from "../../libraries/utils/Lib_RingBuffer.sol";
+import { Lib_RingBuffer, iRingBufferOverwriter } from "../../libraries/utils/Lib_RingBuffer.sol";
 
 /* Interface Imports */
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
@@ -66,6 +65,18 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         sequencer = resolve("OVM_Sequencer");
         decompressionPrecompileAddress = resolve("OVM_DecompressionPrecompileAddress");
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
+
+        batches.init(
+            16,
+            Lib_OVMCodec.RING_BUFFER_CTC_BATCHES,
+            iRingBufferOverwriter(resolve("OVM_StateCommitmentChain"))
+        );
+
+        queue.init(
+            16,
+            Lib_OVMCodec.RING_BUFFER_CTC_QUEUE,
+            iRingBufferOverwriter(resolve("OVM_StateCommitmentChain"))
+        );
     }
 
 
@@ -228,7 +239,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         }
 
         _appendBatch(
-            Lib_MerkleRoot.getMerkleRoot(leaves),
+            Lib_MerkleUtils.getMerkleRoot(leaves),
             _numQueuedTransactions,
             _numQueuedTransactions
         );
@@ -327,7 +338,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         uint40 numQueuedTransactions = totalElementsToAppend - numSequencerTransactionsProcessed;
         _appendBatch(
-            Lib_MerkleRoot.getMerkleRoot(leaves),
+            Lib_MerkleUtils.getMerkleRoot(leaves),
             totalElementsToAppend,
             numQueuedTransactions
         );

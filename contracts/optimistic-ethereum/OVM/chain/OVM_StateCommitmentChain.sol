@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
-import { Lib_RingBuffer } from "../../libraries/utils/Lib_RingBuffer.sol";
+import { Lib_RingBuffer, iRingBufferOverwriter } from "../../libraries/utils/Lib_RingBuffer.sol";
 
 /* Interface Imports */
 import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.sol";
@@ -16,7 +16,7 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 /**
  * @title OVM_StateCommitmentChain
  */
-contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResolver {
+contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverwriter, Lib_AddressResolver {
     using Lib_RingBuffer for Lib_RingBuffer.RingBuffer;
 
 
@@ -31,6 +31,8 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
      * Variables *
      *************/
 
+    uint256 internal lastDeletableIndex;
+    uint256 internal lastDeletableTimestamp;
     Lib_RingBuffer.RingBuffer internal batches;
     iOVM_CanonicalTransactionChain internal ovmCanonicalTransactionChain;
     iOVM_FraudVerifier internal ovmFraudVerifier;
@@ -50,6 +52,12 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
     {
         ovmCanonicalTransactionChain = iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain"));
         ovmFraudVerifier = iOVM_FraudVerifier(resolve("OVM_FraudVerifier"));
+        
+        batches.init(
+            16,
+            Lib_OVMCodec.RING_BUFFER_SCC_BATCHES,
+            iRingBufferOverwriter(address(this))
+        );
     }
 
 
@@ -197,6 +205,69 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
         );
 
         return timestamp + FRAUD_PROOF_WINDOW > block.timestamp;
+    }
+
+    /**
+     * @inheritdoc iOVM_StateCommitmentChain
+     */
+    function setLastDeletableIndex(
+        Lib_OVMCodec.ChainBatchHeader memory _stateBatchHeader,
+        Lib_OVMCodec.Transaction memory _transaction,
+        Lib_OVMCodec.TransactionChainElement memory _txChainElement,
+        Lib_OVMCodec.ChainBatchHeader memory _txBatchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _txInclusionProof
+    )
+        override
+        public
+    {
+        require(
+            Lib_OVMCodec.hashBatchHeader(_stateBatchHeader) == batches.get(uint32(_stateBatchHeader.batchIndex)),
+            "Invalid batch header."
+        );
+
+        require(
+            insideFraudProofWindow(_stateBatchHeader) == false,
+            "Batch header must be outside of fraud proof window to be deletable."
+        );
+
+        require(
+            _stateBatchHeader.batchIndex > lastDeletableIndex,
+            "Batch index must be greater than last deletable index."
+        );
+
+        require(
+            ovmCanonicalTransactionChain.verifyTransaction(
+                _transaction,
+                _txChainElement,
+                _txBatchHeader,
+                _txInclusionProof
+            ),
+            "Invalid transaction proof."
+        );
+
+        lastDeletableIndex = _stateBatchHeader.batchIndex;
+        lastDeletableTimestamp = _transaction.timestamp;
+    }
+
+    /**
+     * @inheritdoc iRingBufferOverwriter
+     */
+    function canOverwrite(
+        bytes32 _id,
+        uint256 _index
+    )
+        override
+        public
+        view
+        returns (
+            bool
+        )
+    {
+        if (_id == Lib_OVMCodec.RING_BUFFER_CTC_QUEUE) {
+            return ovmCanonicalTransactionChain.getQueueElement(_index / 2).timestamp < lastDeletableTimestamp;
+        } else {
+            return _index < lastDeletableIndex;
+        }
     }
 
 

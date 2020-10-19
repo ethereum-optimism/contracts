@@ -15,12 +15,14 @@ contract TestLib_RingBuffer {
 
     function init(
         uint256 _initialBufferSize,
+        bytes32 _id,
         iRingBufferOverwriter _overwriter
     )
         public
     {
         buf.init(
             _initialBufferSize,
+            _id,
             _overwriter
         );
     }

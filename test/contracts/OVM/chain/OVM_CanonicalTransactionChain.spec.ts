@@ -146,7 +146,7 @@ const encodeBatchContext = (context: BatchContext): string => {
   )
 }
 
-describe.only('OVM_CanonicalTransactionChain', () => {
+describe('OVM_CanonicalTransactionChain', () => {
   let signer: Signer
   let sequencer: Signer
   before(async () => {
@@ -155,6 +155,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
 
   let AddressManager: Contract
   let Mock__OVM_ExecutionManager: MockContract
+  let Mock__OVM_StateCommitmentChain: MockContract
   before(async () => {
     AddressManager = await makeAddressManager()
     await AddressManager.setAddress(
@@ -170,12 +171,23 @@ describe.only('OVM_CanonicalTransactionChain', () => {
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 
+    Mock__OVM_StateCommitmentChain = smockit(
+      await ethers.getContractFactory('OVM_StateCommitmentChain')
+    )
+
     await setProxyTarget(
       AddressManager,
       'OVM_ExecutionManager',
       Mock__OVM_ExecutionManager
     )
 
+    await setProxyTarget(
+      AddressManager,
+      'OVM_StateCommitmentChain',
+      Mock__OVM_StateCommitmentChain
+    )
+
+    Mock__OVM_StateCommitmentChain.smocked.canOverwrite.will.return.with(false)
     Mock__OVM_ExecutionManager.smocked.getMaxTransactionGasLimit.will.return.with(
       MAX_GAS_LIMIT
     )

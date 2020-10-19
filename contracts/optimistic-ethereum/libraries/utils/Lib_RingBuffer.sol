@@ -4,7 +4,7 @@ pragma solidity ^0.7.0;
 import { console } from "@nomiclabs/buidler/console.sol";
 
 interface iRingBufferOverwriter {
-    function canOverwrite() external returns (bool);
+    function canOverwrite(bytes32 _id, uint256 _index) external returns (bool);
 }
 
 library Lib_RingBuffer {
@@ -20,6 +20,7 @@ library Lib_RingBuffer {
     }
 
     struct RingBuffer {
+        bytes32 id;
         iRingBufferOverwriter overwriter;
         bytes32 contextA;
         bytes32 contextB;
@@ -59,12 +60,14 @@ library Lib_RingBuffer {
     function init(
         RingBuffer storage _self,
         uint256 _initialBufferSize,
+        bytes32 _id,
         iRingBufferOverwriter _overwriter
     )
         internal
     {
         _self.bufferA.length = _initialBufferSize;
         _self.bufferB.length = _initialBufferSize;
+        _self.id = _id;
         _self.overwriter = _overwriter;
     }
 
@@ -91,7 +94,15 @@ library Lib_RingBuffer {
 
         // Check if we need to expand the buffer.
         if (ctx.globalIndex - ctx.currResetIndex >= currBuffer.length) {
-            if (false) {
+            bool canOverwrite;
+            try _self.overwriter.canOverwrite(_self.id, ctx.currResetIndex) returns (bool _canOverwrite) {
+                canOverwrite = _canOverwrite;
+            } catch {
+                // Just in case canOverwrite is broken.
+                canOverwrite = false;
+            }
+
+            if (canOverwrite) {
                 // We're going to overwrite the inactive buffer.
                 // Bump the buffer index, reset the delete offset, and set our reset indices.
                 ctx.currBufferIndex++;
