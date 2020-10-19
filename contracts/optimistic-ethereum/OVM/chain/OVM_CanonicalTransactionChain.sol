@@ -205,14 +205,13 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             timestampAndBlockNumber
         );
 
-        // TODO: Is this correct?
-        uint40 nextQueueIndex = _getNextQueueIndex();
+        uint40 queueIndex = queue.getLength() / 2;
         emit TransactionEnqueued(
             msg.sender,
             _target,
             _gasLimit,
             _data,
-            nextQueueIndex - 1,
+            queueIndex - 1,
             block.timestamp
         );
     }
