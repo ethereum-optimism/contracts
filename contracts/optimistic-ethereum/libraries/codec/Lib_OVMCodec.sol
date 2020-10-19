@@ -244,4 +244,28 @@ library Lib_OVMCodec {
             codeHash: Lib_RLPReader.readBytes32(accountState[3])
         });
     }
+
+    /**
+     * Calculates a hash for a given batch header.
+     * @param _batchHeader Header to hash.
+     * @return _hash Hash of the header.
+     */
+    function hashBatchHeader(
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader
+    )
+        internal
+        pure
+        returns (
+            bytes32 _hash
+        )
+    {
+        return keccak256(
+            abi.encode(
+                _batchHeader.batchRoot,
+                _batchHeader.batchSize,
+                _batchHeader.prevTotalElements,
+                _batchHeader.extraData
+            )
+        );
+    }
 }

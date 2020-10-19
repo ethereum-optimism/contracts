@@ -5,19 +5,20 @@ pragma experimental ABIEncoderV2;
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
+import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
+import { Lib_RingBuffer } from "../../libraries/utils/Lib_RingBuffer.sol";
 
 /* Interface Imports */
 import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.sol";
 import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitmentChain.sol";
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
 
-/* Contract Imports */
-import { OVM_BaseChain } from "./OVM_BaseChain.sol";
-
 /**
  * @title OVM_StateCommitmentChain
  */
-contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, Lib_AddressResolver {
+contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResolver {
+    using Lib_RingBuffer for Lib_RingBuffer.RingBuffer;
+
 
     /*************
      * Constants *
@@ -25,11 +26,12 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
 
     uint256 constant public FRAUD_PROOF_WINDOW = 7 days;
 
-    
-    /*******************************************
-     * Contract Variables: Contract References *
-     *******************************************/
 
+    /*************
+     * Variables *
+     *************/
+
+    Lib_RingBuffer.RingBuffer internal batches;
     iOVM_CanonicalTransactionChain internal ovmCanonicalTransactionChain;
     iOVM_FraudVerifier internal ovmFraudVerifier;
 
@@ -51,13 +53,41 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
     }
 
 
-    /****************************************
-     * Public Functions: Batch Manipulation *
-     ****************************************/
+    /********************
+     * Public Functions *
+     ********************/
 
     /**
-     * Appends a batch of state roots to the chain.
-     * @param _batch Batch of state roots.
+     * @inheritdoc iOVM_StateCommitmentChain
+     */
+    function getTotalElements()
+        virtual
+        override
+        public
+        view
+        returns (
+            uint256 _totalElements
+        )
+    {
+        return uint256(uint216(batches.getExtraData()));
+    }
+
+    /**
+     * @inheritdoc iOVM_StateCommitmentChain
+     */
+    function getTotalBatches()
+        override
+        public
+        view
+        returns (
+            uint256 _totalBatches
+        )
+    {
+        return uint256(batches.getLength());
+    }
+
+    /**
+     * @inheritdoc iOVM_StateCommitmentChain
      */
     function appendStateBatch(
         bytes32[] memory _batch
@@ -89,8 +119,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
     }
 
     /**
-     * Deletes all state roots after (and including) a given batch.
-     * @param _batchHeader Header of the batch to start deleting from.
+     * @inheritdoc iOVM_StateCommitmentChain
      */
     function deleteStateBatch(
         Lib_OVMCodec.ChainBatchHeader memory _batchHeader
@@ -111,11 +140,9 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
         _deleteBatch(_batchHeader);
     }
 
-
-    /**********************************
-     * Public Functions: Batch Status *
-     **********************************/
-
+    /**
+     * @inheritdoc iOVM_StateCommitmentChain
+     */
     function verifyStateCommitment(
         bytes32 _element,
         Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
@@ -128,13 +155,27 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
             bool
         )
     {
-        return verifyElement(
-            _element,
-            _batchHeader,
-            _proof
+        require(
+            Lib_OVMCodec.hashBatchHeader(_batchHeader) == batches.get(uint32(_batchHeader.batchIndex)),
+            "Invalid batch header."
         );
+
+        require(
+            Lib_MerkleUtils.verify(
+                _batchHeader.batchRoot,
+                _element,
+                _proof.index,
+                _proof.siblings
+            ),
+            "Invalid inclusion proof."
+        );
+
+        return true;
     }
 
+    /**
+     * @inheritdoc iOVM_StateCommitmentChain
+     */
     function insideFraudProofWindow(
         Lib_OVMCodec.ChainBatchHeader memory _batchHeader
     )
@@ -156,5 +197,72 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, OVM_BaseChain, L
         );
 
         return timestamp + FRAUD_PROOF_WINDOW > block.timestamp;
+    }
+
+
+    /**********************
+     * Internal Functions *
+     **********************/
+
+    /**
+     * Appends a batch to the chain.
+     * @param _batchHeader Batch header to append.
+     */
+    function _appendBatch(
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader
+    )
+        internal
+    {
+        batches.push(
+            Lib_OVMCodec.hashBatchHeader(_batchHeader),
+            bytes27(uint216(getTotalElements() + _batchHeader.batchSize))
+        );
+    }
+
+    /**
+     * Appends a batch to the chain.
+     * @param _elements Elements within the batch.
+     * @param _extraData Any extra data to append to the batch.
+     */
+    function _appendBatch(
+        bytes[] memory _elements,
+        bytes memory _extraData
+    )
+        internal
+    {
+        Lib_OVMCodec.ChainBatchHeader memory batchHeader = Lib_OVMCodec.ChainBatchHeader({
+            batchIndex: uint256(batches.getLength()),
+            batchRoot: Lib_MerkleUtils.getMerkleRoot(_elements),
+            batchSize: _elements.length,
+            prevTotalElements: getTotalElements(),
+            extraData: _extraData
+        });
+
+        _appendBatch(batchHeader);
+    }
+
+    /**
+     * Removes a batch from the chain.
+     * @param _batchHeader Header of the batch to remove.
+     */
+    function _deleteBatch(
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader
+    )
+        internal
+    {
+        require(
+            _batchHeader.batchIndex < batches.getLength(),
+            "Invalid batch index."
+        );
+
+        require(
+            Lib_OVMCodec.hashBatchHeader(_batchHeader) == batches.get(uint32(_batchHeader.batchIndex)),
+            "Invalid batch header."
+        );
+
+        batches.deleteElementsAfterInclusive(
+            uint40(_batchHeader.batchIndex),
+            bytes27(uint216(_batchHeader.prevTotalElements))
+        );
     }
 }

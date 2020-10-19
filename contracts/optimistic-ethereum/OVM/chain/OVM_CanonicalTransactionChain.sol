@@ -10,11 +10,9 @@ import { Lib_MerkleRoot } from "../../libraries/utils/Lib_MerkleRoot.sol";
 import { Lib_RingBuffer } from "../../libraries/utils/Lib_RingBuffer.sol";
 
 /* Interface Imports */
-import { iOVM_BaseChain } from "../../iOVM/chain/iOVM_BaseChain.sol";
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
 
 /* Contract Imports */
-import { OVM_BaseChain } from "./OVM_BaseChain.sol";
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
 /* Logging Imports */
@@ -23,8 +21,9 @@ import { console } from "@nomiclabs/buidler/console.sol";
 /**
  * @title OVM_CanonicalTransactionChain
  */
-contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_BaseChain, Lib_AddressResolver {
+contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_AddressResolver {
     using Lib_RingBuffer for Lib_RingBuffer.RingBuffer;
+
 
     /*************
      * Constants *
@@ -50,10 +49,11 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
     uint256 internal lastOVMTimestamp;
     address internal sequencer;
     address internal decompressionPrecompileAddress;
+    Lib_RingBuffer.RingBuffer internal batches;
     Lib_RingBuffer.RingBuffer internal queue;
     Lib_RingBuffer.RingBuffer internal chain;
 
-    
+
     /***************
      * Constructor *
      ***************/
@@ -74,11 +74,11 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
      * Public Functions *
      ********************/
 
+    /**
+     * @inheritdoc iOVM_CanonicalTransactionChain
+     */
     function getTotalElements()
-        override(
-            OVM_BaseChain,
-            iOVM_BaseChain
-        ) 
+        override
         public
         view
         returns (
@@ -87,6 +87,20 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
     {
         (uint40 totalElements,) = _getBatchExtraData();
         return uint256(totalElements);
+    }
+
+    /**
+     * @inheritdoc iOVM_CanonicalTransactionChain
+     */
+    function getTotalBatches()
+        override
+        public
+        view
+        returns (
+            uint256 _totalBatches
+        )
+    {
+        return uint256(batches.getLength());
     }
 
     /**
@@ -230,12 +244,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
     /**
      * @inheritdoc iOVM_CanonicalTransactionChain
      */
-    function appendSequencerBatch(
-        // uint40 _shouldStartAtBatch,
-        // uint24 _totalElementsToAppend,
-        // BatchContext[] memory _contexts,
-        // bytes[] memory _transactionDataFields
-    )
+    function appendSequencerBatch()
         override
         public
     {
@@ -332,12 +341,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
     }
 
     /**
-     * Verifies whether a transaction is included in the chain.
-     * @param _transaction Transaction to verify.
-     * @param _txChainElement Transaction chain element corresponding to the transaction.
-     * @param _batchHeader Header of the batch the transaction was included in.
-     * @param _inclusionProof Inclusion proof for the provided transaction chain element.
-     * @return True if the transaction exists in the CTC, false if not.
+     * @inheritdoc iOVM_CanonicalTransactionChain
      */
     function verifyTransaction(
         Lib_OVMCodec.Transaction memory _transaction,
@@ -615,7 +619,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
             extraData: hex""
         });
 
-        bytes32 batchHeaderHash = _hashBatchHeader(header);
+        bytes32 batchHeaderHash = Lib_OVMCodec.hashBatchHeader(header);
         bytes27 latestBatchContext = _makeBatchExtraData(
             totalElements + uint40(header.batchSize),
             nextQueueIndex + uint40(_numQueuedTransactions)
@@ -708,7 +712,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         bytes32 leafHash = _getSequencerLeafHash(_txChainElement);
 
         require(
-            verifyElement(
+            _verifyElement(
                 leafHash,
                 _batchHeader,
                 _inclusionProof
@@ -753,7 +757,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         bytes32 leafHash = _getQueueLeafHash(_inclusionProof.index);
 
         require(
-            verifyElement(
+            _verifyElement(
                 leafHash,
                 _batchHeader,
                 _inclusionProof
@@ -776,6 +780,41 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
             && el.timestamp   == _transaction.timestamp
             && el.blockNumber == _transaction.blockNumber,
             "Invalid Queue transaction."
+        );
+
+        return true;
+    }
+
+    /**
+     * Verifies a batch inclusion proof.
+     * @param _element Hash of the element to verify a proof for.
+     * @param _batchHeader Header of the batch in which the element was included.
+     * @param _proof Merkle inclusion proof for the element.
+     */
+    function _verifyElement(
+        bytes32 _element,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _proof
+    )
+        internal
+        view
+        returns (
+            bool
+        )
+    {
+        require(
+            Lib_OVMCodec.hashBatchHeader(_batchHeader) == batches.get(uint32(_batchHeader.batchIndex)),
+            "Invalid batch header."
+        );
+
+        require(
+            Lib_MerkleUtils.verify(
+                _batchHeader.batchRoot,
+                _element,
+                _proof.index,
+                _proof.siblings
+            ),
+            "Invalid inclusion proof."
         );
 
         return true;
