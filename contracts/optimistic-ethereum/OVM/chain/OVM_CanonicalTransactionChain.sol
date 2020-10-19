@@ -51,7 +51,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     address internal decompressionPrecompileAddress;
     Lib_RingBuffer.RingBuffer internal batches;
     Lib_RingBuffer.RingBuffer internal queue;
-    Lib_RingBuffer.RingBuffer internal chain;
 
 
     /***************
