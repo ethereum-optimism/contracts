@@ -8,7 +8,7 @@ import { iOVM_BaseChain } from "../../iOVM/chain/iOVM_BaseChain.sol";
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
-import { TimeboundRingBuffer, Lib_TimeboundRingBuffer } from "../../libraries/utils/Lib_TimeboundRingBuffer.sol";
+import { Lib_RingBuffer } from "../../libraries/utils/Lib_RingBuffer.sol";
 
 /**
  * @title OVM_BaseChain
@@ -19,8 +19,8 @@ contract OVM_BaseChain is iOVM_BaseChain {
      * Contract Variables: Batches *
      *******************************/
 
-    using Lib_TimeboundRingBuffer for TimeboundRingBuffer;
-    TimeboundRingBuffer internal batches;
+    using Lib_RingBuffer for Lib_RingBuffer.RingBuffer;
+    Lib_RingBuffer.RingBuffer internal batches;
     uint256 internal totalBatches;
     uint256 internal totalElements;
 
@@ -32,7 +32,7 @@ contract OVM_BaseChain is iOVM_BaseChain {
     constructor()
     {
         // TODO: Add propper customization
-        batches.init(4, 2, 100000);
+        //batches.init(4, 2, 100000);
     }
 
 
@@ -53,7 +53,7 @@ contract OVM_BaseChain is iOVM_BaseChain {
             uint256 _totalElements
         )
     {
-        return uint256(uint224(batches.getExtraData()));
+        return uint256(uint216(batches.getExtraData()));
     }
 
     /**
@@ -128,7 +128,7 @@ contract OVM_BaseChain is iOVM_BaseChain {
         internal
     {
         bytes32 batchHeaderHash = _hashBatchHeader(_batchHeader);
-        batches.push(batchHeaderHash, bytes28(uint224(getTotalElements() + _batchHeader.batchSize)));
+        batches.push(batchHeaderHash, bytes27(uint216(getTotalElements() + _batchHeader.batchSize)));
     }
 
     /**
@@ -188,7 +188,7 @@ contract OVM_BaseChain is iOVM_BaseChain {
         );
 
         totalElements = _batchHeader.prevTotalElements;
-        batches.deleteElementsAfter(uint32(_batchHeader.batchIndex - 1), bytes28(uint224(totalElements)));
+        batches.deleteElementsAfterInclusive(uint32(_batchHeader.batchIndex), bytes27(uint216(totalElements)));
     }
 
     /**

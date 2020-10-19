@@ -183,7 +183,7 @@ describe('OVM_CanonicalTransactionChain', () => {
 
       await expect(
         OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
-      ).to.be.revertedWith('Transaction exceeds maximum rollup data size.')
+      ).to.be.revertedWith('Transaction exceeds maximum rollup transaction data size.')
     })
 
     it('should revert if gas limit parameter is not at least MIN_ROLLUP_TX_GAS', async () => {
@@ -192,7 +192,7 @@ describe('OVM_CanonicalTransactionChain', () => {
 
       await expect(
         OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
-      ).to.be.revertedWith('Layer 2 gas limit too low to enqueue.')
+      ).to.be.revertedWith('Transaction gas limit too low to enqueue.')
     })
 
     it('should revert if transaction gas limit does not cover rollup burn', async () => {
@@ -233,7 +233,7 @@ describe('OVM_CanonicalTransactionChain', () => {
     it('should revert when accessing a non-existent element', async () => {
       await expect(
         OVM_CanonicalTransactionChain.getQueueElement(0)
-      ).to.be.revertedWith('Index too large')
+      ).to.be.revertedWith('Index out of bounds.')
     })
 
     describe('when the requested element exists', () => {
@@ -385,7 +385,7 @@ describe('OVM_CanonicalTransactionChain', () => {
     it('should revert if the queue is empty', async () => {
       await expect(
         OVM_CanonicalTransactionChain.appendQueueBatch(1)
-      ).to.be.revertedWith('Index too large.')
+      ).to.be.revertedWith('Index out of bounds.')
     })
 
     describe('when the queue is not empty', () => {
@@ -450,7 +450,7 @@ describe('OVM_CanonicalTransactionChain', () => {
             it(`should revert if appending ${size} + 1 elements`, async () => {
               await expect(
                 OVM_CanonicalTransactionChain.appendQueueBatch(size + 1)
-              ).to.be.revertedWith('Index too large.')
+              ).to.be.revertedWith('Index out of bounds.')
             })
           })
         })
