@@ -303,8 +303,11 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
 
                 assembly {
                     let chainElementStart := add(_chainElement, 0x20)
+                    // Set the first byte equal to `1` to indicate this is a sequencer chain element.
+                    // This distinguishes sequencer ChainElements from queue ChainElements because
+                    // all queue ChainElements are ABI encoded and the first byte of ABI encoded
+                    // elements is always zero
                     mstore8(chainElementStart, 1)
-                    mstore8(add(chainElementStart, 1), 0)
                     mstore(add(chainElementStart, 2), _timestamp)
                     mstore(add(chainElementStart, 34), _blockNumber)
                     // Store the rest of the transaction
@@ -655,7 +658,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         assembly {
             let chainElementStart := add(_chainElement, 0x20)
             mstore8(chainElementStart, 1)
-            mstore8(add(chainElementStart, 1), 0)
             mstore(add(chainElementStart, 2), _timestamp)
             mstore(add(chainElementStart, 34), _blockNumber)
 
