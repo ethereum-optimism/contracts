@@ -14,13 +14,15 @@ import {
   toHexString32,
   getEthTime,
   NULL_BYTES32,
+  increaseEthTime,
 } from '../../../helpers'
 import { keccak256, defaultAbiCoder } from 'ethers/lib/utils'
 
 describe('OVM_StateCommitmentChain', () => {
-  let signer: Signer
+  let sequencer: Signer
+  let user: Signer
   before(async () => {
-    ;[signer] = await ethers.getSigners()
+    ;[sequencer, user] = await ethers.getSigners()
   })
 
   let AddressManager: Contract
@@ -52,6 +54,11 @@ describe('OVM_StateCommitmentChain', () => {
     )
 
     Mock__OVM_BondManager.smocked.isCollateralized.will.return.with(true)
+
+    await AddressManager.setAddress(
+      'OVM_Sequencer',
+      await sequencer.getAddress()
+    )
   })
 
   let Factory__OVM_StateCommitmentChain: ContractFactory
@@ -82,6 +89,16 @@ describe('OVM_StateCommitmentChain', () => {
     describe('when the provided batch is not empty', () => {
       const batch = [NON_NULL_BYTES32]
 
+      describe('when start index does not match total elements', () => {
+        it('should revert', async () => {
+          await expect(
+            OVM_StateCommitmentChain.appendStateBatch(batch, 1)
+          ).to.be.revertedWith(
+            'Actual batch start index does not match expected start index.'
+          )
+        })
+      })
+
       describe('when submitting more elements than present in the OVM_CanonicalTransactionChain', () => {
         before(() => {
           Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
@@ -110,6 +127,45 @@ describe('OVM_StateCommitmentChain', () => {
             .not.be.reverted
         })
       })
+
+      describe('when a sequencer submits ', () => {
+        beforeEach(async () => {
+          Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
+            batch.length * 2
+          )
+
+          await OVM_StateCommitmentChain.connect(sequencer).appendStateBatch(
+            batch,
+            0
+          )
+        })
+
+        describe('when inside sequencer publish window', () => {
+          it('should revert', async () => {
+            await expect(
+              OVM_StateCommitmentChain.connect(user).appendStateBatch(batch, 1)
+            ).to.be.revertedWith(
+              'Cannot publish state roots within the sequencer publication window.'
+            )
+          })
+        })
+
+        describe('when outside sequencer publish window', () => {
+          beforeEach(async () => {
+            const SEQUENCER_PUBLISH_WINDOW = await OVM_StateCommitmentChain.SEQUENCER_PUBLISH_WINDOW()
+            await increaseEthTime(
+              ethers.provider,
+              SEQUENCER_PUBLISH_WINDOW.toNumber() + 1
+            )
+          })
+
+          it('should succeed', async () => {
+            await expect(
+              OVM_StateCommitmentChain.connect(user).appendStateBatch(batch, 1)
+            ).to.not.be.reverted
+          })
+        })
+      })
     })
   })
 
@@ -130,7 +186,7 @@ describe('OVM_StateCommitmentChain', () => {
       await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
       batchHeader.extraData = defaultAbiCoder.encode(
         ['uint256', 'address'],
-        [await getEthTime(ethers.provider), await signer.getAddress()]
+        [await getEthTime(ethers.provider), await sequencer.getAddress()]
       )
     })
 
@@ -152,7 +208,7 @@ describe('OVM_StateCommitmentChain', () => {
       before(async () => {
         await AddressManager.setAddress(
           'OVM_FraudVerifier',
-          await signer.getAddress()
+          await sequencer.getAddress()
         )
       })
 
