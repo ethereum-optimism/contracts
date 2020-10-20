@@ -14,9 +14,6 @@ import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitment
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
 import { iOVM_BondManager } from "../../iOVM/verification/iOVM_BondManager.sol";
 
-/* Logging Imports */
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /**
  * @title OVM_StateCommitmentChain
  */

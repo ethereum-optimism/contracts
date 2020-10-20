@@ -14,9 +14,6 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 /* Contract Imports */
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
-/* Logging Imports */
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /**
  * @title OVM_CanonicalTransactionChain
  */
