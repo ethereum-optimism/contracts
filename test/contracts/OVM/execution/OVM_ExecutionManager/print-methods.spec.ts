@@ -15,7 +15,7 @@ describe('EM MethodIds', () => {
     )
 
   })
-    it.only('print ovmREVERT', async () => {
+    it('print ovmREVERT', async () => {
       console.log(
         Factory__OVM_ExecutionManager.interface.encodeFunctionData(
           'ovmREVERT',
@@ -24,7 +24,7 @@ describe('EM MethodIds', () => {
       )
     })
 
-    it('print all', async () => {
+    it.only('print all', async () => {
         for (let frag of Factory__OVM_ExecutionManager.interface.fragments) {
             try {
               console.log(`func ${frag.name}: ${Factory__OVM_ExecutionManager.interface.getSighash(frag as any)}`)

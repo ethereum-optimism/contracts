@@ -10,6 +10,8 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
+import {console} from "@nomiclabs/buidler/console.sol";
+
 /**
  * @title mockOVM_ECDSAContractAccount
  */
@@ -43,6 +45,7 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             bytes memory _returndata
         )
     {
+        console.log("in execute");
         address ovmExecutionManager = msg.sender;
 
         // Skip signature validation in this mock.
