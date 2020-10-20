@@ -14,6 +14,7 @@ import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitment
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
 import { iOVM_BondManager } from "../../iOVM/verification/iOVM_BondManager.sol";
 
+
 /**
  * @title OVM_StateCommitmentChain
  */
@@ -71,7 +72,6 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
      * @inheritdoc iOVM_StateCommitmentChain
      */
     function getTotalElements()
-        virtual
         override
         public
         view
@@ -337,6 +337,11 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         require(
             _batchHeader.batchIndex < batches.getLength(),
             "Invalid batch index."
+        );
+
+        require(
+            Lib_OVMCodec.hashBatchHeader(_batchHeader) == batches.get(uint32(_batchHeader.batchIndex)),
+            "Invalid batch header."
         );
 
         batches.deleteElementsAfterInclusive(
