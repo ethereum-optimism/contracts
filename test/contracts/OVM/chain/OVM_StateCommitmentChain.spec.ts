@@ -74,7 +74,7 @@ describe('OVM_StateCommitmentChain', () => {
 
       it('should revert', async () => {
         await expect(
-          OVM_StateCommitmentChain.appendStateBatch(batch)
+          OVM_StateCommitmentChain.appendStateBatch(batch, 0)
         ).to.be.revertedWith('Cannot submit an empty state batch.')
       })
     })
@@ -91,7 +91,7 @@ describe('OVM_StateCommitmentChain', () => {
 
         it('should revert', async () => {
           await expect(
-            OVM_StateCommitmentChain.appendStateBatch(batch)
+            OVM_StateCommitmentChain.appendStateBatch(batch, 0)
           ).to.be.revertedWith(
             'Number of state roots cannot exceed the number of canonical transactions.'
           )
@@ -106,8 +106,8 @@ describe('OVM_StateCommitmentChain', () => {
         })
 
         it('should append the state batch', async () => {
-          await expect(OVM_StateCommitmentChain.appendStateBatch(batch)).to.not
-            .be.reverted
+          await expect(OVM_StateCommitmentChain.appendStateBatch(batch, 0)).to
+            .not.be.reverted
         })
       })
     })
@@ -127,7 +127,7 @@ describe('OVM_StateCommitmentChain', () => {
       Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
         batch.length
       )
-      await OVM_StateCommitmentChain.appendStateBatch(batch)
+      await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
       batchHeader.extraData = defaultAbiCoder.encode(
         ['uint256', 'address'],
         [await getEthTime(ethers.provider), await signer.getAddress()]
@@ -202,7 +202,7 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -216,7 +216,7 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -230,8 +230,8 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length * 2
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 32)
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -253,7 +253,7 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -269,7 +269,7 @@ describe('OVM_StateCommitmentChain', () => {
         )
 
         for (let i = 0; i < 8; i++) {
-          await OVM_StateCommitmentChain.appendStateBatch(batch)
+          await OVM_StateCommitmentChain.appendStateBatch(batch, i)
         }
       })
 

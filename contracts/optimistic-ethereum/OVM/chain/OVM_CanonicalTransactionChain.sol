@@ -267,7 +267,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         }
 
         require(
-            shouldStartAtBatch == getTotalBatches(),
+            shouldStartAtBatch == getTotalElements(),
             "Actual batch start index does not match expected start index."
         );
 
