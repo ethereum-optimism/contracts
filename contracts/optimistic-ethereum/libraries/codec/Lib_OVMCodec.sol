@@ -136,6 +136,70 @@ library Lib_OVMCodec {
     }
 
     /**
+     * Encodes an EOA transaction back into the original transaction.
+     * @param _transaction EOA transaction to encode.
+     * @param _isEthSignedMessage Whether or not this was an eth signed message.
+     * @return Encoded transaction.
+     */
+    function encodeEOATransaction(
+        EOATransaction memory _transaction,
+        bool _isEthSignedMessage
+    )
+        internal
+        pure
+        returns (
+            bytes memory
+        )
+    {
+        if (_isEthSignedMessage) {
+            return abi.encode(
+                _transaction.nonce,
+                _transaction.gasLimit,
+                _transaction.gasPrice,
+                _transaction.chainId,
+                _transaction.to,
+                _transaction.data
+            );
+        } else {
+            bytes[] memory raw = new bytes[](9);
+
+            raw[0] = Lib_RLPWriter.encodeUint(_transaction.nonce);
+            raw[1] = Lib_RLPWriter.encodeUint(_transaction.gasPrice);
+            raw[2] = Lib_RLPWriter.encodeUint(_transaction.gasLimit);
+            raw[3] = Lib_RLPWriter.encodeAddress(_transaction.to);
+            raw[4] = Lib_RLPWriter.encodeUint(0);
+            raw[5] = Lib_RLPWriter.encodeBytes(_transaction.data);
+            raw[6] = Lib_RLPWriter.encodeUint(_transaction.chainId);
+            raw[7] = Lib_RLPWriter.encodeBytes(bytes(''));
+            raw[8] = Lib_RLPWriter.encodeBytes(bytes(''));
+
+            return Lib_RLPWriter.encodeList(raw);
+        }
+    }
+
+     /**
+     * Decodes and then re-encodes an EOA transaction.
+     * @param _transaction Compactly encoded EOA transaction.
+     * @param _isEthSignedMessage Whether or not this is an eth signed message.
+     * @return Transaction with original encoding.
+     */
+    function encodeEOATransaction(
+        bytes memory _transaction,
+        bool _isEthSignedMessage
+    )
+        internal
+        pure
+        returns (
+            bytes memory
+        )
+    {
+        return encodeEOATransaction(
+            decodeEOATransaction(_transaction),
+            _isEthSignedMessage
+        );
+    }
+
+    /**
      * Encodes a standard OVM transaction.
      * @param _transaction OVM transaction to encode.
      * @return _encoded Encoded transaction bytes.
