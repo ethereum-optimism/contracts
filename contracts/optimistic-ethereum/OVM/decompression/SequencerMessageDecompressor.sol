@@ -55,18 +55,18 @@ contract SequencerMessageDecompressor {
         uint8 v = uint8(Lib_BytesUtils.toUint256(Lib_BytesUtils.slice(msg.data, 1, 1)));
         bytes32 r = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 2, 32));
         bytes32 s = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 34, 32));
-
+        
         if (transactionType == TransactionType.EOA_CONTRACT_CREATION) {
             // Pull out the message hash so we can verify the signature.
             bytes32 messageHash = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 66, 32));
-            OVM_ExecutionManager(msg.sender).ovmCREATEEOA(messageHash, uint8(v), r, s);
+            // OVM_ExecutionManager(msg.sender).ovmCREATEEOA(messageHash, uint8(v), r, s);
         } else {
             // Remainder is the message to execute.
             bytes memory message = Lib_BytesUtils.slice(msg.data, 66);
             bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
 
             // Need to re-encode the message based on the original encoding.
-            bytes memory encodedTx = Lib_OVMCodec.encodeEOATransaction(
+            bytes memory encodedTx = Lib_OVMCodec.encodeEIP155Transaction(
                 message,
                 isEthSignedMessage
             );
@@ -77,7 +77,7 @@ contract SequencerMessageDecompressor {
                 uint8(v),
                 r,
                 s,
-                Lib_SafeExecutionManagerWrapper.ovmCHAINID(msg.sender)
+                420// Lib_SafeExecutionManagerWrapper.safeCHAINID(msg.sender)
             );
 
             bytes memory callbytes = abi.encodeWithSelector(
@@ -89,12 +89,12 @@ contract SequencerMessageDecompressor {
                 s
             );
 
-            Lib_SafeExecutionManagerWrapper.ovmCALL(
-                msg.sender,
-                target,
-                callbytes,
-                gasleft()
-            );
+            // Lib_SafeExecutionManagerWrapper.safeCALL(
+            //     msg.sender,
+            //     gasleft(),
+            //     target,
+            //     callbytes
+            // );
         }
     }
 

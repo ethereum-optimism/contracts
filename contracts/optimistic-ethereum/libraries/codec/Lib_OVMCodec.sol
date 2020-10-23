@@ -34,8 +34,7 @@ library Lib_OVMCodec {
     
     enum EOASignatureType {
         ETH_SIGNED_MESSAGE,
-        EIP155_TRANSACTON,
-        CREATE_EOA_TRANSACTION
+        EIP155_TRANSACTON
     }
 
     enum QueueOrigin {
@@ -112,7 +111,7 @@ library Lib_OVMCodec {
         uint256 nonce;
         uint256 gasPrice;
         uint256 gasLimit;
-        address target;
+        address to;
         uint256 value;
         bytes data;
         uint256 chainId;
@@ -147,51 +146,23 @@ library Lib_OVMCodec {
         });
     }
 
-    function rlpDecodeEIP155Transaction(
+    function decompressEIP155Transaction(
         bytes memory _transaction
     )
         internal
         pure
         returns (
-            EIP155Transaction memory _decoded
+            EIP155Transaction memory _decompressed
         )
     {
-        Lib_RLPReader.RLPItem[] memory decoded = Lib_RLPReader.readList(_transaction);
-
         return EIP155Transaction({
-            nonce: Lib_RLPReader.readUint256(decoded[0]),
-            gasPrice: Lib_RLPReader.readUint256(decoded[1]),
-            gasLimit: Lib_RLPReader.readUint256(decoded[2]),
-            target: Lib_RLPReader.readAddress(decoded[3]),
-            value: Lib_RLPReader.readBytes(decoded[4]),
-            data: Lib_RLPReader.readBytes(decoded[5]),
-            chainId: Lib_RLPReader.readBytes(decoded[6])
-        });
-    }
-
-    function decodeEIP155Transaction(
-        bytes memory _transaction
-    )
-        internal
-        pure
-        returns (
-            EIP155Transaction memory _decoded
-        )
-    {
-        uint256 gasLimit = Lib_BytesUtils.toUint256(Lib_BytesUtils.slice(_transaction, 0, 3));
-        uint256 gasPrice= Lib_BytesUtils.toUint256(Lib_BytesUtils.slice(msg.data, 3, 3));
-        uint256 nonce = Lib_BytesUtils.toUint256(Lib_BytesUtils.slice(msg.data, 6, 3));
-        address target = Lib_BytesUtils.toAddress(Lib_BytesUtils.slice(msg.data, 9, 20))
-
-
-        return EIP155Transaction({
-            nonce: Lib_RLPReader.readUint256(decoded[0]),
-            gasPrice: Lib_RLPReader.readUint256(decoded[1]),
-            gasLimit: Lib_RLPReader.readUint256(decoded[2]),
-            target: Lib_RLPReader.readAddress(decoded[3]),
-            value: Lib_RLPReader.readBytes(decoded[4]),
-            data: Lib_RLPReader.readBytes(decoded[5]),
-            chainId: Lib_RLPReader.readBytes(decoded[6])
+            gasLimit: Lib_BytesUtils.toUint24(_transaction, 0),
+            gasPrice: (Lib_BytesUtils.toUint24(_transaction, 3) * 1000000),
+            nonce: Lib_BytesUtils.toUint24(_transaction, 6),
+            to: Lib_BytesUtils.toAddress(_transaction, 9),
+            data: Lib_BytesUtils.slice(_transaction, 29),
+            chainId: 420,
+            value: 0
         });
     }
 
@@ -223,17 +194,17 @@ library Lib_OVMCodec {
         } else {
             bytes[] memory raw = new bytes[](9);
 
-            raw[0] = Lib_RLPWriter.encodeUint(_transaction.nonce);
-            raw[1] = Lib_RLPWriter.encodeUint(_transaction.gasPrice);
-            raw[2] = Lib_RLPWriter.encodeUint(_transaction.gasLimit);
-            raw[3] = Lib_RLPWriter.encodeAddress(_transaction.to);
-            raw[4] = Lib_RLPWriter.encodeUint(0);
-            raw[5] = Lib_RLPWriter.encodeBytes(_transaction.data);
-            raw[6] = Lib_RLPWriter.encodeUint(_transaction.chainId);
-            raw[7] = Lib_RLPWriter.encodeBytes(bytes(''));
-            raw[8] = Lib_RLPWriter.encodeBytes(bytes(''));
+            raw[0] = Lib_RLPWriter.writeUint(_transaction.nonce);
+            raw[1] = Lib_RLPWriter.writeUint(_transaction.gasPrice);
+            raw[2] = Lib_RLPWriter.writeUint(_transaction.gasLimit);
+            raw[3] = Lib_RLPWriter.writeAddress(_transaction.to);
+            raw[4] = Lib_RLPWriter.writeUint(0);
+            raw[5] = Lib_RLPWriter.writeBytes(_transaction.data);
+            raw[6] = Lib_RLPWriter.writeUint(_transaction.chainId);
+            raw[7] = Lib_RLPWriter.writeBytes(bytes(''));
+            raw[8] = Lib_RLPWriter.writeBytes(bytes(''));
 
-            return Lib_RLPWriter.encodeList(raw);
+            return Lib_RLPWriter.writeList(raw);
         }
     }
 
@@ -254,7 +225,7 @@ library Lib_OVMCodec {
         )
     {
         return encodeEIP155Transaction(
-            decodeEIP155Transaction(_transaction),
+            decompressEIP155Transaction(_transaction),
             _isEthSignedMessage
         );
     }

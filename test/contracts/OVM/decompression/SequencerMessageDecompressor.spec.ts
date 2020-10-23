@@ -146,7 +146,7 @@ const encodeSequencerCalldata = async (
   return calldata
 }
 
-describe.only('SequencerMessageDecompressor', () => {
+describe('SequencerMessageDecompressor', () => {
   let signer: Signer
   before(async () => {
     ;[signer] = await ethers.getSigners()
@@ -329,5 +329,5 @@ describe.only('SequencerMessageDecompressor', () => {
   //     const actualVal = await SimpleStorage.getStorage(expectedKey)
   //     expect(actualVal).to.equal(expectedVal)
   //   })
-  // })
+  })
 })
