@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 /* Library Imports */
 import { Lib_RLPReader } from "../rlp/Lib_RLPReader.sol";
 import { Lib_RLPWriter } from "../rlp/Lib_RLPWriter.sol";
+import { Lib_BytesUtils } from "../utils/Lib_BytesUtils.sol";
 
 /**
  * @title Lib_OVMCodec
@@ -33,7 +34,8 @@ library Lib_OVMCodec {
     
     enum EOASignatureType {
         ETH_SIGNED_MESSAGE,
-        NATIVE_TRANSACTON
+        EIP155_TRANSACTON,
+        CREATE_EOA_TRANSACTION
     }
 
     enum QueueOrigin {
@@ -106,6 +108,16 @@ library Lib_OVMCodec {
         bytes data;
     }
 
+    struct EIP155Transaction {
+        uint256 nonce;
+        uint256 gasPrice;
+        uint256 gasLimit;
+        address target;
+        uint256 value;
+        bytes data;
+        uint256 chainId;
+    }
+
 
     /*********************************************
      * Internal Functions: Encoding and Decoding *
@@ -135,14 +147,62 @@ library Lib_OVMCodec {
         });
     }
 
+    function rlpDecodeEIP155Transaction(
+        bytes memory _transaction
+    )
+        internal
+        pure
+        returns (
+            EIP155Transaction memory _decoded
+        )
+    {
+        Lib_RLPReader.RLPItem[] memory decoded = Lib_RLPReader.readList(_transaction);
+
+        return EIP155Transaction({
+            nonce: Lib_RLPReader.readUint256(decoded[0]),
+            gasPrice: Lib_RLPReader.readUint256(decoded[1]),
+            gasLimit: Lib_RLPReader.readUint256(decoded[2]),
+            target: Lib_RLPReader.readAddress(decoded[3]),
+            value: Lib_RLPReader.readBytes(decoded[4]),
+            data: Lib_RLPReader.readBytes(decoded[5]),
+            chainId: Lib_RLPReader.readBytes(decoded[6])
+        });
+    }
+
+    function decodeEIP155Transaction(
+        bytes memory _transaction
+    )
+        internal
+        pure
+        returns (
+            EIP155Transaction memory _decoded
+        )
+    {
+        uint256 gasLimit = Lib_BytesUtils.toUint256(Lib_BytesUtils.slice(_transaction, 0, 3));
+        uint256 gasPrice= Lib_BytesUtils.toUint256(Lib_BytesUtils.slice(msg.data, 3, 3));
+        uint256 nonce = Lib_BytesUtils.toUint256(Lib_BytesUtils.slice(msg.data, 6, 3));
+        address target = Lib_BytesUtils.toAddress(Lib_BytesUtils.slice(msg.data, 9, 20))
+
+
+        return EIP155Transaction({
+            nonce: Lib_RLPReader.readUint256(decoded[0]),
+            gasPrice: Lib_RLPReader.readUint256(decoded[1]),
+            gasLimit: Lib_RLPReader.readUint256(decoded[2]),
+            target: Lib_RLPReader.readAddress(decoded[3]),
+            value: Lib_RLPReader.readBytes(decoded[4]),
+            data: Lib_RLPReader.readBytes(decoded[5]),
+            chainId: Lib_RLPReader.readBytes(decoded[6])
+        });
+    }
+
     /**
      * Encodes an EOA transaction back into the original transaction.
-     * @param _transaction EOA transaction to encode.
+     * @param _transaction EIP155transaction to encode.
      * @param _isEthSignedMessage Whether or not this was an eth signed message.
      * @return Encoded transaction.
      */
-    function encodeEOATransaction(
-        EOATransaction memory _transaction,
+    function encodeEIP155Transaction(
+        EIP155Transaction memory _transaction,
         bool _isEthSignedMessage
     )
         internal
@@ -183,7 +243,7 @@ library Lib_OVMCodec {
      * @param _isEthSignedMessage Whether or not this is an eth signed message.
      * @return Transaction with original encoding.
      */
-    function encodeEOATransaction(
+    function encodeEIP155Transaction(
         bytes memory _transaction,
         bool _isEthSignedMessage
     )
@@ -193,8 +253,8 @@ library Lib_OVMCodec {
             bytes memory
         )
     {
-        return encodeEOATransaction(
-            decodeEOATransaction(_transaction),
+        return encodeEIP155Transaction(
+            decodeEIP155Transaction(_transaction),
             _isEthSignedMessage
         );
     }
