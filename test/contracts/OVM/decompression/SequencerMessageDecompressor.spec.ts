@@ -1,8 +1,8 @@
 import { expect } from '../../../setup'
 
 /* External Imports */
-import { ethers } from '@nomiclabs/buidler'
-import { ContractFactory, Signer, Contract } from 'ethers'
+import { waffle, ethers } from '@nomiclabs/buidler'
+import { ContractFactory, Wallet, Contract } from 'ethers'
 import { zeroPad } from '@ethersproject/bytes'
 import {
   remove0x,
@@ -73,13 +73,13 @@ const serializeNativeTransaction = (transaction: EOATransaction): string => {
 }
 
 const signEthSignMessage = async (
-  signer: Signer,
+  wallet: Wallet,
   transaction: EOATransaction
 ): Promise<SignatureParameters> => {
   const serializedTransaction = serializeEthSignTransaction(transaction)
   const transactionHash = ethers.utils.keccak256(serializedTransaction)
   const transactionHashBytes = ethers.utils.arrayify(transactionHash)
-  const transactionSignature = await signer.signMessage(transactionHashBytes)
+  const transactionSignature = await wallet.signMessage(transactionHashBytes)
 
   const messageHash = ethers.utils.hashMessage(transactionHashBytes)
   const [v, r, s] = getRawSignedComponents(transactionSignature).map(
@@ -87,7 +87,6 @@ const signEthSignMessage = async (
       return remove0x(component)
     }
   )
-
   return {
     messageHash,
     v,
@@ -97,19 +96,20 @@ const signEthSignMessage = async (
 }
 
 const signNativeTransaction = async (
-  signer: Signer,
+  wallet: Wallet,
   transaction: EOATransaction
 ): Promise<SignatureParameters> => {
   const serializedTransaction = serializeNativeTransaction(transaction)
-  const transactionSignature = await signer.signTransaction(transaction)
+  const transactionSignature = await wallet.signTransaction(transaction)
 
   const messageHash = ethers.utils.keccak256(serializedTransaction)
-  const [v, r, s] = getSignedComponents(transactionSignature).map(
+  console.log('msg hash:', messageHash)
+  let [v, r, s] = getSignedComponents(transactionSignature).map(
     (component) => {
       return remove0x(component)
     }
   )
-
+  v = '0' + (parseInt(v, 16) - 420 * 2 - 8 - 27)
   return {
     messageHash,
     v,
@@ -119,37 +119,38 @@ const signNativeTransaction = async (
 }
 
 const signTransaction = async (
-  signer: Signer,
+  wallet: Wallet,
   transaction: EOATransaction,
   transactionType: number
 ): Promise<SignatureParameters> => {
   return transactionType === 2
-    ? signEthSignMessage(signer, transaction)
-    : signNativeTransaction(signer, transaction)
+    ? signEthSignMessage(wallet, transaction)
+    : signNativeTransaction(wallet, transaction)
 }
 
 const encodeSequencerCalldata = async (
-  signer: Signer,
+  wallet: Wallet,
   transaction: EOATransaction,
   transactionType: number
 ) => {
-  const sig = await signTransaction(signer, transaction, transactionType)
-  const encodedTransaction = encodeCompactTransaction(transaction)
-
+  const sig = await signTransaction(wallet, transaction, transactionType)
+  // const encodedTransaction = encodeCompactTransaction(transaction)
+  console.log(`SIG!!${sig.r}${sig.s}${sig.v}`)
   let calldata = `0x0${transactionType}${sig.v}${sig.r}${sig.s}`
-  if (transactionType === 0) {
-    calldata = `${calldata}${remove0x(sig.messageHash)}`
-  } else {
-    calldata = `${calldata}${encodedTransaction}`
-  }
+  // if (transactionType === 0) {
+  //   calldata = `${calldata}${remove0x(sig.messageHash)}`
+  // } else {
+  //   calldata = `${calldata}${encodedTransaction}`
+  // }
 
   return calldata
 }
 
-describe('SequencerMessageDecompressor', () => {
-  let signer: Signer
+describe.only('SequencerMessageDecompressor', () => {
+  let wallet: Wallet
   before(async () => {
-    ;[signer] = await ethers.getSigners()
+    const provider = waffle.provider
+    ;[wallet] = provider.getWallets()
   })
 
   // let ECDSAContractAccountPrototype: Contract
@@ -160,8 +161,11 @@ describe('SequencerMessageDecompressor', () => {
   let Mock__TargetContract: MockContract
   before(async () => {
     Mock__TargetContract = smockit(
-      await ethers.getContractFactory('Helper_SimpleProxy')
+      await ethers.getContractFactory('OVM_ECDSAContractAccount'),
+      ethers.provider,
+      await wallet.getAddress()
     )
+    console.log(Mock__TargetContract.address, await wallet.getAddress())
   })
 
 
@@ -180,154 +184,61 @@ describe('SequencerMessageDecompressor', () => {
   })
 
   describe('fallback()', async () => {
-    it('should call ovmCREATEEOA if the transaction type is zero', async () => {
-      const calldata = await encodeSequencerCalldata(
-        signer,
-        {
-          to: await signer.getAddress(),
-          nonce: 1,
-          gasLimit: 2000000,
-          gasPrice: 0,
-          data: '0x',
-          chainId: 420,
-        },
-        0
-      )
+    it('should call EIP155 if the transaction type is zero', async () => {
+      const data = '0x000ea82463e3d7063d35b1dd0e9861fb99e299e886aa8bfbf901fa315e96af0eb55e058ca6556d6e3f6a6197385748abe05223c648102161e8c2eaa2e28154444f000001f4000064000064121212121212121212121212121212121212121299999999999999999999'
+      await wallet.sendTransaction({
+        to: SequencerMessageDecompressor.address,
+        data,
+      })
 
-      // await executeTransaction(
-      //   ExecutionManger,
-      //   signer,
-      //   SequencerMessageDecompressorAddress,
-      //   calldata,
-      //   true
+      // const calldata = await encodeSequencerCalldata(
+      //   wallet,
+      //   {
+      //     to: await wallet.getAddress(),
+      //     nonce: 100,
+      //     gasLimit: 500,
+      //     gasPrice: 100000000,
+      //     data: `0x${'99'.repeat(10)}`,
+      //     chainId: 420,
+      //   },
+      //   0
       // )
-
-      // const ecdsaPrototypeBytecode = await ethers.provider.getCode(
-      //   ECDSAContractAccountPrototype.address
-      // )
-      // const codeContractAddress = await StateManager.ovmAddressToCodeContractAddress(
-      //   await signer.getAddress()
-      // )
-      // const codeContractBytecode = await ethers.provider.getCode(
-      //   codeContractAddress
-      // )
-
-      // expect(codeContractAddress).to.not.equal(ZERO_ADDRESS)
-      // expect(codeContractBytecode).to.equal(ecdsaPrototypeBytecode)
     })
 
-  //   it('should call an ECDSAContractAccount when the transaction type is 1', async () => {
-  //     const ovmCREATEEOAcalldata = await encodeSequencerCalldata(
-  //       signer,
-  //       {
-  //         to: signer.address,
-  //         nonce: 1,
-  //         gasLimit: 2000000,
-  //         gasPrice: 0,
-  //         data: '0x',
-  //         chainId: 108,
-  //       },
-  //       0
-  //     )
+    it('should call an ovmCreateEOA when the transaction type is 1', async () => {
+      const calldata = await encodeSequencerCalldata(
+        wallet,
+        {
+          to: await wallet.getAddress(),
+          nonce: 100,
+          gasLimit: 500,
+          gasPrice: 100000000,
+          data: `0x${'99'.repeat(10)}`,
+          chainId: 420,
+        },
+        2
+      )
+      const data = '0x010ea82463e3d7063d35b1dd0e9861fb99e299e886aa8bfbf901fa315e96af0eb55e058ca6556d6e3f6a6197385748abe05223c648102161e8c2eaa2e28154444f00c5a152bb84e35f359ea18fb2e8e9ba4eb5587452e43627e8c2820a8e17c69533'
+      //TODO sign some dummy tx data (or even better us the message hash from the above sendTransaction)
+      await wallet.sendTransaction({
+        to: SequencerMessageDecompressor.address,
+        data,
+      })
+    })
 
-  //     await executeTransaction(
-  //       ExecutionManger,
-  //       signer,
-  //       SequencerMessageDecompressorAddress,
-  //       ovmCREATEEOAcalldata,
-  //       true
-  //     )
-
-  //     const expectedKey = ethers.utils.keccak256('0x1234')
-  //     const expectedVal = ethers.utils.keccak256('0x5678')
-
-  //     const calldata = await encodeSequencerCalldata(
-  //       signer,
-  //       {
-  //         to: SimpleStorageAddress,
-  //         nonce: 5,
-  //         gasLimit: 2000000,
-  //         gasPrice: 0,
-  //         chainId: 108,
-  //         data: SimpleStorageFactory.interface.encodeFunctionData(
-  //           'setStorage',
-  //           [expectedKey, expectedVal]
-  //         ),
-  //       },
-  //       1
-  //     )
-
-  //     await executeTransaction(
-  //       ExecutionManger,
-  //       signer,
-  //       SequencerMessageDecompressorAddress,
-  //       calldata,
-  //       true
-  //     )
-
-  //     const codeContractAddress = await StateManager.ovmAddressToCodeContractAddress(
-  //       SimpleStorageAddress
-  //     )
-  //     const SimpleStorage = SimpleStorageFactory.attach(codeContractAddress)
-  //     const actualVal = await SimpleStorage.getStorage(expectedKey)
-  //     expect(actualVal).to.equal(expectedVal)
-  //   })
-
-  //   it('should call an ECDSAContractAccount when the transaction type is 2', async () => {
-  //     const ovmCREATEEOAcalldata = await encodeSequencerCalldata(
-  //       signer,
-  //       {
-  //         to: signer.address,
-  //         nonce: 1,
-  //         gasLimit: 2000000,
-  //         gasPrice: 0,
-  //         data: '0x',
-  //         chainId: 108,
-  //       },
-  //       0
-  //     )
-
-  //     await executeTransaction(
-  //       ExecutionManger,
-  //       signer,
-  //       SequencerMessageDecompressorAddress,
-  //       ovmCREATEEOAcalldata,
-  //       true
-  //     )
-
-  //     const expectedKey = ethers.utils.keccak256('0x1234')
-  //     const expectedVal = ethers.utils.keccak256('0x5678')
-
-  //     const calldata = await encodeSequencerCalldata(
-  //       signer,
-  //       {
-  //         to: SimpleStorageAddress,
-  //         nonce: 5,
-  //         gasLimit: 2000000,
-  //         gasPrice: 0,
-  //         chainId: 108,
-  //         data: SimpleStorageFactory.interface.encodeFunctionData(
-  //           'setStorage',
-  //           [expectedKey, expectedVal]
-  //         ),
-  //       },
-  //       2
-  //     )
-
-  //     await executeTransaction(
-  //       ExecutionManger,
-  //       signer,
-  //       SequencerMessageDecompressorAddress,
-  //       calldata,
-  //       true
-  //     )
-
-  //     const codeContractAddress = await StateManager.ovmAddressToCodeContractAddress(
-  //       SimpleStorageAddress
-  //     )
-  //     const SimpleStorage = SimpleStorageFactory.attach(codeContractAddress)
-  //     const actualVal = await SimpleStorage.getStorage(expectedKey)
-  //     expect(actualVal).to.equal(expectedVal)
-  //   })
+    it.only('should submit ETHSignedTypedData if TransactionType is 1', async () => {
+      const calldata = await encodeSequencerCalldata(
+        wallet,
+        {
+          to: await wallet.getAddress(),
+          nonce: 100,
+          gasLimit: 500,
+          gasPrice: 100000000,
+          data: `0x${'99'.repeat(10)}`,
+          chainId: 420,
+        },
+        1
+      )
+    })
   })
 })

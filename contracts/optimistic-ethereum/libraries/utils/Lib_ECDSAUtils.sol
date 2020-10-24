@@ -38,11 +38,10 @@ library Lib_ECDSAUtils {
         uint8 v;
         if (_isEthSignedMessage) {
             messageHash = getEthSignedMessageHash(_message);
-            v = _v;
         } else {
             messageHash = getNativeMessageHash(_message);
-            v = (_v - uint8(_chainId) * 2) - 8;
         }
+        v = _v + 27;
 
         return ecrecover(
             messageHash,

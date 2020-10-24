@@ -157,7 +157,7 @@ library Lib_OVMCodec {
     {
         return EIP155Transaction({
             gasLimit: Lib_BytesUtils.toUint24(_transaction, 0),
-            gasPrice: (Lib_BytesUtils.toUint24(_transaction, 3) * 1000000),
+            gasPrice: uint256(Lib_BytesUtils.toUint24(_transaction, 3)) * 1000000,
             nonce: Lib_BytesUtils.toUint24(_transaction, 6),
             to: Lib_BytesUtils.toAddress(_transaction, 9),
             data: Lib_BytesUtils.slice(_transaction, 29),

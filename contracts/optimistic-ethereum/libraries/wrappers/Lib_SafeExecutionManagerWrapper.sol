@@ -97,6 +97,29 @@ library Lib_SafeExecutionManagerWrapper {
     }
 
     /**
+     * Performs a safe ovmCALLER call.
+     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
+     * @return _CALLER Result of calling ovmCALLER.
+     */
+    function safeCALLER(
+        address _ovmExecutionManager
+    )
+        internal
+        returns (
+            address _CALLER
+        )
+    {
+        bytes memory returndata = _safeExecutionManagerInteraction(
+            _ovmExecutionManager,
+            abi.encodeWithSignature(
+                "ovmCALLER()"
+            )
+        );
+
+        return abi.decode(returndata, (address));
+    }
+
+    /**
      * Performs a safe ovmADDRESS call.
      * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
      * @return _ADDRESS Result of calling ovmADDRESS.
@@ -158,6 +181,35 @@ library Lib_SafeExecutionManagerWrapper {
             abi.encodeWithSignature(
                 "ovmSETNONCE(uint256)",
                 _nonce
+            )
+        );
+    }
+
+    /**
+     * Performs a safe ovmCREATEEOA call.
+     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
+     * @param _messageHash Message hash which was signed by EOA
+     * @param _v v value of signature (0 or 1)
+     * @param _r r value of signature
+     * @param _s s value of signature
+     */
+    function safeCREATEEOA(
+        address _ovmExecutionManager,
+        bytes32 _messageHash,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            _ovmExecutionManager,
+            abi.encodeWithSignature(
+                "ovmCREATEEOA(bytes32,uint8,bytes32,bytes32)",
+                _messageHash,
+                _v,
+                _r,
+                _s
             )
         );
     }

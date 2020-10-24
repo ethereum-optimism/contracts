@@ -444,7 +444,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // actually execute the transaction).
         address eoa = ecrecover(
             _messageHash,
-            (_v - uint8(ovmCHAINID()) * 2) - 8,
+            _v + 27,
             _r,
             _s
         );

@@ -8,6 +8,7 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 
 /* Contract Imports */
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
+import { console } from "@nomiclabs/buidler/console.sol";
 
 /**
  * @title SequencerMessageDecompressor
@@ -51,18 +52,22 @@ contract SequencerMessageDecompressor {
     fallback()
         external
     {
-        TransactionType transactionType = _getTransactionType(Lib_BytesUtils.toUint256(Lib_BytesUtils.slice(msg.data, 0, 1)));
-        uint8 v = uint8(Lib_BytesUtils.toUint256(Lib_BytesUtils.slice(msg.data, 1, 1)));
-        bytes32 r = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 2, 32));
-        bytes32 s = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 34, 32));
+        TransactionType transactionType = _getTransactionType(Lib_BytesUtils.toUint8(msg.data, 0));
+        bytes32 r = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 1, 32));
+        bytes32 s = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 33, 32));
+        uint8 v = Lib_BytesUtils.toUint8(msg.data, 65);
+        console.log("v:", uint256(v));
+        console.logBytes32(r);
+        console.logBytes32(s);
         
         if (transactionType == TransactionType.EOA_CONTRACT_CREATION) {
             // Pull out the message hash so we can verify the signature.
             bytes32 messageHash = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 66, 32));
-            // OVM_ExecutionManager(msg.sender).ovmCREATEEOA(messageHash, uint8(v), r, s);
+            // ProxyDecompressor(address(this)).safeCREATEEOA(messageHash, uint8(v), r, s);
         } else {
             // Remainder is the message to execute.
             bytes memory message = Lib_BytesUtils.slice(msg.data, 66);
+            console.logBytes(message);
             bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
 
             // Need to re-encode the message based on the original encoding.
@@ -70,6 +75,7 @@ contract SequencerMessageDecompressor {
                 message,
                 isEthSignedMessage
             );
+            console.logBytes(message);
 
             address target = Lib_ECDSAUtils.recover(
                 encodedTx,
@@ -79,22 +85,17 @@ contract SequencerMessageDecompressor {
                 s,
                 420// Lib_SafeExecutionManagerWrapper.safeCHAINID(msg.sender)
             );
-
-            bytes memory callbytes = abi.encodeWithSelector(
-                bytes4(keccak256("execute(bytes,bool,uint8,bytes32,bytes32)")),
+            console.log("signer:");
+            console.logAddress(target);
+            bytes memory callbytes = abi.encodeWithSignature(
+                "execute(bytes,uint8,uint8,bytes32,bytes32)",
                 message,
                 isEthSignedMessage,
                 uint8(v),
                 r,
                 s
             );
-
-            // Lib_SafeExecutionManagerWrapper.safeCALL(
-            //     msg.sender,
-            //     gasleft(),
-            //     target,
-            //     callbytes
-            // );
+            target.call(callbytes);
         }
     }
 
@@ -109,7 +110,7 @@ contract SequencerMessageDecompressor {
      * @return Transaction type enum value.
      */
     function _getTransactionType(
-        uint256 _transactionType
+        uint8 _transactionType
     )
         internal
         pure
@@ -123,9 +124,9 @@ contract SequencerMessageDecompressor {
         );
 
         if (_transactionType == 0) {
-            return TransactionType.EOA_CONTRACT_CREATION;
-        } else if (_transactionType == 1) {
             return TransactionType.NATIVE_ETH_TRANSACTION;
+        } else if (_transactionType == 1) {
+            return TransactionType.EOA_CONTRACT_CREATION;
         } else {
             return TransactionType.ETH_SIGNED_MESSAGE;
         }
