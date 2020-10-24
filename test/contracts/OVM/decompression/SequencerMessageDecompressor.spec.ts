@@ -136,7 +136,7 @@ const encodeSequencerCalldata = async (
   const sig = await signTransaction(wallet, transaction, transactionType)
   // const encodedTransaction = encodeCompactTransaction(transaction)
   console.log(`SIG!!${sig.r}${sig.s}${sig.v}`)
-  let calldata = `0x0${transactionType}${sig.v}${sig.r}${sig.s}`
+  let calldata = `0x0${transactionType}${sig.r}${sig.s}${sig.v}`
   // if (transactionType === 0) {
   //   calldata = `${calldata}${remove0x(sig.messageHash)}`
   // } else {
@@ -146,7 +146,7 @@ const encodeSequencerCalldata = async (
   return calldata
 }
 
-describe.only('SequencerMessageDecompressor', () => {
+describe('SequencerMessageDecompressor', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
