@@ -153,14 +153,14 @@ describe('SequencerMessageDecompressor', () => {
     ;[wallet] = provider.getWallets()
   })
 
-  let Mock__TargetContract: MockContract
-  before(async () => {
-    Mock__TargetContract = smockit(
-      await ethers.getContractFactory('OVM_ECDSAContractAccount'),
-      ethers.provider,
-      await wallet.getAddress()
-    )
-  })
+  // let Mock__TargetContract: MockContract
+  // before(async () => {
+  //   Mock__TargetContract = smockit(
+  //     await ethers.getContractFactory('OVM_ECDSAContractAccount'),
+  //     ethers.provider,
+  //     await wallet.getAddress()
+  //   )
+  // })
 
   let SequencerMessageDecompressorFactory: ContractFactory
   before(async () => {

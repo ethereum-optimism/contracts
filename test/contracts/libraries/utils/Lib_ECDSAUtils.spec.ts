@@ -2,7 +2,7 @@
 import { Lib_ECDSAUtils_TEST_JSON } from '../../../data'
 import { runJsonTest } from '../../../helpers'
 
-describe.only('Lib_ECDSAUtils', () => {
+describe('Lib_ECDSAUtils', () => {
   describe('JSON tests', () => {
     runJsonTest('TestLib_ECDSAUtils', Lib_ECDSAUtils_TEST_JSON)
   })
