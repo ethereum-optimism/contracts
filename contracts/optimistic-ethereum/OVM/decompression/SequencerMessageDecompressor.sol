@@ -64,18 +64,25 @@ contract SequencerMessageDecompressor {
             // Pull out the message hash so we can verify the signature.
             bytes32 messageHash = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 66, 32));
             // ProxyDecompressor(address(this)).safeCREATEEOA(messageHash, uint8(v), r, s);
+            //TODO REMOVE - just for testing
+            address eoa = ecrecover(
+                messageHash,
+                v + 27,
+                r,
+                s
+            );
+            console.log('EOA address:');
+            console.logAddress(eoa);
         } else {
             // Remainder is the message to execute.
             bytes memory message = Lib_BytesUtils.slice(msg.data, 66);
-            console.logBytes(message);
             bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
-
+            console.log("Is ETHSignedMessage:", isEthSignedMessage);
             // Need to re-encode the message based on the original encoding.
             bytes memory encodedTx = Lib_OVMCodec.encodeEIP155Transaction(
                 message,
                 isEthSignedMessage
             );
-            console.logBytes(message);
 
             address target = Lib_ECDSAUtils.recover(
                 encodedTx,
@@ -85,7 +92,7 @@ contract SequencerMessageDecompressor {
                 s,
                 420// Lib_SafeExecutionManagerWrapper.safeCHAINID(msg.sender)
             );
-            console.log("signer:");
+            console.log("target:");
             console.logAddress(target);
             bytes memory callbytes = abi.encodeWithSignature(
                 "execute(bytes,uint8,uint8,bytes32,bytes32)",
