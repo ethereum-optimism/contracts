@@ -63,15 +63,6 @@ contract SequencerMessageDecompressor {
             // Pull out the message hash so we can verify the signature.
             bytes32 messageHash = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 66, 32));
             Lib_SafeExecutionManagerWrapper.safeCREATEEOA(msg.sender, messageHash, uint8(v), r, s);
-            //TODO REMOVE - just for testing
-            address eoa = ecrecover(
-                messageHash,
-                v + 27,
-                r,
-                s
-            );
-            console.log('EOA address:');
-            console.logAddress(eoa);
         } else {
             // Remainder is the message to execute.
             bytes memory message = Lib_BytesUtils.slice(msg.data, 66);
@@ -101,7 +92,12 @@ contract SequencerMessageDecompressor {
                 r,
                 s
             );
-            target.call(callbytes);
+            Lib_SafeExecutionManagerWrapper.safeCALL(
+                msg.sender,
+                gasleft(),
+                target,
+                callbytes
+            );
         }
     }
 

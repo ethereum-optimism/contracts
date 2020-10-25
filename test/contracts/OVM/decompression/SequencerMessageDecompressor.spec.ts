@@ -37,19 +37,20 @@ export const getSignedComponents = (signed: string): any[] => {
 }
 
 const encodeCompactTransaction = (transaction: any): string => {
-  const nonce = zeroPad(transaction.nonce, 2)
+  const nonce = zeroPad(transaction.nonce, 3)
   const gasLimit = zeroPad(transaction.gasLimit, 3)
-  const gasPrice = zeroPad(transaction.gasPrice, 1)
-  const chainId = zeroPad(transaction.chainId, 4)
+  if (transaction.gasPrice % 1000000 !== 0)
+    throw Error('gas price must be a multiple of 1000000')
+  const compressedGasPrice: any = transaction.gasPrice / 1000000
+  const gasPrice = zeroPad(compressedGasPrice, 3)
   const to = hexStrToBuf(transaction.to)
   const data = hexStrToBuf(transaction.data)
 
   return Buffer.concat([
-    Buffer.from(nonce),
     Buffer.from(gasLimit),
     Buffer.from(gasPrice),
-    chainId,
-    to,
+    Buffer.from(nonce),
+    Buffer.from(to),
     data,
   ]).toString('hex')
 }
@@ -132,15 +133,12 @@ const encodeSequencerCalldata = async (
   transactionType: number
 ) => {
   const sig = await signTransaction(wallet, transaction, transactionType)
-  // const encodedTransaction = encodeCompactTransaction(transaction)
-  console.log(`SIG!!${sig.r}${sig.s}${sig.v}`)
-  let calldata = `0x0${transactionType}${sig.r}${sig.s}${sig.v}`
-  // if (transactionType === 0) {
-  //   calldata = `${calldata}${remove0x(sig.messageHash)}`
-  // } else {
-  //   calldata = `${calldata}${encodedTransaction}`
-  // }
-
+  const encodedTransaction = encodeCompactTransaction(transaction)
+  const dataPrefix = `0x0${transactionType}${sig.r}${sig.s}${sig.v}`
+  const calldata =
+    transactionType === 1
+      ? `${dataPrefix}${remove0x(sig.messageHash)}`
+      : `${dataPrefix}${encodedTransaction}`
   return calldata
 }
 
@@ -151,14 +149,46 @@ describe.only('SequencerMessageDecompressor', () => {
     ;[wallet] = provider.getWallets()
   })
 
-  // let Mock__TargetContract: MockContract
-  // before(async () => {
-  //   Mock__TargetContract = smockit(
-  //     await ethers.getContractFactory('OVM_ECDSAContractAccount'),
-  //     ethers.provider,
-  //     await wallet.getAddress()
-  //   )
-  // })
+  let Mock__OVM_ExecutionManager: MockContract
+  let Helper_PrecompileCaller: Contract
+  before(async () => {
+    Mock__OVM_ExecutionManager = smockit(
+      await ethers.getContractFactory('OVM_ExecutionManager')
+    )
+
+    Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.will.return.with(
+      (msgHash, _v, _r, _s) => {
+        console.log(
+          'ovmCREATEEOA creates EOA at:',
+          ethers.utils.recoverAddress(msgHash, {
+            v: _v + 27,
+            r: _r,
+            s: _s,
+          })
+        )
+      }
+    )
+    Mock__OVM_ExecutionManager.smocked.ovmCHAINID.will.return.with(420)
+    Mock__OVM_ExecutionManager.smocked.ovmCALL.will.return.with(
+      (_gasLimit, _target, _calldata) => {
+        console.log(
+          'Performing call to',
+          _target,
+          'with gasLimit:',
+          _gasLimit.toString(),
+          'and calldata:',
+          _calldata
+        )
+        return [true, '0x']
+      }
+    )
+
+    Helper_PrecompileCaller = await (
+      await ethers.getContractFactory('Helper_PrecompileCaller')
+    ).deploy()
+
+    Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
+  })
 
   let SequencerMessageDecompressorFactory: ContractFactory
   before(async () => {
@@ -167,7 +197,6 @@ describe.only('SequencerMessageDecompressor', () => {
     )
   })
 
-  // let SequencerMessageDecompressorAddress: string
   let SequencerMessageDecompressor: Contract
   beforeEach(async () => {
     SequencerMessageDecompressor = await SequencerMessageDecompressorFactory.deploy()
@@ -175,69 +204,64 @@ describe.only('SequencerMessageDecompressor', () => {
 
   describe('fallback()', async () => {
     it('should call EIP155 if the transaction type is 0', async () => {
-      // const calldata = await encodeSequencerCalldata(
-      //   wallet,
-      //   {
-      //     to: `0x${'12'.repeat(20)}`,
-      //     nonce: 100,
-      //     gasLimit: 500,
-      //     gasPrice: 100000000,
-      //     data: `0x${'99'.repeat(10)}`,
-      //     chainId: 420,
-      //   },
-      //   0
-      // )
-      const data =
-        '0x0073757c671fae2c3fb6825766c724b7715720bda4b309d3612f2c6233645569672fc9b7222783390b9f10e22e92a52871beaff2613193d6e2dbf18d0e2d2eb8ff010001f4000064000064121212121212121212121212121212121212121299999999999999999999'
-      await wallet.sendTransaction({
-        to: SequencerMessageDecompressor.address,
-        data,
-      })
+      const calldata = await encodeSequencerCalldata(
+        wallet,
+        {
+          to: `0x${'12'.repeat(20)}`,
+          nonce: 100,
+          gasLimit: 500,
+          gasPrice: 100000000,
+          data: `0x${'99'.repeat(10)}`,
+          chainId: 420,
+        },
+        0
+      )
+      await Helper_PrecompileCaller.callPrecompile(
+        SequencerMessageDecompressor.address,
+        calldata
+      )
       console.log('expected target:', await wallet.getAddress())
     })
 
     it('should call an ovmCreateEOA when the transaction type is 1', async () => {
-      // const calldata = await encodeSequencerCalldata(
-      //   wallet,
-      //   {
-      //     to: `0x${'12'.repeat(20)}`,
-      //     nonce: 100,
-      //     gasLimit: 500,
-      //     gasPrice: 100000000,
-      //     data: `0x${'99'.repeat(10)}`,
-      //     chainId: 420,
-      //   },
-      //   1
-      // )
-      const data =
-        '0x010ea82463e3d7063d35b1dd0e9861fb99e299e886aa8bfbf901fa315e96af0eb55e058ca6556d6e3f6a6197385748abe05223c648102161e8c2eaa2e28154444f00c5a152bb84e35f359ea18fb2e8e9ba4eb5587452e43627e8c2820a8e17c69533'
-      await wallet.sendTransaction({
-        to: SequencerMessageDecompressor.address,
-        data,
-      })
+      const calldata = await encodeSequencerCalldata(
+        wallet,
+        {
+          to: `0x${'12'.repeat(20)}`,
+          nonce: 100,
+          gasLimit: 500,
+          gasPrice: 100000000,
+          data: `0x${'99'.repeat(10)}`,
+          chainId: 420,
+        },
+        1
+      )
+      await Helper_PrecompileCaller.callPrecompile(
+        SequencerMessageDecompressor.address,
+        calldata
+      )
 
       console.log('expected EOA:', await wallet.getAddress())
     })
 
     it('should submit ETHSignedTypedData if TransactionType is 2', async () => {
-      // const calldata = await encodeSequencerCalldata(
-      //   wallet,
-      //   {
-      //     to: `0x${'12'.repeat(20)}`,
-      //     nonce: 100,
-      //     gasLimit: 500,
-      //     gasPrice: 100000000,
-      //     data: `0x${'99'.repeat(10)}`,
-      //     chainId: 420,
-      //   },
-      //   2
-      // )
-      const data =
-        '0x02e76b8f3752708d221f0b4692eefc2e4c92e28612e5334769b1271c81ba11cbc06a76a9653196f01f36281530934a753ea33246db3abfff9edd86d5a2e241ca23010001f4000064000064121212121212121212121212121212121212121299999999999999999999'
-      await wallet.sendTransaction({
-        to: SequencerMessageDecompressor.address,
-        data,
-      })
+      const calldata = await encodeSequencerCalldata(
+        wallet,
+        {
+          to: `0x${'12'.repeat(20)}`,
+          nonce: 100,
+          gasLimit: 500,
+          gasPrice: 100000000,
+          data: `0x${'99'.repeat(10)}`,
+          chainId: 420,
+        },
+        2
+      )
+
+      await Helper_PrecompileCaller.callPrecompile(
+        SequencerMessageDecompressor.address,
+        calldata
+      )
       console.log('expected target:', await wallet.getAddress())
     })
   })

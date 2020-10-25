@@ -20,7 +20,7 @@ const callPrecompile = async (
   )
 }
 
-describe.only('ProxyDecompressor', () => {
+describe('ProxyDecompressor', () => {
   let signer: Signer
   before(async () => {
     ;[signer] = await ethers.getSigners()
