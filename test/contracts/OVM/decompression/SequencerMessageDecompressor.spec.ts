@@ -104,11 +104,9 @@ const signNativeTransaction = async (
   const transactionSignature = await wallet.signTransaction(transaction)
 
   const messageHash = ethers.utils.keccak256(serializedTransaction)
-  let [v, r, s] = getSignedComponents(transactionSignature).map(
-    (component) => {
-      return remove0x(component)
-    }
-  )
+  let [v, r, s] = getSignedComponents(transactionSignature).map((component) => {
+    return remove0x(component)
+  })
   v = '0' + (parseInt(v, 16) - 420 * 2 - 8 - 27)
   return {
     messageHash,
@@ -146,7 +144,7 @@ const encodeSequencerCalldata = async (
   return calldata
 }
 
-describe('SequencerMessageDecompressor', () => {
+describe.only('SequencerMessageDecompressor', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
@@ -189,7 +187,8 @@ describe('SequencerMessageDecompressor', () => {
       //   },
       //   0
       // )
-      const data = '0x0073757c671fae2c3fb6825766c724b7715720bda4b309d3612f2c6233645569672fc9b7222783390b9f10e22e92a52871beaff2613193d6e2dbf18d0e2d2eb8ff010001f4000064000064121212121212121212121212121212121212121299999999999999999999'
+      const data =
+        '0x0073757c671fae2c3fb6825766c724b7715720bda4b309d3612f2c6233645569672fc9b7222783390b9f10e22e92a52871beaff2613193d6e2dbf18d0e2d2eb8ff010001f4000064000064121212121212121212121212121212121212121299999999999999999999'
       await wallet.sendTransaction({
         to: SequencerMessageDecompressor.address,
         data,
@@ -210,8 +209,8 @@ describe('SequencerMessageDecompressor', () => {
       //   },
       //   1
       // )
-      const data = '0x010ea82463e3d7063d35b1dd0e9861fb99e299e886aa8bfbf901fa315e96af0eb55e058ca6556d6e3f6a6197385748abe05223c648102161e8c2eaa2e28154444f00c5a152bb84e35f359ea18fb2e8e9ba4eb5587452e43627e8c2820a8e17c69533'
-      //TODO sign some dummy tx data (or even better us the message hash from the above sendTransaction)
+      const data =
+        '0x010ea82463e3d7063d35b1dd0e9861fb99e299e886aa8bfbf901fa315e96af0eb55e058ca6556d6e3f6a6197385748abe05223c648102161e8c2eaa2e28154444f00c5a152bb84e35f359ea18fb2e8e9ba4eb5587452e43627e8c2820a8e17c69533'
       await wallet.sendTransaction({
         to: SequencerMessageDecompressor.address,
         data,
@@ -233,7 +232,8 @@ describe('SequencerMessageDecompressor', () => {
       //   },
       //   2
       // )
-      const data = '0x02e76b8f3752708d221f0b4692eefc2e4c92e28612e5334769b1271c81ba11cbc06a76a9653196f01f36281530934a753ea33246db3abfff9edd86d5a2e241ca23010001f4000064000064121212121212121212121212121212121212121299999999999999999999'
+      const data =
+        '0x02e76b8f3752708d221f0b4692eefc2e4c92e28612e5334769b1271c81ba11cbc06a76a9653196f01f36281530934a753ea33246db3abfff9edd86d5a2e241ca23010001f4000064000064121212121212121212121212121212121212121299999999999999999999'
       await wallet.sendTransaction({
         to: SequencerMessageDecompressor.address,
         data,

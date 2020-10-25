@@ -19,8 +19,8 @@ contract SequencerMessageDecompressor {
      */
     
     enum TransactionType {
-        EOA_CONTRACT_CREATION,
         NATIVE_ETH_TRANSACTION,
+        EOA_CONTRACT_CREATION,
         ETH_SIGNED_MESSAGE
     }
 
@@ -35,18 +35,17 @@ contract SequencerMessageDecompressor {
      *
      * Calldata format:
      * - [ 1 byte   ] Transaction type (00 for EOA create, 01 for native tx, 02 for eth signed tx)
-     * - [ 1 byte   ] Signature `v` parameter
      * - [ 32 bytes ] Signature `r` parameter
      * - [ 32 bytes ] Signature `s` parameter
+     * - [ 1 byte   ] Signature `v` parameter
      * - [ ?? bytes ] :
-     *      IF transaction type == 00
+     *      IF transaction type == 01
      *      - [ 32 bytes ] Hash of the signed message
      *      ELSE
-     *      - [ 2 bytes  ] Transaction nonce
-     *      - [ 3 bytes  ] Transaction gas limit
-     *      - [ 1 byte   ] Transaction gas price
-     *      - [ 4 bytes  ] Transaction chain ID
-     *      - [ 20 bytes ] Transaction target address
+     *      - [ 3 bytes  ] Gas Limit
+     *      - [ 3 bytes  ] Gas Price
+     *      - [ 3 byte   ] Transaction Nonce
+     *      - [ 20 bytes  ] Transaction target address
      *      - [ ?? bytes ] Transaction data
      */
     fallback()
@@ -56,14 +55,14 @@ contract SequencerMessageDecompressor {
         bytes32 r = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 1, 32));
         bytes32 s = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 33, 32));
         uint8 v = Lib_BytesUtils.toUint8(msg.data, 65);
-        console.log("v:", uint256(v));
-        console.logBytes32(r);
-        console.logBytes32(s);
+        // console.log("v:", uint256(v));
+        // console.logBytes32(r);
+        // console.logBytes32(s);
         
         if (transactionType == TransactionType.EOA_CONTRACT_CREATION) {
             // Pull out the message hash so we can verify the signature.
             bytes32 messageHash = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 66, 32));
-            // ProxyDecompressor(address(this)).safeCREATEEOA(messageHash, uint8(v), r, s);
+            Lib_SafeExecutionManagerWrapper.safeCREATEEOA(msg.sender, messageHash, uint8(v), r, s);
             //TODO REMOVE - just for testing
             address eoa = ecrecover(
                 messageHash,
@@ -90,7 +89,7 @@ contract SequencerMessageDecompressor {
                 uint8(v),
                 r,
                 s,
-                420// Lib_SafeExecutionManagerWrapper.safeCHAINID(msg.sender)
+                Lib_SafeExecutionManagerWrapper.safeCHAINID(msg.sender)
             );
             console.log("target:");
             console.logAddress(target);

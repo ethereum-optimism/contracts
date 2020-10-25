@@ -13,7 +13,7 @@ import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
 import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol";
 
 /* Contract Imports */
-import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
+import { ProxyEOA } from "../accounts/ProxyEOA.sol";
 
 /**
  * @title OVM_ExecutionManager
@@ -465,13 +465,13 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Now actually create the account and get its bytecode. We're not worried about reverts
         // (other than out of gas, which we can't capture anyway) because this contract is trusted.
-        OVM_ECDSAContractAccount eoaContractAccount = new OVM_ECDSAContractAccount();
-        bytes memory deployedCode = Lib_EthUtils.getCode(address(eoaContractAccount));
+        ProxyEOA proxyEOA = new ProxyEOA();
+        bytes memory deployedCode = Lib_EthUtils.getCode(address(proxyEOA));
 
         // Commit the account with its final values.
         _commitPendingAccount(
             eoa,
-            address(eoaContractAccount),
+            address(proxyEOA),
             keccak256(deployedCode)
         );
     }

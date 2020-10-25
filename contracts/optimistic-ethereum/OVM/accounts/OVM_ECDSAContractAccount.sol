@@ -60,20 +60,20 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             "Signature provided for EOA transaction execution is invalid."
         );
 
-        Lib_OVMCodec.EOATransaction memory decodedTx = Lib_OVMCodec.decodeEOATransaction(_transaction);
+        Lib_OVMCodec.EIP155Transaction memory decompressedTx = Lib_OVMCodec.decompressEIP155Transaction(_transaction);
 
         // Need to make sure that the transaction nonce is right and bump it if so.
         require(
-            decodedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(ovmExecutionManager) + 1,
+            decompressedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(ovmExecutionManager) + 1,
             "Transaction nonce does not match the expected nonce."
         );
 
         // Contract creations are signalled by sending a transaction to the zero address.
-        if (decodedTx.target == address(0)) {
+        if (decompressedTx.to == address(0)) {
             address created = Lib_SafeExecutionManagerWrapper.safeCREATE(
                 ovmExecutionManager,
-                decodedTx.gasLimit,
-                decodedTx.data
+                decompressedTx.gasLimit,
+                decompressedTx.data
             );
 
             // EVM doesn't tell us whether a contract creation failed, even if it reverted during
@@ -83,13 +83,13 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             // We only want to bump the nonce for `ovmCALL` because `ovmCREATE` automatically bumps
             // the nonce of the calling account. Normally an EOA would bump the nonce for both
             // cases, but since this is a contract we'd end up bumping the nonce twice.
-            Lib_SafeExecutionManagerWrapper.safeSETNONCE(ovmExecutionManager, decodedTx.nonce);
+            Lib_SafeExecutionManagerWrapper.safeSETNONCE(ovmExecutionManager, decompressedTx.nonce);
 
             return Lib_SafeExecutionManagerWrapper.safeCALL(
                 ovmExecutionManager,
-                decodedTx.gasLimit,
-                decodedTx.target,
-                decodedTx.data
+                decompressedTx.gasLimit,
+                decompressedTx.to,
+                decompressedTx.data
             );
         }
     }
