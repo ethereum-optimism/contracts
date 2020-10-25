@@ -237,27 +237,25 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         override
         public
     {
+        uint40 nextQueueIndex = getNextQueueIndex();
+        uint40 queueLength = _getQueueLength();
+        if (queueLength - nextQueueIndex < _numQueuedTransactions) {
+            _numQueuedTransactions = queueLength - nextQueueIndex;
+        }
         require(
             _numQueuedTransactions > 0,
             "Must append more than zero transactions."
         );
 
         bytes32[] memory leaves = new bytes32[](_numQueuedTransactions);
-        uint40 nextQueueIndex = getNextQueueIndex();
-        uint40 queueLength = _getQueueLength();
 
         for (uint256 i = 0; i < _numQueuedTransactions; i++) {
-            if (nextQueueIndex >= queueLength
-                || (
-                    msg.sender != sequencer
-                    && getQueueElement(nextQueueIndex).timestamp + forceInclusionPeriodSeconds > block.timestamp
-                )
-            ) {
-                // Quit early because nextQueueIndex is larger than the queue or queue
-                // transactions is not allowed to be submitted during the sequencer inclusion period.
-                require(i > 0, "No appendable queue elements.");
-                _numQueuedTransactions = i;
-                break;
+            if (msg.sender != sequencer) {
+                Lib_OVMCodec.QueueElement memory el = getQueueElement(nextQueueIndex);
+                require(
+                    el.timestamp + forceInclusionPeriodSeconds < block.timestamp,
+                    "Queue transactions cannot be submitted during the sequencer inclusion period."
+                );
             }
             leaves[i] = _getQueueLeafHash(nextQueueIndex);
             nextQueueIndex++;
@@ -533,8 +531,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * Retrieves the length of the queue.
      * @return Length of the queue.
      */
-    function _getQueueLength(
-    )
+    function _getQueueLength()
         internal
         view
         returns (
