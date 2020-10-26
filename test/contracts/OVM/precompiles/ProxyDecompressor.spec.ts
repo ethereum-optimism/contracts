@@ -1,12 +1,10 @@
 import { expect } from '../../../setup'
 
 /* External Imports */
-import { ethers } from '@nomiclabs/buidler'
-import { ContractFactory, Contract, Wallet, Signer } from 'ethers'
+import { ethers, waffle } from '@nomiclabs/buidler'
+import { ContractFactory, Contract, Wallet } from 'ethers'
 import { MockContract, smockit } from '@eth-optimism/smock'
-import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
-import { keccak256 } from 'ethers/lib/utils'
-import { remove0x } from '../../../helpers'
+import { encodeSequencerCalldata, DEFAULT_EIP155_TX } from '../../../helpers'
 
 const callPrecompile = async (
   Helper_PrecompileCaller: Contract,
@@ -21,9 +19,10 @@ const callPrecompile = async (
 }
 
 describe.only('ProxyDecompressor', () => {
-  let signer: Signer
+  let wallet: Wallet
   before(async () => {
-    ;[signer] = await ethers.getSigners()
+    const provider = waffle.provider
+    ;[wallet] = provider.getWallets()
   })
 
   let Factory__ProxyDecompressor: ContractFactory
@@ -35,19 +34,14 @@ describe.only('ProxyDecompressor', () => {
 
   let Mock__OVM_ExecutionManager: MockContract
   let Helper_PrecompileCaller: Contract
-  let Mock__SequencerMessageDecompressor: MockContract
+  let SequencerMessageDecompressor: Contract
   before(async () => {
     Mock__OVM_ExecutionManager = smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 
-    Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.will.return.with(
-      (msgHash, v, r, s) => {
-        console.log('inside smocked ovmCREATEEOA', msgHash, v, r, s)
-      }
-    )
     Mock__OVM_ExecutionManager.smocked.ovmCALLER.will.return.with(
-      await signer.getAddress()
+      await wallet.getAddress()
     )
 
     Helper_PrecompileCaller = await (
@@ -55,9 +49,10 @@ describe.only('ProxyDecompressor', () => {
     ).deploy()
 
     Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
-    Mock__SequencerMessageDecompressor = smockit(
+
+    SequencerMessageDecompressor = await (
       await ethers.getContractFactory('SequencerMessageDecompressor')
-    )
+    ).deploy()
   })
 
   let ProxyDecompressor: Contract
@@ -66,21 +61,21 @@ describe.only('ProxyDecompressor', () => {
   })
   it(`should init the proxy with owner and implementation`, async () => {
     await callPrecompile(Helper_PrecompileCaller, ProxyDecompressor, 'init', [
-      Mock__SequencerMessageDecompressor.address,
-      await signer.getAddress(),
+      SequencerMessageDecompressor.address,
+      await wallet.getAddress(),
     ])
 
-    expect(await ProxyDecompressor.owner()).to.equal(await signer.getAddress())
+    expect(await ProxyDecompressor.owner()).to.equal(await wallet.getAddress())
 
     expect(await ProxyDecompressor.implementation()).to.equal(
-      Mock__SequencerMessageDecompressor.address
+      SequencerMessageDecompressor.address
     )
   })
 
   it(`upgrade Decompressor`, async () => {
     await callPrecompile(Helper_PrecompileCaller, ProxyDecompressor, 'init', [
-      Mock__SequencerMessageDecompressor.address,
-      await signer.getAddress(),
+      SequencerMessageDecompressor.address,
+      await wallet.getAddress(),
     ])
     await callPrecompile(
       Helper_PrecompileCaller,
@@ -91,5 +86,26 @@ describe.only('ProxyDecompressor', () => {
     expect(await ProxyDecompressor.implementation()).to.equal(
       `0x${'12'.repeat(20)}`
     )
+  })
+
+  it(`successfully calls ovmCREATEEOA through decompressor fallback`, async () => {
+    await callPrecompile(Helper_PrecompileCaller, ProxyDecompressor, 'init', [
+      SequencerMessageDecompressor.address,
+      await wallet.getAddress(),
+    ])
+
+    const calldata = await encodeSequencerCalldata(wallet, DEFAULT_EIP155_TX, 1)
+
+    await Helper_PrecompileCaller.callPrecompile(
+      ProxyDecompressor.address,
+      calldata
+    )
+    const call: any = Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.calls[0]
+    const eoaAddress = ethers.utils.recoverAddress(call._messageHash, {
+      v: call._v + 27,
+      r: call._r,
+      s: call._s,
+    })
+    expect(eoaAddress).to.equal(await wallet.getAddress())
   })
 })
