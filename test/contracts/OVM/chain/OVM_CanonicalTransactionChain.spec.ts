@@ -423,9 +423,7 @@ describe('OVM_CanonicalTransactionChain', () => {
     it('should revert if the queue is empty', async () => {
       await expect(
         OVM_CanonicalTransactionChain.appendQueueBatch(1)
-      ).to.be.revertedWith(
-        'Must append more than zero transactions.'
-      )
+      ).to.be.revertedWith('Must append more than zero transactions.')
     })
 
     describe('when the queue is not empty', () => {
@@ -451,7 +449,9 @@ describe('OVM_CanonicalTransactionChain', () => {
                 OVM_CanonicalTransactionChain.connect(signer).appendQueueBatch(
                   1
                 )
-              ).to.be.revertedWith('Queue transactions cannot be submitted during the sequencer inclusion period.')
+              ).to.be.revertedWith(
+                'Queue transactions cannot be submitted during the sequencer inclusion period.'
+              )
             })
 
             it('should succeed if called by the sequencer', async () => {
