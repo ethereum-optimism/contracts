@@ -5,10 +5,8 @@ import { Lib_BytesUtils } from "../../libraries/utils/Lib_BytesUtils.sol";
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
-
-/* Contract Imports */
-import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
-import { console } from "@nomiclabs/buidler/console.sol";
+/* Library Imports */
+import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
 /**
  * @title ProxyEOA

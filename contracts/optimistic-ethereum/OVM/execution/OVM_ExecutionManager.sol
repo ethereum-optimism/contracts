@@ -15,6 +15,8 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { ProxyEOA } from "../accounts/ProxyEOA.sol";
 
+import { console } from "@nomiclabs/buidler/console.sol";
+
 /**
  * @title OVM_ExecutionManager
  */
@@ -454,12 +456,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (eoa == address(0)) {
             ovmREVERT(bytes("Signature provided for EOA contract creation is invalid."));
         }
-
         // If the user already has an EOA account, then there's no need to perform this operation.
         if (_hasEmptyAccount(eoa) == false) {
             return;
         }
-
         // We always need to initialize the contract with the default account values.
         _initPendingAccount(eoa);
 

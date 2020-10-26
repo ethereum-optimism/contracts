@@ -18,7 +18,7 @@ const callPrecompile = async (
   )
 }
 
-describe.only('ProxyDecompressor', () => {
+describe('ProxyDecompressor', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
