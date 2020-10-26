@@ -62,8 +62,6 @@ const FORCE_INCLUSION_PERIOD_SECONDS = process.env.FORCE_INCLUSION_PERIOD_SECOND
   }
   console.log(JSON.stringify(out, null, 2));
 })().catch(err => {
-  console.log(err)
-
-  console.log(JSON.stringify({error: err}));
+  console.log(JSON.stringify({error: err.message, stack: err.stack}, null, 2));
   process.exit(1);
 });
