@@ -55,9 +55,6 @@ contract SequencerMessageDecompressor {
         bytes32 r = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 1, 32));
         bytes32 s = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 33, 32));
         uint8 v = Lib_BytesUtils.toUint8(msg.data, 65);
-        // console.log("v:", uint256(v));
-        // console.logBytes32(r);
-        // console.logBytes32(s);
         
         if (transactionType == TransactionType.EOA_CONTRACT_CREATION) {
             // Pull out the message hash so we can verify the signature.
@@ -67,7 +64,6 @@ contract SequencerMessageDecompressor {
             // Remainder is the message to execute.
             bytes memory message = Lib_BytesUtils.slice(msg.data, 66);
             bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
-            console.log("Is ETHSignedMessage:", isEthSignedMessage);
             // Need to re-encode the message based on the original encoding.
             bytes memory encodedTx = Lib_OVMCodec.encodeEIP155Transaction(
                 message,
@@ -82,8 +78,7 @@ contract SequencerMessageDecompressor {
                 s,
                 Lib_SafeExecutionManagerWrapper.safeCHAINID(msg.sender)
             );
-            console.log("target:");
-            console.logAddress(target);
+
             bytes memory callbytes = abi.encodeWithSignature(
                 "execute(bytes,uint8,uint8,bytes32,bytes32)",
                 message,
@@ -92,6 +87,7 @@ contract SequencerMessageDecompressor {
                 r,
                 s
             );
+
             Lib_SafeExecutionManagerWrapper.safeCALL(
                 msg.sender,
                 gasleft(),
