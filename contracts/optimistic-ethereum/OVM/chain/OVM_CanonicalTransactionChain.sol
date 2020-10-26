@@ -14,6 +14,17 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 /* Contract Imports */
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
+
+library Math {
+    function min(uint x, uint y) internal pure returns (uint z) {
+        if (x < y) {
+            return x;
+        }
+        return y;
+    }
+}
+
+
 /**
  * @title OVM_CanonicalTransactionChain
  */
@@ -239,9 +250,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     {
         uint40 nextQueueIndex = getNextQueueIndex();
         uint40 queueLength = _getQueueLength();
-        if (queueLength - nextQueueIndex < _numQueuedTransactions) {
-            _numQueuedTransactions = queueLength - nextQueueIndex;
-        }
+        _numQueuedTransactions = Math.min(_numQueuedTransactions, queueLength - nextQueueIndex);
         require(
             _numQueuedTransactions > 0,
             "Must append more than zero transactions."
@@ -538,7 +547,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint40
         )
     {
-        return queue.getLength()/2;
+        // The underlying queue data structure stores 2 elements
+        // per insertion, so to get the real queue length we need
+        // to divide by 2. See the usage of `push2(..)`.
+        return queue.getLength() / 2;
     }
 
     /**
