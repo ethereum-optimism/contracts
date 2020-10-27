@@ -10,6 +10,8 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
+import { console } from "@nomiclabs/buidler/console.sol";
+
 /**
  * @title OVM_ECDSAContractAccount
  */
@@ -44,6 +46,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         )
     {
         address ovmExecutionManager = msg.sender;
+        bool isEthSign = _signatureType == Lib_OVMCodec.EOASignatureType.ETH_SIGNED_MESSAGE;
 
         // Address of this contract within the ovm (ovmADDRESS) should be the same as the
         // recovered address of the user who signed this message. This is how we manage to shim
@@ -51,7 +54,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         require(
             Lib_ECDSAUtils.recover(
                 _transaction,
-                _signatureType == Lib_OVMCodec.EOASignatureType.ETH_SIGNED_MESSAGE,
+                isEthSign,
                 _v,
                 _r,
                 _s,
@@ -59,21 +62,20 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             ) == Lib_SafeExecutionManagerWrapper.safeADDRESS(ovmExecutionManager),
             "Signature provided for EOA transaction execution is invalid."
         );
-
-        Lib_OVMCodec.EIP155Transaction memory decompressedTx = Lib_OVMCodec.decompressEIP155Transaction(_transaction);
+        Lib_OVMCodec.EIP155Transaction memory decodedTx = Lib_OVMCodec.decodeEIP155Transaction(_transaction, isEthSign);
 
         // Need to make sure that the transaction nonce is right and bump it if so.
         require(
-            decompressedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(ovmExecutionManager) + 1,
+            decodedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(ovmExecutionManager) + 1,
             "Transaction nonce does not match the expected nonce."
         );
 
         // Contract creations are signalled by sending a transaction to the zero address.
-        if (decompressedTx.to == address(0)) {
+        if (decodedTx.to == address(0)) {
             address created = Lib_SafeExecutionManagerWrapper.safeCREATE(
                 ovmExecutionManager,
-                decompressedTx.gasLimit,
-                decompressedTx.data
+                decodedTx.gasLimit,
+                decodedTx.data
             );
 
             // EVM doesn't tell us whether a contract creation failed, even if it reverted during
@@ -83,13 +85,13 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             // We only want to bump the nonce for `ovmCALL` because `ovmCREATE` automatically bumps
             // the nonce of the calling account. Normally an EOA would bump the nonce for both
             // cases, but since this is a contract we'd end up bumping the nonce twice.
-            Lib_SafeExecutionManagerWrapper.safeSETNONCE(ovmExecutionManager, decompressedTx.nonce);
+            Lib_SafeExecutionManagerWrapper.safeSETNONCE(ovmExecutionManager, decodedTx.nonce);
 
             return Lib_SafeExecutionManagerWrapper.safeCALL(
                 ovmExecutionManager,
-                decompressedTx.gasLimit,
-                decompressedTx.to,
-                decompressedTx.data
+                decodedTx.gasLimit,
+                decodedTx.to,
+                decodedTx.data
             );
         }
     }

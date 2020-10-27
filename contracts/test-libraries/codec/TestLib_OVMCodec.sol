@@ -10,16 +10,17 @@ import { Lib_OVMCodec } from "../../optimistic-ethereum/libraries/codec/Lib_OVMC
  */
 contract TestLib_OVMCodec {
 
-    function decodeEOATransaction(
-        bytes memory _transaction
+    function decodeEIP155Transaction(
+        bytes memory _transaction,
+        bool _isEthSignedMessage
     )
         public
         pure
         returns (
-            Lib_OVMCodec.EOATransaction memory _decoded
+            Lib_OVMCodec.EIP155Transaction memory _decoded
         )
     {
-        return Lib_OVMCodec.decodeEOATransaction(_transaction);
+        return Lib_OVMCodec.decodeEIP155Transaction(_transaction, _isEthSignedMessage);
     }
 
     function encodeTransaction(

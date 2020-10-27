@@ -73,7 +73,6 @@ describe('ProxyEOA', () => {
         await signer.getAddress()
       )
       const newImpl = `0x${'81'.repeat(20)}`
-
       await expect(
         callPrecompile(Helper_PrecompileCaller, ProxyEOA, 'upgradeEOA', [
           newImpl,

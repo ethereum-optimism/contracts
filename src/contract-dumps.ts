@@ -135,7 +135,6 @@ export const makeStateDump = async (): Promise<any> => {
       'OVM_SafetyChecker',
       'OVM_ExecutionManager',
       'OVM_StateManager',
-      'mockOVM_ECDSAContractAccount',
     ],
   }
 

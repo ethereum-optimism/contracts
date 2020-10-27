@@ -33,8 +33,8 @@ library Lib_OVMCodec {
      *********/
     
     enum EOASignatureType {
-        ETH_SIGNED_MESSAGE,
-        EIP155_TRANSACTON
+        EIP155_TRANSACTON,
+        ETH_SIGNED_MESSAGE
     }
 
     enum QueueOrigin {
@@ -100,13 +100,6 @@ library Lib_OVMCodec {
         uint40 blockNumber;
     }
 
-    struct EOATransaction {
-        address target;
-        uint256 nonce;
-        uint256 gasLimit;
-        bytes data;
-    }
-
     struct EIP155Transaction {
         uint256 nonce;
         uint256 gasPrice;
@@ -127,23 +120,50 @@ library Lib_OVMCodec {
      * @param _transaction Encoded EOA transaction.
      * @return _decoded Transaction decoded into a struct.
      */
-    function decodeEOATransaction(
-        bytes memory _transaction
+    function decodeEIP155Transaction(
+        bytes memory _transaction,
+        bool _isEthSignedMessage
     )
         internal
         pure
         returns (
-            EOATransaction memory _decoded
+            EIP155Transaction memory _decoded
         )
     {
-        Lib_RLPReader.RLPItem[] memory decoded = Lib_RLPReader.readList(_transaction);
+        if (_isEthSignedMessage) {
+            (
+                uint _nonce,
+                uint _gasLimit,
+                uint _gasPrice,
+                uint _chainId,
+                address _to,
+                bytes memory _data
+            ) = abi.decode(
+                _transaction,
+                (uint, uint, uint, uint, address ,bytes)
+            );
+            return EIP155Transaction({
+                nonce: _nonce,
+                gasPrice: _gasPrice,
+                gasLimit: _gasLimit,
+                to: _to,
+                value: 0,
+                data: _data,
+                chainId: 420
+            });
+        } else {
+            Lib_RLPReader.RLPItem[] memory decoded = Lib_RLPReader.readList(_transaction);
 
-        return EOATransaction({
-            nonce: Lib_RLPReader.readUint256(decoded[0]),
-            gasLimit: Lib_RLPReader.readUint256(decoded[2]),
-            target: Lib_RLPReader.readAddress(decoded[3]),
-            data: Lib_RLPReader.readBytes(decoded[5])
-        });
+            return EIP155Transaction({
+                nonce: Lib_RLPReader.readUint256(decoded[0]),
+                gasPrice: Lib_RLPReader.readUint256(decoded[1]),
+                gasLimit: Lib_RLPReader.readUint256(decoded[2]),
+                to: Lib_RLPReader.readAddress(decoded[3]),
+                value: Lib_RLPReader.readUint256(decoded[4]),
+                data: Lib_RLPReader.readBytes(decoded[5]),
+                chainId:  Lib_RLPReader.readUint256(decoded[6])
+            });
+        }
     }
 
     function decompressEIP155Transaction(
