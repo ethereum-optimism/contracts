@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const contracts = require('../build/src/contracts/deploy');
+const contracts = require('../build/src/contract-deployment/deploy');
 const { providers, Wallet } = require('ethers');
 const { JsonRpcProvider } = providers;
 
