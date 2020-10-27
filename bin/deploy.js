@@ -1,6 +1,6 @@
-#!/usr/bin/env -S node --require ts-node/register
+#!/usr/bin/env node
 
-const contracts = require('../src/index.ts');
+const contracts = require('../build/src/contracts/deploy');
 const { providers, Wallet } = require('ethers');
 const { JsonRpcProvider } = providers;
 
