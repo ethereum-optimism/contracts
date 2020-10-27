@@ -59,7 +59,7 @@ const FORCE_INCLUSION_PERIOD_SECONDS = env.FORCE_INCLUSION_PERIOD_SECONDS || (30
 
   const out = {};
   for (const [name, contract] of Object.entries(result.contracts)) {
-    out[name] = (contract as any).address;
+    out[name] = contract.address;
   }
   console.log(JSON.stringify(out, null, 2));
 })().catch(err => {
