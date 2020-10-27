@@ -45,7 +45,6 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             bytes memory _returndata
         )
     {
-        console.log("in execute");
         address ovmExecutionManager = msg.sender;
 
         // Skip signature validation in this mock.
@@ -53,6 +52,7 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
         // Contract creations are signalled by sending a transaction to the zero address.
         if (decodedTx.target == address(0)) {
+            _incrementNonce();
             address created = Lib_SafeExecutionManagerWrapper.safeCREATE(
                 ovmExecutionManager,
                 decodedTx.gasLimit,
@@ -61,14 +61,23 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
             // EVM doesn't tell us whether a contract creation failed, even if it reverted during
             // initialization. Always return `true` for our success value here.
-            return (true, abi.encode(created));
+            return (created != address(0), abi.encode(created));
         } else {
-            return Lib_SafeExecutionManagerWrapper.safeCALL(
+            (_success, _returndata) =  Lib_SafeExecutionManagerWrapper.safeCALL(
                 ovmExecutionManager,
                 decodedTx.gasLimit,
                 decodedTx.target,
                 decodedTx.data
             );
+            _incrementNonce();
         }
+    }
+
+    function _incrementNonce()
+        internal
+    {
+        address ovmExecutionManager = msg.sender;
+        uint nonce = Lib_SafeExecutionManagerWrapper.safeGETNONCE(ovmExecutionManager) + 1;
+        Lib_SafeExecutionManagerWrapper.safeSETNONCE(ovmExecutionManager, nonce);
     }
 }
