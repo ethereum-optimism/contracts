@@ -13,10 +13,12 @@ import {
   DEFAULT_EIP155_TX,
   serializeNativeTransaction,
   serializeEthSignTransaction,
+  ZERO_ADDRESS,
 } from '../../../helpers'
 import { smockit, MockContract } from '@eth-optimism/smock'
+import { create } from 'lodash'
 
-describe('SequencerMessageDecompressor', () => {
+describe('OVM_SequencerMessageDecompressor', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
@@ -40,16 +42,16 @@ describe('SequencerMessageDecompressor', () => {
     Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
   })
 
-  let SequencerMessageDecompressorFactory: ContractFactory
+  let OVM_SequencerMessageDecompressorFactory: ContractFactory
   before(async () => {
-    SequencerMessageDecompressorFactory = await ethers.getContractFactory(
-      'SequencerMessageDecompressor'
+    OVM_SequencerMessageDecompressorFactory = await ethers.getContractFactory(
+      'OVM_SequencerMessageDecompressor'
     )
   })
 
-  let SequencerMessageDecompressor: Contract
+  let OVM_SequencerMessageDecompressor: Contract
   beforeEach(async () => {
-    SequencerMessageDecompressor = await SequencerMessageDecompressorFactory.deploy()
+    OVM_SequencerMessageDecompressor = await OVM_SequencerMessageDecompressorFactory.deploy()
   })
 
   describe('fallback()', async () => {
@@ -60,12 +62,38 @@ describe('SequencerMessageDecompressor', () => {
         0
       )
       await Helper_PrecompileCaller.callPrecompile(
-        SequencerMessageDecompressor.address,
+        OVM_SequencerMessageDecompressor.address,
         calldata
       )
 
       const encodedTx = serializeNativeTransaction(DEFAULT_EIP155_TX)
       const sig = await signNativeTransaction(wallet, DEFAULT_EIP155_TX)
+
+      const expectedEOACalldata = getContractInterface(
+        'OVM_ECDSAContractAccount'
+      ).encodeFunctionData('execute', [
+        encodedTx,
+        0, //isEthSignedMessage
+        `0x${sig.v}`, //v
+        `0x${sig.r}`, //r
+        `0x${sig.s}`, //s
+      ])
+      const ovmCALL: any = Mock__OVM_ExecutionManager.smocked.ovmCALL.calls[0]
+      expect(ovmCALL._address).to.equal(await wallet.getAddress())
+      expect(ovmCALL._calldata).to.equal(expectedEOACalldata)
+    })
+
+    it('should send correct calldata if tx is a create and the transaction type is 0', async () => {
+      const createTx = DEFAULT_EIP155_TX
+      createTx.to = ZERO_ADDRESS
+      const calldata = await encodeSequencerCalldata(wallet, createTx, 0)
+      await Helper_PrecompileCaller.callPrecompile(
+        OVM_SequencerMessageDecompressor.address,
+        calldata
+      )
+
+      const encodedTx = serializeNativeTransaction(createTx)
+      const sig = await signNativeTransaction(wallet, createTx)
 
       const expectedEOACalldata = getContractInterface(
         'OVM_ECDSAContractAccount'
@@ -88,7 +116,7 @@ describe('SequencerMessageDecompressor', () => {
         1
       )
       await Helper_PrecompileCaller.callPrecompile(
-        SequencerMessageDecompressor.address,
+        OVM_SequencerMessageDecompressor.address,
         calldata
       )
       const call: any = Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.calls[0]
@@ -107,7 +135,7 @@ describe('SequencerMessageDecompressor', () => {
         2
       )
       await Helper_PrecompileCaller.callPrecompile(
-        SequencerMessageDecompressor.address,
+        OVM_SequencerMessageDecompressor.address,
         calldata
       )
 
@@ -132,7 +160,7 @@ describe('SequencerMessageDecompressor', () => {
       const calldata = '0x03'
       await expect(
         Helper_PrecompileCaller.callPrecompile(
-          SequencerMessageDecompressor.address,
+          OVM_SequencerMessageDecompressor.address,
           calldata
         )
       ).to.be.revertedWith('Transaction type must be 0, 1, or 2')

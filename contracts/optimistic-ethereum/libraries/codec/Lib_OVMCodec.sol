@@ -149,7 +149,7 @@ library Lib_OVMCodec {
                 to: _to,
                 value: 0,
                 data: _data,
-                chainId: 420
+                chainId: _chainId
             });
         } else {
             Lib_RLPReader.RLPItem[] memory decoded = Lib_RLPReader.readList(_transaction);

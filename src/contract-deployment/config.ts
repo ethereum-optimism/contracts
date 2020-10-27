@@ -114,5 +114,14 @@ export const makeContractDeployConfig = async (
     OVM_ECDSAContractAccount: {
       factory: getContractFactory('OVM_ECDSAContractAccount'),
     },
+    OVM_ProxyEOA: {
+      factory: getContractFactory('OVM_ProxyEOA'),
+    },
+    OVM_ProxyDecompressor: {
+      factory: getContractFactory('OVM_ProxyDecompressor'),
+    },
+    OVM_SequencerMessageDecompressor: {
+      factory: getContractFactory('OVM_SequencerMessageDecompressor'),
+    },
   }
 }

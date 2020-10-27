@@ -9,11 +9,11 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
 /**
- * @title ProxyEOA
+ * @title OVM_ProxyEOA
  */
-contract ProxyEOA {
-    address public implementation  = 0x1212121212121212121212121212121212121212;// TODO REPLACE WITH EOA_PRECOMPILE_ADDRESS
-
+contract OVM_ProxyEOA {
+    address public implementation  = 0x4200000000000000000000000000000000000003;
+    
     function upgradeEOA(address _implementation) external {
         require(
             Lib_SafeExecutionManagerWrapper.safeADDRESS(msg.sender) ==

@@ -13,7 +13,7 @@ import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
 import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol";
 
 /* Contract Imports */
-import { ProxyEOA } from "../accounts/ProxyEOA.sol";
+import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
 
 import { console } from "@nomiclabs/buidler/console.sol";
 
@@ -465,7 +465,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Now actually create the account and get its bytecode. We're not worried about reverts
         // (other than out of gas, which we can't capture anyway) because this contract is trusted.
-        ProxyEOA proxyEOA = new ProxyEOA();
+        OVM_ProxyEOA proxyEOA = new OVM_ProxyEOA();
         bytes memory deployedCode = Lib_EthUtils.getCode(address(proxyEOA));
 
         // Commit the account with its final values.

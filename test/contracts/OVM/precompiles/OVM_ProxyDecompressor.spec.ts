@@ -18,23 +18,23 @@ const callPrecompile = async (
   )
 }
 
-describe('ProxyDecompressor', () => {
+describe('OVM_ProxyDecompressor', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
     ;[wallet] = provider.getWallets()
   })
 
-  let Factory__ProxyDecompressor: ContractFactory
+  let Factory__OVM_ProxyDecompressor: ContractFactory
   before(async () => {
-    Factory__ProxyDecompressor = await ethers.getContractFactory(
-      'ProxyDecompressor'
+    Factory__OVM_ProxyDecompressor = await ethers.getContractFactory(
+      'OVM_ProxyDecompressor'
     )
   })
 
   let Mock__OVM_ExecutionManager: MockContract
   let Helper_PrecompileCaller: Contract
-  let SequencerMessageDecompressor: Contract
+  let OVM_SequencerMessageDecompressor: Contract
   before(async () => {
     Mock__OVM_ExecutionManager = smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
@@ -50,54 +50,62 @@ describe('ProxyDecompressor', () => {
 
     Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
 
-    SequencerMessageDecompressor = await (
-      await ethers.getContractFactory('SequencerMessageDecompressor')
+    OVM_SequencerMessageDecompressor = await (
+      await ethers.getContractFactory('OVM_SequencerMessageDecompressor')
     ).deploy()
   })
 
-  let ProxyDecompressor: Contract
+  let OVM_ProxyDecompressor: Contract
   beforeEach(async () => {
-    ProxyDecompressor = await Factory__ProxyDecompressor.deploy()
+    OVM_ProxyDecompressor = await Factory__OVM_ProxyDecompressor.deploy()
   })
   it(`should init the proxy with owner and implementation`, async () => {
-    await callPrecompile(Helper_PrecompileCaller, ProxyDecompressor, 'init', [
-      SequencerMessageDecompressor.address,
-      await wallet.getAddress(),
-    ])
+    await callPrecompile(
+      Helper_PrecompileCaller,
+      OVM_ProxyDecompressor,
+      'init',
+      [OVM_SequencerMessageDecompressor.address, await wallet.getAddress()]
+    )
 
-    expect(await ProxyDecompressor.owner()).to.equal(await wallet.getAddress())
+    expect(await OVM_ProxyDecompressor.owner()).to.equal(
+      await wallet.getAddress()
+    )
 
-    expect(await ProxyDecompressor.implementation()).to.equal(
-      SequencerMessageDecompressor.address
+    expect(await OVM_ProxyDecompressor.implementation()).to.equal(
+      OVM_SequencerMessageDecompressor.address
     )
   })
 
   it(`upgrade Decompressor`, async () => {
-    await callPrecompile(Helper_PrecompileCaller, ProxyDecompressor, 'init', [
-      SequencerMessageDecompressor.address,
-      await wallet.getAddress(),
-    ])
     await callPrecompile(
       Helper_PrecompileCaller,
-      ProxyDecompressor,
+      OVM_ProxyDecompressor,
+      'init',
+      [OVM_SequencerMessageDecompressor.address, await wallet.getAddress()]
+    )
+    await callPrecompile(
+      Helper_PrecompileCaller,
+      OVM_ProxyDecompressor,
       'upgradeDecompressor',
       [`0x${'12'.repeat(20)}`]
     )
-    expect(await ProxyDecompressor.implementation()).to.equal(
+    expect(await OVM_ProxyDecompressor.implementation()).to.equal(
       `0x${'12'.repeat(20)}`
     )
   })
 
   it(`successfully calls ovmCREATEEOA through decompressor fallback`, async () => {
-    await callPrecompile(Helper_PrecompileCaller, ProxyDecompressor, 'init', [
-      SequencerMessageDecompressor.address,
-      await wallet.getAddress(),
-    ])
+    await callPrecompile(
+      Helper_PrecompileCaller,
+      OVM_ProxyDecompressor,
+      'init',
+      [OVM_SequencerMessageDecompressor.address, await wallet.getAddress()]
+    )
 
     const calldata = await encodeSequencerCalldata(wallet, DEFAULT_EIP155_TX, 1)
 
     await Helper_PrecompileCaller.callPrecompile(
-      ProxyDecompressor.address,
+      OVM_ProxyDecompressor.address,
       calldata
     )
     const call: any = Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.calls[0]

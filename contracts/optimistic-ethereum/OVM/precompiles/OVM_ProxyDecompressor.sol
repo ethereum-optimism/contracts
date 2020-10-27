@@ -4,9 +4,9 @@ pragma solidity ^0.7.0;
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
 /**
- * @title ProxyDecompressor
+ * @title OVM_ProxyDecompressor
  */
-contract ProxyDecompressor {
+contract OVM_ProxyDecompressor {
     address public owner;
     address public implementation;
     function upgradeDecompressor(address _newImplementation) external {

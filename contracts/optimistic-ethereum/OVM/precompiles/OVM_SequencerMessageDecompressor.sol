@@ -7,9 +7,9 @@ import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
 /**
- * @title SequencerMessageDecompressor
+ * @title OVM_SequencerMessageDecompressor
  */
-contract SequencerMessageDecompressor {
+contract OVM_SequencerMessageDecompressor {
     /*
      * Data Structures
      */
