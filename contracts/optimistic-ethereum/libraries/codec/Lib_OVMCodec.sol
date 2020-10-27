@@ -228,28 +228,6 @@ library Lib_OVMCodec {
         }
     }
 
-     /**
-     * Decodes and then re-encodes an EOA transaction.
-     * @param _transaction Compactly encoded EOA transaction.
-     * @param _isEthSignedMessage Whether or not this is an eth signed message.
-     * @return Transaction with original encoding.
-     */
-    function encodeEIP155Transaction(
-        bytes memory _transaction,
-        bool _isEthSignedMessage
-    )
-        internal
-        pure
-        returns (
-            bytes memory
-        )
-    {
-        return encodeEIP155Transaction(
-            decompressEIP155Transaction(_transaction),
-            _isEthSignedMessage
-        );
-    }
-
     /**
      * Encodes a standard OVM transaction.
      * @param _transaction OVM transaction to encode.

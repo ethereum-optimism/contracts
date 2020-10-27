@@ -11,6 +11,8 @@ import {
   signNativeTransaction,
   signEthSignMessage,
   DEFAULT_EIP155_TX,
+  serializeNativeTransaction,
+  serializeEthSignTransaction,
 } from '../../../helpers'
 import { smockit, MockContract } from '@eth-optimism/smock'
 
@@ -62,13 +64,13 @@ describe('SequencerMessageDecompressor', () => {
         calldata
       )
 
-      const message = `0x${calldata.slice(67 * 2)}`
+      const encodedTx = serializeNativeTransaction(DEFAULT_EIP155_TX)
       const sig = await signNativeTransaction(wallet, DEFAULT_EIP155_TX)
 
       const expectedEOACalldata = getContractInterface(
         'OVM_ECDSAContractAccount'
       ).encodeFunctionData('execute', [
-        message,
+        encodedTx,
         0, //isEthSignedMessage
         `0x${sig.v}`, //v
         `0x${sig.r}`, //r
@@ -109,13 +111,13 @@ describe('SequencerMessageDecompressor', () => {
         calldata
       )
 
-      const message = `0x${calldata.slice(67 * 2)}`
+      const encodedTx = serializeEthSignTransaction(DEFAULT_EIP155_TX)
       const sig = await signEthSignMessage(wallet, DEFAULT_EIP155_TX)
 
       const expectedEOACalldata = getContractInterface(
         'OVM_ECDSAContractAccount'
       ).encodeFunctionData('execute', [
-        message,
+        encodedTx,
         1, //isEthSignedMessage
         `0x${sig.v}`, //v
         `0x${sig.r}`, //r

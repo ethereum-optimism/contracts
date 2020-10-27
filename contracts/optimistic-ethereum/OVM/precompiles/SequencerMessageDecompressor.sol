@@ -57,12 +57,12 @@ contract SequencerMessageDecompressor {
             bytes32 messageHash = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 66, 32));
             Lib_SafeExecutionManagerWrapper.safeCREATEEOA(msg.sender, messageHash, uint8(v), r, s);
         } else {
-            // Remainder is the message to execute.
-            bytes memory message = Lib_BytesUtils.slice(msg.data, 66);
+            // Remainder is the transaction to execute.
+            bytes memory transaction = Lib_BytesUtils.slice(msg.data, 66);
             bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
-            // Need to re-encode the message based on the original encoding.
+            // Need to re-encode the transaction based on the original encoding.
             bytes memory encodedTx = Lib_OVMCodec.encodeEIP155Transaction(
-                message,
+                Lib_OVMCodec.decompressEIP155Transaction(transaction),
                 isEthSignedMessage
             );
 
@@ -77,7 +77,7 @@ contract SequencerMessageDecompressor {
 
             bytes memory callbytes = abi.encodeWithSignature(
                 "execute(bytes,uint8,uint8,bytes32,bytes32)",
-                message,
+                encodedTx,
                 isEthSignedMessage,
                 uint8(v),
                 r,
