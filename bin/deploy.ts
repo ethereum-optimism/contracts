@@ -4,16 +4,17 @@ const contracts = require('../src/index.ts');
 const { providers, Wallet } = require('ethers');
 const { JsonRpcProvider } = providers;
 
-const key = process.env.DEPLOYER_PRIVATE_KEY;
-const sequencerKey = process.env.SEQUENCER_PRIVATE_KEY;
-const web3Url = process.env.L1_NODE_WEB3_URL || 'http://127.0.0.1:8545';
-const MIN_TRANSACTION_GAS_LIMIT = process.env.MIN_TRANSACTION_GAS_LIMIT || 0;
-const MAX_TRANSACTION_GAS_LIMIT = process.env.MAX_TRANSACTION_GAS_LIMIT || 1000000000;
-const MAX_GAS_PER_QUEUE_PER_EPOCH = process.env.MAX_GAS_PER_QUEUE_PER_EPOCH || 1000000000000;
-const SECONDS_PER_EPOCH = process.env.SECONDS_PER_EPOCH || 600;
-let WHITELIST_OWNER = process.env.WHITELIST_OWNER;
-const WHITELIST_ALLOW_ARBITRARY_CONTRACT_DEPLOYMENT = process.env.WHITELIST_ALLOW_ARBITRARY_CONTRACT_DEPLOYMENT || false;
-const FORCE_INCLUSION_PERIOD_SECONDS = process.env.FORCE_INCLUSION_PERIOD_SECONDS || 1 << 28;
+const env = process.env;
+const key = env.DEPLOYER_PRIVATE_KEY;
+const sequencerKey = env.SEQUENCER_PRIVATE_KEY;
+const web3Url = env.L1_NODE_WEB3_URL || 'http://127.0.0.1:8545';
+const MIN_TRANSACTION_GAS_LIMIT = env.MIN_TRANSACTION_GAS_LIMIT || 0;
+const MAX_TRANSACTION_GAS_LIMIT = env.MAX_TRANSACTION_GAS_LIMIT || 1000000000;
+const MAX_GAS_PER_QUEUE_PER_EPOCH = env.MAX_GAS_PER_QUEUE_PER_EPOCH || 250000000;
+const SECONDS_PER_EPOCH = env.SECONDS_PER_EPOCH || 600;
+let WHITELIST_OWNER = env.WHITELIST_OWNER;
+const WHITELIST_ALLOW_ARBITRARY_CONTRACT_DEPLOYMENT = env.WHITELIST_ALLOW_ARBITRARY_CONTRACT_DEPLOYMENT || true;
+const FORCE_INCLUSION_PERIOD_SECONDS = env.FORCE_INCLUSION_PERIOD_SECONDS || 1 << 28;
 
 (async () => {
   if (typeof key === 'undefined')
