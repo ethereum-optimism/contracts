@@ -10,8 +10,6 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /**
  * @title OVM_ECDSAContractAccount
  */

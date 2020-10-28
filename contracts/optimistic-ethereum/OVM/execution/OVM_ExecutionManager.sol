@@ -15,8 +15,6 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
 
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /**
  * @title OVM_ExecutionManager
  */

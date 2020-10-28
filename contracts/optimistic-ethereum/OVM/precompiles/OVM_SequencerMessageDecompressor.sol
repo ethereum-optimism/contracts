@@ -58,11 +58,11 @@ contract OVM_SequencerMessageDecompressor {
             Lib_SafeExecutionManagerWrapper.safeCREATEEOA(msg.sender, messageHash, uint8(v), r, s);
         } else {
             // Remainder is the transaction to execute.
-            bytes memory transaction = Lib_BytesUtils.slice(msg.data, 66);
+            bytes memory compressedTx = Lib_BytesUtils.slice(msg.data, 66);
             bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
-            // Need to re-encode the transaction based on the original encoding.
+            // Need to decompress and then re-encode the transaction based on the original encoding.
             bytes memory encodedTx = Lib_OVMCodec.encodeEIP155Transaction(
-                Lib_OVMCodec.decompressEIP155Transaction(transaction),
+                Lib_OVMCodec.decompressEIP155Transaction(compressedTx),
                 isEthSignedMessage
             );
 
