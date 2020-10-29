@@ -75,6 +75,28 @@ interface iOVM_CanonicalTransactionChain {
         );
 
     /**
+     * Returns the index of the next element to be enqueued.
+     * @return Index for the next queue element.
+     */
+    function getNextQueueIndex()
+        external
+        view
+        returns (
+            uint40
+        );
+
+    /**
+     * Get the number of queue elements which have not yet been included.
+     * @return Length of the queue.
+     */
+    function getNumPendingQueueElements()
+        external
+        view
+        returns (
+            uint40
+        );
+
+    /**
      * Gets the queue element at a particular index.
      * @param _index Index of the queue element to access.
      * @return _element Queue element at the given index.
