@@ -276,7 +276,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint40 nextQueueIndex = getNextQueueIndex();
 
         for (uint256 i = 0; i < _numQueuedTransactions; i++) {
-            if (msg.sender != sequencer) {
+            if (msg.sender != resolve("OVM_Sequencer")) {
                 Lib_OVMCodec.QueueElement memory el = getQueueElement(nextQueueIndex);
                 require(
                     el.timestamp + forceInclusionPeriodSeconds < block.timestamp,
