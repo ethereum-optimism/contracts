@@ -217,7 +217,11 @@ library Lib_OVMCodec {
             raw[0] = Lib_RLPWriter.writeUint(_transaction.nonce);
             raw[1] = Lib_RLPWriter.writeUint(_transaction.gasPrice);
             raw[2] = Lib_RLPWriter.writeUint(_transaction.gasLimit);
-            raw[3] = Lib_RLPWriter.writeAddress(_transaction.to);
+            if (_transaction.to == address(0)) {
+                raw[3] = Lib_RLPWriter.writeBytes('');
+            } else {
+                raw[3] = Lib_RLPWriter.writeAddress(_transaction.to);
+            }
             raw[4] = Lib_RLPWriter.writeUint(0);
             raw[5] = Lib_RLPWriter.writeBytes(_transaction.data);
             raw[6] = Lib_RLPWriter.writeUint(_transaction.chainId);

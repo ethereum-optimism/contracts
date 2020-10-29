@@ -11,6 +11,7 @@ import {
   DEFAULT_EIP155_TX,
   serializeEthSignTransaction,
   signEthSignMessage,
+  EIP155Transaction,
 } from '../../../helpers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 
@@ -44,7 +45,6 @@ describe('OVM_ECDSAContractAccount', () => {
     Helper_PrecompileCaller = await (
       await ethers.getContractFactory('Helper_PrecompileCaller')
     ).deploy()
-
     Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
   })
 
@@ -126,8 +126,7 @@ describe('OVM_ECDSAContractAccount', () => {
     })
 
     it(`should ovmCREATE if EIP155Transaction.to is zero address`, async () => {
-      const createTx = DEFAULT_EIP155_TX
-      createTx.to = ZERO_ADDRESS
+      const createTx = { ...DEFAULT_EIP155_TX, to: '' }
       const message = serializeNativeTransaction(createTx)
       const sig = await signNativeTransaction(wallet, createTx)
 

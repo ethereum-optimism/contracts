@@ -85,8 +85,7 @@ describe('OVM_SequencerMessageDecompressor', () => {
     })
 
     it('should send correct calldata if tx is a create and the transaction type is 0', async () => {
-      const createTx = DEFAULT_EIP155_TX
-      createTx.to = ZERO_ADDRESS
+      const createTx = { ...DEFAULT_EIP155_TX, to: '' }
       const calldata = await encodeSequencerCalldata(wallet, createTx, 0)
       await Helper_PrecompileCaller.callPrecompile(
         OVM_SequencerMessageDecompressor.address,

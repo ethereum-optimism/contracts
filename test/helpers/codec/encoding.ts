@@ -8,6 +8,7 @@ import {
   hexStrToBuf,
   makeAddressManager,
 } from '../'
+import { ZERO_ADDRESS } from '../constants'
 
 export interface EIP155Transaction {
   nonce: number
@@ -49,7 +50,9 @@ export const encodeCompactTransaction = (transaction: any): string => {
     throw Error('gas price must be a multiple of 1000000')
   const compressedGasPrice: any = transaction.gasPrice / 1000000
   const gasPrice = zeroPad(compressedGasPrice, 3)
-  const to = hexStrToBuf(transaction.to)
+  const to = !transaction.to.length
+    ? hexStrToBuf(ZERO_ADDRESS)
+    : hexStrToBuf(transaction.to)
   const data = hexStrToBuf(transaction.data)
 
   return Buffer.concat([
