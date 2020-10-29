@@ -16,7 +16,6 @@ contract OVM_SequencerMessageDecompressor {
     
     enum TransactionType {
         NATIVE_ETH_TRANSACTION,
-        EOA_CONTRACT_CREATION,
         ETH_SIGNED_MESSAGE
     }
 
@@ -52,29 +51,29 @@ contract OVM_SequencerMessageDecompressor {
         bytes32 s = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 33, 32));
         uint8 v = Lib_BytesUtils.toUint8(msg.data, 65);
         
-        if (transactionType == TransactionType.EOA_CONTRACT_CREATION) {
-            // Pull out the message hash so we can verify the signature.
-            bytes32 messageHash = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 66, 32));
+        // Remainder is the transaction to execute.
+        bytes memory compressedTx = Lib_BytesUtils.slice(msg.data, 66);
+        bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
+        // Need to decompress and then re-encode the transaction based on the original encoding.
+        bytes memory encodedTx = Lib_OVMCodec.encodeEIP155Transaction(
+            Lib_OVMCodec.decompressEIP155Transaction(compressedTx),
+            isEthSignedMessage
+        );
+
+        address target = Lib_ECDSAUtils.recover(
+            encodedTx,
+            isEthSignedMessage,
+            uint8(v),
+            r,
+            s,
+            Lib_SafeExecutionManagerWrapper.safeCHAINID(msg.sender)
+        );
+        if (Lib_SafeExecutionManagerWrapper.safeEXTCODESIZE(msg.sender, target) == 0) {
+            //ProxyEOA has not yet been deployed for this EOA
+            bytes32 messageHash = Lib_ECDSAUtils.getMessageHash(encodedTx, isEthSignedMessage);
             Lib_SafeExecutionManagerWrapper.safeCREATEEOA(msg.sender, messageHash, uint8(v), r, s);
         } else {
-            // Remainder is the transaction to execute.
-            bytes memory compressedTx = Lib_BytesUtils.slice(msg.data, 66);
-            bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
-            // Need to decompress and then re-encode the transaction based on the original encoding.
-            bytes memory encodedTx = Lib_OVMCodec.encodeEIP155Transaction(
-                Lib_OVMCodec.decompressEIP155Transaction(compressedTx),
-                isEthSignedMessage
-            );
-
-            address target = Lib_ECDSAUtils.recover(
-                encodedTx,
-                isEthSignedMessage,
-                uint8(v),
-                r,
-                s,
-                Lib_SafeExecutionManagerWrapper.safeCHAINID(msg.sender)
-            );
-
+            //ProxyEOA has already been deployed for this EOA, continue to CALL
             bytes memory callbytes = abi.encodeWithSignature(
                 "execute(bytes,uint8,uint8,bytes32,bytes32)",
                 encodedTx,
@@ -112,16 +111,13 @@ contract OVM_SequencerMessageDecompressor {
         )
     {
         require(
-            _transactionType <= 2,
-            "Transaction type must be 0, 1, or 2"
+            _transactionType == 2 || _transactionType == 0,
+            "Transaction type must be 0 or 2"
         );
 
         if (_transactionType == 0) {
             return TransactionType.NATIVE_ETH_TRANSACTION;
-        } else if (_transactionType == 1) {
-            return TransactionType.EOA_CONTRACT_CREATION;
-        } else {
-            return TransactionType.ETH_SIGNED_MESSAGE;
         }
+        return TransactionType.ETH_SIGNED_MESSAGE;
     }
 }

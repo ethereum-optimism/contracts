@@ -34,21 +34,27 @@ library Lib_ECDSAUtils {
             address _sender
         )
     {
-        bytes32 messageHash;
-        uint8 v;
-        if (_isEthSignedMessage) {
-            messageHash = getEthSignedMessageHash(_message);
-        } else {
-            messageHash = getNativeMessageHash(_message);
-        }
-        v = _v + 27;
+        bytes32 messageHash = getMessageHash(_message, _isEthSignedMessage);
 
         return ecrecover(
             messageHash,
-            v,
+            _v + 27,
             _r,
             _s
         );
+    }
+
+    function getMessageHash(
+        bytes memory _message,
+        bool _isEthSignedMessage
+    )
+        internal
+        pure
+        returns (bytes32) {
+        if (_isEthSignedMessage) {
+            return getEthSignedMessageHash(_message);
+        }
+        return getNativeMessageHash(_message);
     }
 
 

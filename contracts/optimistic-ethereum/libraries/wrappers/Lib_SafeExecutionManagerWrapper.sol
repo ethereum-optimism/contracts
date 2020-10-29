@@ -74,6 +74,32 @@ library Lib_SafeExecutionManagerWrapper {
     }
 
     /**
+     * Performs an ovmEXTCODESIZE and the necessary safety checks.
+     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
+     * @param _contract Address of the contract to query the size of.
+     * @return _EXTCODESIZE Size of the requested contract in bytes.
+     */
+    function safeEXTCODESIZE(
+        address _ovmExecutionManager,
+        address _contract
+    )
+        internal
+        returns (
+            uint256 _EXTCODESIZE
+        )
+    {
+        bytes memory returndata = _safeExecutionManagerInteraction(
+            _ovmExecutionManager,
+            abi.encodeWithSignature(
+                "ovmEXTCODESIZE(address)",
+                _contract
+            )
+        );
+
+        return abi.decode(returndata, (uint256));
+    }
+
+    /**
      * Performs a safe ovmCHAINID call.
      * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
      * @return _CHAINID Result of calling ovmCHAINID.

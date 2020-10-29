@@ -52,6 +52,7 @@ describe('OVM_SequencerMessageDecompressor', () => {
   let OVM_SequencerMessageDecompressor: Contract
   beforeEach(async () => {
     OVM_SequencerMessageDecompressor = await OVM_SequencerMessageDecompressorFactory.deploy()
+    Mock__OVM_ExecutionManager.smocked.ovmEXTCODESIZE.will.return.with(1)
   })
 
   describe('fallback()', async () => {
@@ -109,24 +110,27 @@ describe('OVM_SequencerMessageDecompressor', () => {
       expect(ovmCALL._calldata).to.equal(expectedEOACalldata)
     })
 
-    it('should call an ovmCreateEOA when the transaction type is 1', async () => {
-      const calldata = await encodeSequencerCalldata(
-        wallet,
-        DEFAULT_EIP155_TX,
-        1
-      )
-      await Helper_PrecompileCaller.callPrecompile(
-        OVM_SequencerMessageDecompressor.address,
-        calldata
-      )
-      const call: any = Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.calls[0]
-      const eoaAddress = ethers.utils.recoverAddress(call._messageHash, {
-        v: call._v + 27,
-        r: call._r,
-        s: call._s,
+    for (let i = 0; i < 3; i += 2) {
+      it(`should call ovmCreateEOA when tx type is ${i} and ovmEXTCODESIZE returns 0`, async () => {
+        Mock__OVM_ExecutionManager.smocked.ovmEXTCODESIZE.will.return.with(0)
+        const calldata = await encodeSequencerCalldata(
+          wallet,
+          DEFAULT_EIP155_TX,
+          i
+        )
+        await Helper_PrecompileCaller.callPrecompile(
+          OVM_SequencerMessageDecompressor.address,
+          calldata
+        )
+        const call: any = Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.calls[0]
+        const eoaAddress = ethers.utils.recoverAddress(call._messageHash, {
+          v: call._v + 27,
+          r: call._r,
+          s: call._s,
+        })
+        expect(eoaAddress).to.equal(await wallet.getAddress())
       })
-      expect(eoaAddress).to.equal(await wallet.getAddress())
-    })
+    }
 
     it('should submit ETHSignedTypedData if TransactionType is 2', async () => {
       const calldata = await encodeSequencerCalldata(
@@ -163,7 +167,17 @@ describe('OVM_SequencerMessageDecompressor', () => {
           OVM_SequencerMessageDecompressor.address,
           calldata
         )
-      ).to.be.revertedWith('Transaction type must be 0, 1, or 2')
+      ).to.be.revertedWith('Transaction type must be 0 or 2')
+    })
+
+    it('should revert if TransactionType is 1', async () => {
+      const calldata = '0x01'
+      await expect(
+        Helper_PrecompileCaller.callPrecompile(
+          OVM_SequencerMessageDecompressor.address,
+          calldata
+        )
+      ).to.be.revertedWith('Transaction type must be 0 or 2')
     })
   })
 })
