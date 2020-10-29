@@ -117,11 +117,11 @@ export const makeContractDeployConfig = async (
     OVM_ProxyEOA: {
       factory: getContractFactory('OVM_ProxyEOA'),
     },
-    OVM_ProxyDecompressor: {
-      factory: getContractFactory('OVM_ProxyDecompressor'),
+    OVM_ProxyEntrypoint: {
+      factory: getContractFactory('OVM_ProxyEntrypoint'),
     },
-    OVM_SequencerMessageDecompressor: {
-      factory: getContractFactory('OVM_SequencerMessageDecompressor'),
+    OVM_SequencerEntrypoint: {
+      factory: getContractFactory('OVM_SequencerEntrypoint'),
     },
   }
 }

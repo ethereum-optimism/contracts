@@ -18,7 +18,7 @@ import {
 import { smockit, MockContract } from '@eth-optimism/smock'
 import { create } from 'lodash'
 
-describe('OVM_SequencerMessageDecompressor', () => {
+describe('OVM_SequencerEntrypoint', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
@@ -42,16 +42,16 @@ describe('OVM_SequencerMessageDecompressor', () => {
     Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
   })
 
-  let OVM_SequencerMessageDecompressorFactory: ContractFactory
+  let OVM_SequencerEntrypointFactory: ContractFactory
   before(async () => {
-    OVM_SequencerMessageDecompressorFactory = await ethers.getContractFactory(
-      'OVM_SequencerMessageDecompressor'
+    OVM_SequencerEntrypointFactory = await ethers.getContractFactory(
+      'OVM_SequencerEntrypoint'
     )
   })
 
-  let OVM_SequencerMessageDecompressor: Contract
+  let OVM_SequencerEntrypoint: Contract
   beforeEach(async () => {
-    OVM_SequencerMessageDecompressor = await OVM_SequencerMessageDecompressorFactory.deploy()
+    OVM_SequencerEntrypoint = await OVM_SequencerEntrypointFactory.deploy()
     Mock__OVM_ExecutionManager.smocked.ovmEXTCODESIZE.will.return.with(1)
   })
 
@@ -63,7 +63,7 @@ describe('OVM_SequencerMessageDecompressor', () => {
         0
       )
       await Helper_PrecompileCaller.callPrecompile(
-        OVM_SequencerMessageDecompressor.address,
+        OVM_SequencerEntrypoint.address,
         calldata
       )
 
@@ -88,7 +88,7 @@ describe('OVM_SequencerMessageDecompressor', () => {
       const createTx = { ...DEFAULT_EIP155_TX, to: '' }
       const calldata = await encodeSequencerCalldata(wallet, createTx, 0)
       await Helper_PrecompileCaller.callPrecompile(
-        OVM_SequencerMessageDecompressor.address,
+        OVM_SequencerEntrypoint.address,
         calldata
       )
 
@@ -118,7 +118,7 @@ describe('OVM_SequencerMessageDecompressor', () => {
           i
         )
         await Helper_PrecompileCaller.callPrecompile(
-          OVM_SequencerMessageDecompressor.address,
+          OVM_SequencerEntrypoint.address,
           calldata
         )
         const call: any =
@@ -139,7 +139,7 @@ describe('OVM_SequencerMessageDecompressor', () => {
         2
       )
       await Helper_PrecompileCaller.callPrecompile(
-        OVM_SequencerMessageDecompressor.address,
+        OVM_SequencerEntrypoint.address,
         calldata
       )
 
@@ -164,7 +164,7 @@ describe('OVM_SequencerMessageDecompressor', () => {
       const calldata = '0x03'
       await expect(
         Helper_PrecompileCaller.callPrecompile(
-          OVM_SequencerMessageDecompressor.address,
+          OVM_SequencerEntrypoint.address,
           calldata
         )
       ).to.be.revertedWith('Transaction type must be 0 or 2')
@@ -174,7 +174,7 @@ describe('OVM_SequencerMessageDecompressor', () => {
       const calldata = '0x01'
       await expect(
         Helper_PrecompileCaller.callPrecompile(
-          OVM_SequencerMessageDecompressor.address,
+          OVM_SequencerEntrypoint.address,
           calldata
         )
       ).to.be.revertedWith('Transaction type must be 0 or 2')

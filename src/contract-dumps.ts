@@ -132,8 +132,8 @@ export const makeStateDump = async (): Promise<any> => {
       'OVM_L1MessageSender',
       'OVM_L2ToL1MessagePasser',
       'OVM_ECDSAContractAccount',
-      'OVM_ProxyDecompressor',
-      'OVM_SequencerDecompressor',
+      'OVM_ProxyEntrypoint',
+      'OVM_SequencerEntrypoint',
       'OVM_L2CrossDomainMessenger',
       'OVM_SafetyChecker',
       'OVM_ExecutionManager',
@@ -146,8 +146,8 @@ export const makeStateDump = async (): Promise<any> => {
     OVM_L1MessageSender: '0x4200000000000000000000000000000000000001',
     OVM_DeployerWhitelist: '0x4200000000000000000000000000000000000002',
     OVM_ECDSAContractAccount: '0x4200000000000000000000000000000000000003',
-    ProxyDecompressor: '0x4200000000000000000000000000000000000004',
-    SequencerDecompressor: '0x4200000000000000000000000000000000000005',
+    ProxyEntrypoint: '0x4200000000000000000000000000000000000004',
+    SequencerEntrypoint: '0x4200000000000000000000000000000000000005',
   }
 
   const deploymentResult = await deploy(config)

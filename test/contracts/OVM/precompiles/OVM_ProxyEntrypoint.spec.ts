@@ -22,23 +22,23 @@ const callPrecompile = async (
   )
 }
 
-describe('OVM_ProxyDecompressor', () => {
+describe('OVM_ProxyEntrypoint', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
     ;[wallet] = provider.getWallets()
   })
 
-  let Factory__OVM_ProxyDecompressor: ContractFactory
+  let Factory__OVM_ProxyEntrypoint: ContractFactory
   before(async () => {
-    Factory__OVM_ProxyDecompressor = await ethers.getContractFactory(
-      'OVM_ProxyDecompressor'
+    Factory__OVM_ProxyEntrypoint = await ethers.getContractFactory(
+      'OVM_ProxyEntrypoint'
     )
   })
 
   let Mock__OVM_ExecutionManager: MockContract
   let Helper_PrecompileCaller: Contract
-  let OVM_SequencerMessageDecompressor: Contract
+  let OVM_SequencerEntrypoint: Contract
   before(async () => {
     Mock__OVM_ExecutionManager = smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
@@ -57,74 +57,68 @@ describe('OVM_ProxyDecompressor', () => {
 
     Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
 
-    OVM_SequencerMessageDecompressor = await (
-      await ethers.getContractFactory('OVM_SequencerMessageDecompressor')
+    OVM_SequencerEntrypoint = await (
+      await ethers.getContractFactory('OVM_SequencerEntrypoint')
     ).deploy()
   })
 
-  let OVM_ProxyDecompressor: Contract
+  let OVM_ProxyEntrypoint: Contract
   beforeEach(async () => {
-    OVM_ProxyDecompressor = await Factory__OVM_ProxyDecompressor.deploy()
+    OVM_ProxyEntrypoint = await Factory__OVM_ProxyEntrypoint.deploy()
   })
   it(`should init the proxy with owner and implementation`, async () => {
-    await callPrecompile(
-      Helper_PrecompileCaller,
-      OVM_ProxyDecompressor,
-      'init',
-      [OVM_SequencerMessageDecompressor.address, await wallet.getAddress()]
-    )
+    await callPrecompile(Helper_PrecompileCaller, OVM_ProxyEntrypoint, 'init', [
+      OVM_SequencerEntrypoint.address,
+      await wallet.getAddress(),
+    ])
 
-    expect(await OVM_ProxyDecompressor.owner()).to.equal(
+    expect(await OVM_ProxyEntrypoint.owner()).to.equal(
       await wallet.getAddress()
     )
 
-    expect(await OVM_ProxyDecompressor.implementation()).to.equal(
-      OVM_SequencerMessageDecompressor.address
+    expect(await OVM_ProxyEntrypoint.implementation()).to.equal(
+      OVM_SequencerEntrypoint.address
     )
   })
 
-  it(`should allow owner to upgrade Decompressor`, async () => {
+  it(`should allow owner to upgrade Entrypoint`, async () => {
+    await callPrecompile(Helper_PrecompileCaller, OVM_ProxyEntrypoint, 'init', [
+      OVM_SequencerEntrypoint.address,
+      await wallet.getAddress(),
+    ])
     await callPrecompile(
       Helper_PrecompileCaller,
-      OVM_ProxyDecompressor,
-      'init',
-      [OVM_SequencerMessageDecompressor.address, await wallet.getAddress()]
-    )
-    await callPrecompile(
-      Helper_PrecompileCaller,
-      OVM_ProxyDecompressor,
-      'upgradeDecompressor',
+      OVM_ProxyEntrypoint,
+      'upgradeEntrypoint',
       [`0x${'12'.repeat(20)}`]
     )
-    expect(await OVM_ProxyDecompressor.implementation()).to.equal(
+    expect(await OVM_ProxyEntrypoint.implementation()).to.equal(
       `0x${'12'.repeat(20)}`
     )
   })
 
-  it(`should revert if non-owner tries to upgrade Decompressor`, async () => {
+  it(`should revert if non-owner tries to upgrade Entrypoint`, async () => {
     await expect(
       callPrecompile(
         Helper_PrecompileCaller,
-        OVM_ProxyDecompressor,
-        'upgradeDecompressor',
+        OVM_ProxyEntrypoint,
+        'upgradeEntrypoint',
         [`0x${'12'.repeat(20)}`]
       )
-    ).to.be.revertedWith('only owner can upgrade the decompressor')
-    expect(await OVM_ProxyDecompressor.implementation()).to.equal(ZERO_ADDRESS)
+    ).to.be.revertedWith('only owner can upgrade the Entrypoint')
+    expect(await OVM_ProxyEntrypoint.implementation()).to.equal(ZERO_ADDRESS)
   })
 
-  it(`successfully calls ovmCREATEEOA through decompressor fallback`, async () => {
-    await callPrecompile(
-      Helper_PrecompileCaller,
-      OVM_ProxyDecompressor,
-      'init',
-      [OVM_SequencerMessageDecompressor.address, await wallet.getAddress()]
-    )
+  it(`successfully calls ovmCREATEEOA through Entrypoint fallback`, async () => {
+    await callPrecompile(Helper_PrecompileCaller, OVM_ProxyEntrypoint, 'init', [
+      OVM_SequencerEntrypoint.address,
+      await wallet.getAddress(),
+    ])
 
     const calldata = await encodeSequencerCalldata(wallet, DEFAULT_EIP155_TX, 0)
 
     await Helper_PrecompileCaller.callPrecompile(
-      OVM_ProxyDecompressor.address,
+      OVM_ProxyEntrypoint.address,
       calldata
     )
     const call: any = Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.calls[0]

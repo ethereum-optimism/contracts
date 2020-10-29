@@ -4,13 +4,13 @@ pragma solidity ^0.7.0;
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
 /**
- * @title OVM_ProxyDecompressor
+ * @title OVM_ProxyEntrypoint
  */
-contract OVM_ProxyDecompressor {
+contract OVM_ProxyEntrypoint {
     address public owner;
     address public implementation;
-    function upgradeDecompressor(address _newImplementation) external {
-        require(owner == Lib_SafeExecutionManagerWrapper.safeCALLER(msg.sender), "only owner can upgrade the decompressor");
+    function upgradeEntrypoint(address _newImplementation) external {
+        require(owner == Lib_SafeExecutionManagerWrapper.safeCALLER(msg.sender), "only owner can upgrade the Entrypoint");
         implementation = _newImplementation;
     }
 
