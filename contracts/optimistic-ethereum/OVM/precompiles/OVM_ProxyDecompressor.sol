@@ -10,7 +10,7 @@ contract OVM_ProxyDecompressor {
     address public owner;
     address public implementation;
     function upgradeDecompressor(address _newImplementation) external {
-        require(owner == Lib_SafeExecutionManagerWrapper.safeCALLER(msg.sender));
+        require(owner == Lib_SafeExecutionManagerWrapper.safeCALLER(msg.sender), "only owner can upgrade the decompressor");
         implementation = _newImplementation;
     }
 

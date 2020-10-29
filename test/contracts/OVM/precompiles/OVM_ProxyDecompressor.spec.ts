@@ -4,7 +4,11 @@ import { expect } from '../../../setup'
 import { ethers, waffle } from '@nomiclabs/buidler'
 import { ContractFactory, Contract, Wallet } from 'ethers'
 import { MockContract, smockit } from '@eth-optimism/smock'
-import { encodeSequencerCalldata, DEFAULT_EIP155_TX } from '../../../helpers'
+import {
+  encodeSequencerCalldata,
+  DEFAULT_EIP155_TX,
+  ZERO_ADDRESS,
+} from '../../../helpers'
 
 const callPrecompile = async (
   Helper_PrecompileCaller: Contract,
@@ -44,6 +48,9 @@ describe('OVM_ProxyDecompressor', () => {
       await wallet.getAddress()
     )
 
+    Mock__OVM_ExecutionManager.smocked.ovmEXTCODESIZE.will.return.with(0)
+    Mock__OVM_ExecutionManager.smocked.ovmCHAINID.will.return.with(420)
+
     Helper_PrecompileCaller = await (
       await ethers.getContractFactory('Helper_PrecompileCaller')
     ).deploy()
@@ -76,7 +83,7 @@ describe('OVM_ProxyDecompressor', () => {
     )
   })
 
-  it(`upgrade Decompressor`, async () => {
+  it(`should allow owner to upgrade Decompressor`, async () => {
     await callPrecompile(
       Helper_PrecompileCaller,
       OVM_ProxyDecompressor,
@@ -94,6 +101,18 @@ describe('OVM_ProxyDecompressor', () => {
     )
   })
 
+  it(`should revert if non-owner tries to upgrade Decompressor`, async () => {
+    await expect(
+      callPrecompile(
+        Helper_PrecompileCaller,
+        OVM_ProxyDecompressor,
+        'upgradeDecompressor',
+        [`0x${'12'.repeat(20)}`]
+      )
+    ).to.be.revertedWith('only owner can upgrade the decompressor')
+    expect(await OVM_ProxyDecompressor.implementation()).to.equal(ZERO_ADDRESS)
+  })
+
   it(`successfully calls ovmCREATEEOA through decompressor fallback`, async () => {
     await callPrecompile(
       Helper_PrecompileCaller,
@@ -102,7 +121,7 @@ describe('OVM_ProxyDecompressor', () => {
       [OVM_SequencerMessageDecompressor.address, await wallet.getAddress()]
     )
 
-    const calldata = await encodeSequencerCalldata(wallet, DEFAULT_EIP155_TX, 1)
+    const calldata = await encodeSequencerCalldata(wallet, DEFAULT_EIP155_TX, 0)
 
     await Helper_PrecompileCaller.callPrecompile(
       OVM_ProxyDecompressor.address,

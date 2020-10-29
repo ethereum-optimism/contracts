@@ -122,7 +122,8 @@ describe('OVM_SequencerMessageDecompressor', () => {
           OVM_SequencerMessageDecompressor.address,
           calldata
         )
-        const call: any = Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.calls[0]
+        const call: any =
+          Mock__OVM_ExecutionManager.smocked.ovmCREATEEOA.calls[0]
         const eoaAddress = ethers.utils.recoverAddress(call._messageHash, {
           v: call._v + 27,
           r: call._r,
