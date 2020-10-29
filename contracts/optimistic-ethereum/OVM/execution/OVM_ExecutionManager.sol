@@ -24,7 +24,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * External Contract References *
      ********************************/
 
-    iOVM_SafetyChecker internal ovmSafetyChecker;
     iOVM_StateManager internal ovmStateManager;
 
 
@@ -66,7 +65,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         Lib_AddressResolver(_libAddressManager)
     {
-        ovmSafetyChecker = iOVM_SafetyChecker(resolve("OVM_SafetyChecker"));
         gasMeterConfig = _gasMeterConfig;
         globalContext = _globalContext;
     }
@@ -745,6 +743,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (msg.sender != address(this)) {
             return;
         }
+
+        // Just resolve this here so we can use it within this function.
+        iOVM_SafetyChecker ovmSafetyChecker = iOVM_SafetyChecker(resolve("OVM_SafetyChecker"));
 
         // We need to be sure that the user isn't trying to use a contract creation to overwrite
         // some existing contract. On L1, users will prove that no contract exists at the address

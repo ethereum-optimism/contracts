@@ -54,8 +54,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     
     uint256 internal forceInclusionPeriodSeconds;
     uint256 internal lastOVMTimestamp;
-    address internal sequencer;
-    address internal decompressionPrecompileAddress;
     Lib_RingBuffer.RingBuffer internal batches;
     Lib_RingBuffer.RingBuffer internal queue;
 
@@ -70,10 +68,21 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     )
         Lib_AddressResolver(_libAddressManager)
     {
-        sequencer = resolve("OVM_Sequencer");
-        decompressionPrecompileAddress = resolve("OVM_DecompressionPrecompileAddress");
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
+    }
 
+
+    /********************
+     * Public Functions *
+     ********************/
+
+    /**
+     * @inheritdoc iOVM_CanonicalTransactionChain
+     */
+    function init()
+        override
+        public
+    {
         batches.init(
             16,
             Lib_OVMCodec.RING_BUFFER_CTC_BATCHES,
@@ -86,11 +95,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             iRingBufferOverwriter(resolve("OVM_StateCommitmentChain"))
         );
     }
-
-
-    /********************
-     * Public Functions *
-     ********************/
 
     /**
      * @inheritdoc iOVM_CanonicalTransactionChain
@@ -318,7 +322,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         require(
-            msg.sender == sequencer,
+            msg.sender == resolve("OVM_Sequencer"),
             "Function can only be called by the Sequencer."
         );
 
@@ -538,6 +542,14 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             bytes32
         )
     {
+        Lib_OVMCodec.QueueElement memory element = getQueueElement(_index);
+
+        require(
+            msg.sender == resolve("OVM_Sequencer")
+            || element.timestamp + forceInclusionPeriodSeconds <= block.timestamp,
+            "Queue transactions cannot be submitted during the sequencer inclusion period."
+        );
+
         return _hashTransactionChainElement(
             Lib_OVMCodec.TransactionChainElement({
                 isSequenced: false,
@@ -779,7 +791,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         require(
             _transaction.blockNumber        == _txChainElement.blockNumber
             && _transaction.timestamp       == _txChainElement.timestamp
-            && _transaction.entrypoint      == decompressionPrecompileAddress
+            && _transaction.entrypoint      == resolve("OVM_DecompressionPrecompileAddress")
             && _transaction.gasLimit        == gasLimit
             && _transaction.l1TxOrigin      == address(0)
             && _transaction.l1QueueOrigin   == Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE
