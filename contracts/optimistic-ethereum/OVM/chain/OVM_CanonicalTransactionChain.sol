@@ -14,6 +14,17 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 /* Contract Imports */
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
+
+library Math {
+    function min(uint x, uint y) internal pure returns (uint z) {
+        if (x < y) {
+            return x;
+        }
+        return y;
+    }
+}
+
+
 /**
  * @title OVM_CanonicalTransactionChain
  */
@@ -113,6 +124,21 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     /**
      * @inheritdoc iOVM_CanonicalTransactionChain
      */
+    function getNextQueueIndex()
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+        (, uint40 nextQueueIndex) = _getBatchExtraData();
+        return nextQueueIndex;
+    }
+
+    /**
+     * @inheritdoc iOVM_CanonicalTransactionChain
+     */
     function getQueueElement(
         uint256 _index
     )
@@ -139,6 +165,20 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             timestamp: elementTimestamp,
             blockNumber: elementBlockNumber
         });
+    }
+
+    /**
+     * @inheritdoc iOVM_CanonicalTransactionChain
+     */
+    function getNumPendingQueueElements()
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+        return  _getQueueLength() - getNextQueueIndex();
     }
 
     /**
@@ -222,14 +262,23 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         override
         public
     {
+        _numQueuedTransactions = Math.min(_numQueuedTransactions, getNumPendingQueueElements());
         require(
             _numQueuedTransactions > 0,
             "Must append more than zero transactions."
         );
 
-        uint40 nextQueueIndex = _getNextQueueIndex();
         bytes32[] memory leaves = new bytes32[](_numQueuedTransactions);
+        uint40 nextQueueIndex = getNextQueueIndex();
+
         for (uint256 i = 0; i < _numQueuedTransactions; i++) {
+            if (msg.sender != sequencer) {
+                Lib_OVMCodec.QueueElement memory el = getQueueElement(nextQueueIndex);
+                require(
+                    el.timestamp + forceInclusionPeriodSeconds < block.timestamp,
+                    "Queue transactions cannot be submitted during the sequencer inclusion period."
+                );
+            }
             leaves[i] = _getQueueLeafHash(nextQueueIndex);
             nextQueueIndex++;
         }
@@ -297,7 +346,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         bytes32[] memory leaves = new bytes32[](totalElementsToAppend);
         uint32 transactionIndex = 0;
         uint32 numSequencerTransactionsProcessed = 0;
-        uint40 nextQueueIndex = _getNextQueueIndex();
+        uint40 nextQueueIndex = getNextQueueIndex();
+        uint40 queueLength = _getQueueLength();
 
         for (uint32 i = 0; i < numContexts; i++) {
             BatchContext memory context = _getBatchContext(i);
@@ -316,6 +366,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             }
 
             for (uint32 j = 0; j < context.numSubsequentQueueTransactions; j++) {
+                require(nextQueueIndex < queueLength, "Not enough queued transactions to append.");
                 leaves[transactionIndex] = _getQueueLeafHash(nextQueueIndex);
                 nextQueueIndex++;
                 transactionIndex++;
@@ -419,21 +470,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * Returns the index of the next element to be enqueued.
-     * @return Index for the next queue element.
-     */
-    function _getNextQueueIndex()
-        internal
-        view
-        returns (
-            uint40
-        )
-    {
-        (, uint40 nextQueueIndex) = _getBatchExtraData();
-        return nextQueueIndex;
-    }
-
-    /**
      * Parses the batch context from the extra data.
      * @return Total number of elements submitted.
      * @return Index of the next queue element.
@@ -502,14 +538,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             bytes32
         )
     {
-        Lib_OVMCodec.QueueElement memory element = getQueueElement(_index);
-
-        require(
-            msg.sender == sequencer
-            || element.timestamp + forceInclusionPeriodSeconds <= block.timestamp,
-            "Queue transactions cannot be submitted during the sequencer inclusion period."
-        );
-
         return _hashTransactionChainElement(
             Lib_OVMCodec.TransactionChainElement({
                 isSequenced: false,
@@ -519,6 +547,23 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                 txData: hex""
             })
         );
+    }
+
+    /**
+     * Retrieves the length of the queue.
+     * @return Length of the queue.
+     */
+    function _getQueueLength()
+        internal
+        view
+        returns (
+            uint40
+        )
+    {
+        // The underlying queue data structure stores 2 elements
+        // per insertion, so to get the real queue length we need
+        // to divide by 2. See the usage of `push2(..)`.
+        return queue.getLength() / 2;
     }
 
     /**
@@ -651,7 +696,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         internal
         view
     {
-        if (queue.getLength() == 0) {
+        if (getNumPendingQueueElements() == 0) {
             return;
         }
 
