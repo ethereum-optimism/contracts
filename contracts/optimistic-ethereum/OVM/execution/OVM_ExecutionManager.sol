@@ -470,7 +470,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Now actually create the account and get its bytecode. We're not worried about reverts
         // (other than out of gas, which we can't capture anyway) because this contract is trusted.
-        OVM_ProxyECDSAContractAccount proxyEOA = new OVM_ProxyECDSAContractAccount(resolve("OVM_ECDSAContractAccount"));
+        OVM_ProxyECDSAContractAccount proxyEOA = new OVM_ProxyECDSAContractAccount(0x4200000000000000000000000000000000000003);
 
         // Reset the address now that we're done deploying.
         messageContext.ovmADDRESS = prevADDRESS;

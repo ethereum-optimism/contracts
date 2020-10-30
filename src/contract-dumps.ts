@@ -139,6 +139,7 @@ export const makeStateDump = async (): Promise<any> => {
       'OVM_SafetyChecker',
       'OVM_ExecutionManager',
       'OVM_StateManager',
+      'mockOVM_ECDSAContractAccount',
     ],
   }
 
@@ -147,8 +148,8 @@ export const makeStateDump = async (): Promise<any> => {
     OVM_L1MessageSender: '0x4200000000000000000000000000000000000001',
     OVM_DeployerWhitelist: '0x4200000000000000000000000000000000000002',
     OVM_ECDSAContractAccount: '0x4200000000000000000000000000000000000003',
-    ProxyEntrypoint: '0x4200000000000000000000000000000000000004',
-    SequencerEntrypoint: '0x4200000000000000000000000000000000000005',
+    OVM_ProxySequencerEntrypoint: '0x4200000000000000000000000000000000000004',
+    OVM_SequencerEntrypoint: '0x4200000000000000000000000000000000000005',
   }
 
   const deploymentResult = await deploy(config)

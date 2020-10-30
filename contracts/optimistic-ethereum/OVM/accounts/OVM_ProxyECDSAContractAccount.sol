@@ -29,12 +29,23 @@ contract OVM_ProxyECDSAContractAccount {
     fallback()
         external
     {
-        Lib_SafeExecutionManagerWrapper.safeDELEGATECALL(
+        (bool success, bytes memory returndata) = Lib_SafeExecutionManagerWrapper.safeDELEGATECALL(
             msg.sender,
             gasleft(),
             _getImplementation(),
             msg.data
         );
+
+        if (success) {
+            assembly {
+                return(add(returndata, 0x20), mload(returndata))
+            }
+        } else {
+            Lib_SafeExecutionManagerWrapper.safeREVERT(
+                msg.sender,
+                string(returndata)
+            );
+        }
     }
 
 

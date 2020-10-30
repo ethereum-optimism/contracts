@@ -68,7 +68,7 @@ library Lib_SafeExecutionManagerWrapper {
         bytes memory returndata = _safeExecutionManagerInteraction(
             _ovmExecutionManager,
             abi.encodeWithSignature(
-                "DELEGATECALL(uint256,address,bytes)",
+                "ovmDELEGATECALL(uint256,address,bytes)",
                 _gasLimit,
                 _target,
                 _calldata
