@@ -13,8 +13,8 @@ import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
 import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol";
 
 /* Contract Imports */
-import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
-
+import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
+import { OVM_ProxyECDSAContractAccount } from "../accounts/OVM_ProxyECDSAContractAccount.sol";
 
 /**
  * @title OVM_ExecutionManager
@@ -72,7 +72,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         globalContext = _globalContext;
     }
 
-    
+
     /**********************
      * Function Modifiers *
      **********************/
@@ -455,23 +455,31 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (eoa == address(0)) {
             ovmREVERT(bytes("Signature provided for EOA contract creation is invalid."));
         }
+
         // If the user already has an EOA account, then there's no need to perform this operation.
         if (_hasEmptyAccount(eoa) == false) {
             return;
         }
+
         // We always need to initialize the contract with the default account values.
         _initPendingAccount(eoa);
 
+        // Temporarily set the current address so it's easier to access on L2.
+        address prevADDRESS = messageContext.ovmADDRESS;
+        messageContext.ovmADDRESS = eoa;
+
         // Now actually create the account and get its bytecode. We're not worried about reverts
         // (other than out of gas, which we can't capture anyway) because this contract is trusted.
-        OVM_ProxyEOA proxyEOA = new OVM_ProxyEOA();
-        bytes memory deployedCode = Lib_EthUtils.getCode(address(proxyEOA));
+        OVM_ProxyECDSAContractAccount proxyEOA = new OVM_ProxyECDSAContractAccount(resolve("OVM_ECDSAContractAccount"));
+
+        // Reset the address now that we're done deploying.
+        messageContext.ovmADDRESS = prevADDRESS;
 
         // Commit the account with its final values.
         _commitPendingAccount(
             eoa,
             address(proxyEOA),
-            keccak256(deployedCode)
+            keccak256(Lib_EthUtils.getCode(address(proxyEOA)))
         );
     }
 

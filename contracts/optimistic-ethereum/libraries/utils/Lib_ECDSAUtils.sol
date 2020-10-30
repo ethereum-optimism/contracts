@@ -17,7 +17,6 @@ library Lib_ECDSAUtils {
      * @param _v Signature `v` parameter.
      * @param _r Signature `r` parameter.
      * @param _s Signature `s` parameter.
-     * @param _chainId Chain ID parameter.
      * @return _sender Signer address.
      */
     function recover(
@@ -25,8 +24,7 @@ library Lib_ECDSAUtils {
         bool _isEthSignedMessage,
         uint8 _v,
         bytes32 _r,
-        bytes32 _s,
-        uint256 _chainId
+        bytes32 _s
     )
         internal
         pure

@@ -10,9 +10,10 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
  * @title OVM_SequencerEntrypoint
  */
 contract OVM_SequencerEntrypoint {
-    /*
-     * Data Structures
-     */
+
+    /*********
+     * Enums *
+     *********/
     
     enum TransactionType {
         NATIVE_ETH_TRANSACTION,
@@ -20,33 +21,26 @@ contract OVM_SequencerEntrypoint {
     }
 
 
-    /*
-     * Fallback Function
-     */
+    /*********************
+     * Fallback Function *
+     *********************/
 
     /**
-     * We use the fallback here to parse the compressed encoding used by the
-     * Sequencer.
-     *
-     * Calldata format:
-     * - [ 1 byte   ] Transaction type (00 for EOA create, 01 for native tx, 02 for eth signed tx)
-     * - [ 32 bytes ] Signature `r` parameter
-     * - [ 32 bytes ] Signature `s` parameter
-     * - [ 1 byte   ] Signature `v` parameter
-     * - [ ?? bytes ] :
-     *      IF transaction type == 01
-     *      - [ 32 bytes ] Hash of the signed message
-     *      ELSE
-     *      - [ 3 bytes  ] Gas Limit
-     *      - [ 3 bytes  ] Gas Price
-     *      - [ 3 byte   ] Transaction Nonce
-     *      - [ 20 bytes  ] Transaction target address
-     *      - [ ?? bytes ] Transaction data
+     * Uses a custom "compressed" format to save on calldata gas:
+     * calldata[00:01]: transaction type (0 == EIP 155, 2 == Eth Sign Message)
+     * calldata[01:33]: signature "r" parameter
+     * calldata[33:65]: signature "s" parameter
+     * calldata[66:69]: transaction gas limit
+     * calldata[69:72]: transaction gas price
+     * calldata[72:75]: transaction nonce
+     * calldata[75:95]: transaction target address
+     * calldata[95:XX]: transaction data
      */
     fallback()
         external
     {
         TransactionType transactionType = _getTransactionType(Lib_BytesUtils.toUint8(msg.data, 0));
+
         bytes32 r = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 1, 32));
         bytes32 s = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 33, 32));
         uint8 v = Lib_BytesUtils.toUint8(msg.data, 65);
@@ -54,6 +48,7 @@ contract OVM_SequencerEntrypoint {
         // Remainder is the transaction to execute.
         bytes memory compressedTx = Lib_BytesUtils.slice(msg.data, 66);
         bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
+
         // Need to decompress and then re-encode the transaction based on the original encoding.
         bytes memory encodedTx = Lib_OVMCodec.encodeEIP155Transaction(
             Lib_OVMCodec.decompressEIP155Transaction(compressedTx),
@@ -65,37 +60,38 @@ contract OVM_SequencerEntrypoint {
             isEthSignedMessage,
             uint8(v),
             r,
-            s,
-            Lib_SafeExecutionManagerWrapper.safeCHAINID(msg.sender)
+            s
         );
+
         if (Lib_SafeExecutionManagerWrapper.safeEXTCODESIZE(msg.sender, target) == 0) {
-            //ProxyEOA has not yet been deployed for this EOA
+            // ProxyEOA has not yet been deployed for this EOA.
             bytes32 messageHash = Lib_ECDSAUtils.getMessageHash(encodedTx, isEthSignedMessage);
             Lib_SafeExecutionManagerWrapper.safeCREATEEOA(msg.sender, messageHash, uint8(v), r, s);
-        } else {
-            //ProxyEOA has already been deployed for this EOA, continue to CALL
-            bytes memory callbytes = abi.encodeWithSignature(
-                "execute(bytes,uint8,uint8,bytes32,bytes32)",
-                encodedTx,
-                isEthSignedMessage,
-                uint8(v),
-                r,
-                s
-            );
-
-            Lib_SafeExecutionManagerWrapper.safeCALL(
-                msg.sender,
-                gasleft(),
-                target,
-                callbytes
-            );
         }
+
+        // ProxyEOA has been deployed for this EOA, continue to CALL.
+        bytes memory callbytes = abi.encodeWithSignature(
+            "execute(bytes,uint8,uint8,bytes32,bytes32)",
+            encodedTx,
+            isEthSignedMessage,
+            uint8(v),
+            r,
+            s
+        );
+
+        Lib_SafeExecutionManagerWrapper.safeCALL(
+            msg.sender,
+            gasleft(),
+            target,
+            callbytes
+        );
     }
     
-    /*
-     * Internal Functions
-     */
-    
+
+    /**********************
+     * Internal Functions *
+     **********************/
+
     /**
      * Converts a uint256 into a TransactionType enum.
      * @param _transactionType Transaction type index.
@@ -109,18 +105,15 @@ contract OVM_SequencerEntrypoint {
             TransactionType
         )
     {
-        if (
-            _transactionType != 2 && _transactionType != 0
-        ) {
-            Lib_SafeExecutionManagerWrapper.safeREVERT(
-                msg.sender,
-                bytes("Transaction type must be 0 or 2")
-            );
-        }
-
         if (_transactionType == 0) {
             return TransactionType.NATIVE_ETH_TRANSACTION;
+        } if (_transactionType == 2) {
+            return TransactionType.ETH_SIGNED_MESSAGE;
+        } else {
+            Lib_SafeExecutionManagerWrapper.safeREVERT(
+                msg.sender,
+                "Transaction type must be 0 or 2"
+            );
         }
-        return TransactionType.ETH_SIGNED_MESSAGE;
     }
 }

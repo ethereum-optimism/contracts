@@ -44,7 +44,7 @@ const getStorageDump = async (
       const stream = trie.createReadStream()
 
       stream.on('data', (val: any) => {
-        storage[val.key.toString('hex')] = val.value.toString('hex')
+        storage['0x' + val.key.toString('hex')] = '0x' + val.value.toString('hex').slice(2)
       })
 
       stream.on('end', () => {
@@ -131,8 +131,9 @@ export const makeStateDump = async (): Promise<any> => {
       'OVM_DeployerWhitelist',
       'OVM_L1MessageSender',
       'OVM_L2ToL1MessagePasser',
+      'OVM_ProxyECDSAContractAccount',
       'OVM_ECDSAContractAccount',
-      'OVM_ProxyEntrypoint',
+      'OVM_ProxySequencerEntrypoint',
       'OVM_SequencerEntrypoint',
       'OVM_L2CrossDomainMessenger',
       'OVM_SafetyChecker',
