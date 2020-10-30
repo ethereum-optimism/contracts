@@ -154,7 +154,7 @@ export class ExecutionManagerTestRunner {
       await ethers.getContractFactory('OVM_SafetyChecker')
     ).deploy()
 
-    const MockSafetyChecker = await smockit(SafetyChecker)
+    const MockSafetyChecker = smockit(SafetyChecker)
     MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(true)
 
     this.contracts.OVM_SafetyChecker = MockSafetyChecker

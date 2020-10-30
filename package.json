@@ -30,7 +30,7 @@
     "ethers": "5.0.0"
   },
   "devDependencies": {
-    "@eth-optimism/smock": "0.1.0",
+    "@eth-optimism/smock": "^0.0.2",
     "@nomiclabs/buidler": "^1.4.4",
     "@nomiclabs/buidler-ethers": "^2.0.0",
     "@nomiclabs/buidler-waffle": "^2.0.0",

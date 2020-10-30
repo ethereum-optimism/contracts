@@ -38,22 +38,22 @@ describe('OVM_FraudVerifier', () => {
   let Mock__OVM_StateTransitionerFactory: MockContract
   let Mock__OVM_BondManager: MockContract
   before(async () => {
-    Mock__OVM_StateCommitmentChain = await smockit(
+    Mock__OVM_StateCommitmentChain = smockit(
       await ethers.getContractFactory('OVM_StateCommitmentChain')
     )
 
-    Mock__OVM_CanonicalTransactionChain = await smockit(
+    Mock__OVM_CanonicalTransactionChain = smockit(
       await ethers.getContractFactory('OVM_CanonicalTransactionChain')
     )
 
-    Mock__OVM_StateTransitioner = await smockit(
+    Mock__OVM_StateTransitioner = smockit(
       await ethers.getContractFactory('OVM_StateTransitioner')
     )
 
-    Mock__OVM_StateTransitionerFactory = await smockit(
+    Mock__OVM_StateTransitionerFactory = smockit(
       await ethers.getContractFactory('OVM_StateTransitionerFactory')
     )
-    Mock__OVM_BondManager = await smockit(
+    Mock__OVM_BondManager = smockit(
       await ethers.getContractFactory('OVM_BondManager')
     )
 

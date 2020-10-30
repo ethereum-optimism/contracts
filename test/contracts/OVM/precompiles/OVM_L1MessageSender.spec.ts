@@ -21,7 +21,7 @@ const callPrecompileStatic = async (
 describe('OVM_L1MessageSender', () => {
   let Mock__OVM_ExecutionManager: MockContract
   before(async () => {
-    Mock__OVM_ExecutionManager = await smockit(
+    Mock__OVM_ExecutionManager = smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
   })

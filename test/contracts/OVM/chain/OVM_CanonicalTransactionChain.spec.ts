@@ -167,11 +167,11 @@ describe('OVM_CanonicalTransactionChain', () => {
       DECOMPRESSION_ADDRESS
     )
 
-    Mock__OVM_ExecutionManager = await smockit(
+    Mock__OVM_ExecutionManager = smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 
-    Mock__OVM_StateCommitmentChain = await smockit(
+    Mock__OVM_StateCommitmentChain = smockit(
       await ethers.getContractFactory('OVM_StateCommitmentChain')
     )
 
