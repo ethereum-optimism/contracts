@@ -9,7 +9,6 @@ import { iOVM_ECDSAContractAccount } from "../../iOVM/accounts/iOVM_ECDSAContrac
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
-// import { ERC20 } from ""
 
 /**
  * @title OVM_ECDSAContractAccount
@@ -96,27 +95,5 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
                 decodedTx.data
             );
         }
-    }
-
-    function kall(
-        uint256 _gasLimit,
-        address _target,
-        bytes memory _data
-    )
-        public
-        returns (
-            bool _success,
-            bytes memory _returndata
-        )
-    {
-        uint256 nonce = Lib_SafeExecutionManagerWrapper.safeGETNONCE(msg.sender) + 1;
-        Lib_SafeExecutionManagerWrapper.safeSETNONCE(msg.sender, nonce);
-
-        return Lib_SafeExecutionManagerWrapper.safeCALL(
-            msg.sender,
-            _gasLimit,
-            _target,
-            _data
-        );
     }
 }
