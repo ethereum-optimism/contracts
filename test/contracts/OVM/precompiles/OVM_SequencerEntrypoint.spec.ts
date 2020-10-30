@@ -56,7 +56,7 @@ describe('OVM_SequencerEntrypoint', () => {
     Mock__OVM_ExecutionManager.smocked.ovmREVERT.will.revert()
   })
 
-  describe.only('fallback()', async () => {
+  describe('fallback()', async () => {
     it('should call EIP155 if the transaction type is 0', async () => {
       const calldata = await encodeSequencerCalldata(
         wallet,
@@ -163,26 +163,22 @@ describe('OVM_SequencerEntrypoint', () => {
 
     it('should revert if TransactionType is >2', async () => {
       const calldata = '0x03'
-      await Helper_PrecompileCaller.callPrecompile(
-        OVM_SequencerEntrypoint.address,
-        calldata
-      )
-      const ovmREVERT: any = Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
-      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
-        'Transaction type must be 0 or 2'
-      )
+      await expect(
+        Helper_PrecompileCaller.callPrecompile(
+          OVM_SequencerEntrypoint.address,
+          calldata
+        )
+      ).to.be.reverted
     })
 
     it('should revert if TransactionType is 1', async () => {
       const calldata = '0x01'
-      await Helper_PrecompileCaller.callPrecompile(
-        OVM_SequencerEntrypoint.address,
-        calldata
-      )
-      const ovmREVERT: any = Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
-      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
-        'Transaction type must be 0 or 2'
-      )
+      await expect(
+        Helper_PrecompileCaller.callPrecompile(
+          OVM_SequencerEntrypoint.address,
+          calldata
+        )
+      ).to.be.reverted
     })
   })
 })
