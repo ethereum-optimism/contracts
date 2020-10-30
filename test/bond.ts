@@ -36,7 +36,7 @@ describe('BondManager', () => {
     ).deploy()
 
     // deploy the state manager and mock it for the state transitioner
-    const stateManagerFactory = smockit(
+    const stateManagerFactory = await smockit(
       await (
         await deployer.getContractFactory('OVM_StateManagerFactory')
       ).deploy()

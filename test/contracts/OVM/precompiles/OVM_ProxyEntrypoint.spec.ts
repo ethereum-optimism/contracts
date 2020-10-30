@@ -40,7 +40,7 @@ describe('OVM_ProxyEntrypoint', () => {
   let Helper_PrecompileCaller: Contract
   let OVM_SequencerEntrypoint: Contract
   before(async () => {
-    Mock__OVM_ExecutionManager = smockit(
+    Mock__OVM_ExecutionManager = await smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 

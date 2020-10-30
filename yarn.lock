@@ -39,10 +39,10 @@
   resolved "https://registry.yarnpkg.com/@ensdomains/resolver/-/resolver-0.2.4.tgz#c10fe28bf5efbf49bff4666d909aed0265efbc89"
   integrity sha512-bvaTH34PMCbv6anRa9I/0zjLJgY4EuznbEMgbV77JBCQ9KNC46rzi0avuxpOfu+xDjPEtSFGqVEOr5GlUSGudA==
 
-"@eth-optimism/smock@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@eth-optimism/smock/-/smock-0.0.2.tgz#58b9b28885fef1b08c5b13cb31bf614635027d90"
-  integrity sha512-6Wn4h8ZuDqZlNq2lF1Mov78b41S7g4xXWXBOqqS5T+d0yC2V6Ao9XIJBheBS6l1cCN8tFNR47zdlmOCRSDX7sw==
+"@eth-optimism/smock@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@eth-optimism/smock/-/smock-0.1.0.tgz#b50818e91221e430292ea09decd17b84939855ae"
+  integrity sha512-dCPQghKJtO1teYN3Or6WzRpbAj7Uy5dYTY3kyXxEsK6u79Oue2d8aE30QQDxAKX5arRB2jow4zgxCOwWKur1kQ==
   dependencies:
     ethereum-waffle "^3"
     ethers "^5"

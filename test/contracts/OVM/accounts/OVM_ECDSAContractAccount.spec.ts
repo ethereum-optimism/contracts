@@ -38,7 +38,7 @@ describe('OVM_ECDSAContractAccount', () => {
   let Mock__OVM_ExecutionManager: MockContract
   let Helper_PrecompileCaller: Contract
   before(async () => {
-    Mock__OVM_ExecutionManager = smockit(
+    Mock__OVM_ExecutionManager = await smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 

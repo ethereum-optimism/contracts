@@ -50,16 +50,16 @@ describe('OVM_L1CrossDomainMessenger', () => {
   let Mock__OVM_CanonicalTransactionChain: MockContract
   let Mock__OVM_StateCommitmentChain: MockContract
   before(async () => {
-    Mock__TargetContract = smockit(
+    Mock__TargetContract = await smockit(
       await ethers.getContractFactory('Helper_SimpleProxy')
     )
-    Mock__OVM_L2CrossDomainMessenger = smockit(
+    Mock__OVM_L2CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L2CrossDomainMessenger')
     )
-    Mock__OVM_CanonicalTransactionChain = smockit(
+    Mock__OVM_CanonicalTransactionChain = await smockit(
       await ethers.getContractFactory('OVM_CanonicalTransactionChain')
     )
-    Mock__OVM_StateCommitmentChain = smockit(
+    Mock__OVM_StateCommitmentChain = await smockit(
       await ethers.getContractFactory('OVM_StateCommitmentChain')
     )
 

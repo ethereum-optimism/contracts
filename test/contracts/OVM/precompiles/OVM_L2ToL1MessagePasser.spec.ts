@@ -25,7 +25,7 @@ const callPrecompile = async (
 describe('OVM_L2ToL1MessagePasser', () => {
   let Mock__OVM_ExecutionManager: MockContract
   before(async () => {
-    Mock__OVM_ExecutionManager = smockit(
+    Mock__OVM_ExecutionManager = await smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
   })
