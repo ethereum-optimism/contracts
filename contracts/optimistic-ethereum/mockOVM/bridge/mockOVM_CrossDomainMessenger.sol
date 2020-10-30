@@ -20,7 +20,7 @@ contract mockOVM_CrossDomainMessenger is OVM_BaseCrossDomainMessenger {
         address sender;
         bytes message;
         uint256 messageNonce;
-        uint256 gasLimit;
+        uint32 gasLimit;
     }
 
 
