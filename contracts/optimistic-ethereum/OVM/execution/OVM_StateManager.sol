@@ -76,7 +76,14 @@ contract OVM_StateManager is iOVM_StateManager {
      ***************************/
 
 
-    function isAuthenticated(address _address) public returns (bool) {
+    function isAuthenticated(
+        address _address
+    )
+        override
+        public
+        view
+        returns (bool)
+    {
         return (_address == owner || _address == ovmExecutionManager);
     }
 

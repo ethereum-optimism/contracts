@@ -15,6 +15,7 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
 
+
 /**
  * @title OVM_ExecutionManager
  */
@@ -129,7 +130,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // OVM_StateManager (expected to be an OVM_StateTransitioner). We can revert here because
         // this would make the `run` itself invalid.
         require(
-            ovmStateManager.isAuthenticated(msg.sender)
+            ovmStateManager.isAuthenticated(msg.sender),
             "Only authenticated addresses in ovmStateManager can call this function"
         );
 
