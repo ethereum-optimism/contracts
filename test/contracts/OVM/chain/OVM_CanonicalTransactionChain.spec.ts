@@ -765,7 +765,7 @@ describe('OVM_CanonicalTransactionChain', () => {
           await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
         })
 
-        it('should revert if a queue element needs to be processed', async () => {
+        it.only('should revert if a queue element needs to be processed', async () => {
           await increaseEthTime(
             ethers.provider,
             FORCE_INCLUSION_PERIOD_SECONDS * 2
@@ -993,7 +993,8 @@ describe('OVM_CanonicalTransactionChain', () => {
             return '0x' + '12' + '34'.repeat(idx)
           })
 
-          await appendSequencerBatch(
+          console.log('before append seq batch')
+          const res = await appendSequencerBatch(
             OVM_CanonicalTransactionChain.connect(sequencer),
             {
               transactions,
@@ -1002,6 +1003,9 @@ describe('OVM_CanonicalTransactionChain', () => {
               totalElementsToAppend: size,
             }
           )
+          console.log('after')
+          console.log(res)
+          console.log(await res.wait())
         })
 
         it(`should return ${size}`, async () => {
