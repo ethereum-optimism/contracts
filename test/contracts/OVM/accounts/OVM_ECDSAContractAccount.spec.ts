@@ -152,20 +152,21 @@ describe('OVM_ECDSAContractAccount', () => {
       const message = serializeNativeTransaction(DEFAULT_EIP155_TX)
       const sig = await signNativeTransaction(badWallet, DEFAULT_EIP155_TX)
 
-      await expect(
-        callPrecompile(
-          Helper_PrecompileCaller,
-          OVM_ECDSAContractAccount,
-          'execute',
-          [
-            message,
-            0, //isEthSignedMessage
-            `0x${sig.v}`, //v
-            `0x${sig.r}`, //r
-            `0x${sig.s}`, //s
-          ]
-        )
-      ).to.be.revertedWith(
+      await callPrecompile(
+        Helper_PrecompileCaller,
+        OVM_ECDSAContractAccount,
+        'execute',
+        [
+          message,
+          0, //isEthSignedMessage
+          `0x${sig.v}`, //v
+          `0x${sig.r}`, //r
+          `0x${sig.s}`, //s
+        ]
+      )
+      const ovmREVERT: any =
+        Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
+      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
         'Signature provided for EOA transaction execution is invalid.'
       )
     })
@@ -176,20 +177,21 @@ describe('OVM_ECDSAContractAccount', () => {
       const message = serializeNativeTransaction(alteredNonceTx)
       const sig = await signNativeTransaction(wallet, alteredNonceTx)
 
-      await expect(
-        callPrecompile(
-          Helper_PrecompileCaller,
-          OVM_ECDSAContractAccount,
-          'execute',
-          [
-            message,
-            0, //isEthSignedMessage
-            `0x${sig.v}`, //v
-            `0x${sig.r}`, //r
-            `0x${sig.s}`, //s
-          ]
-        )
-      ).to.be.revertedWith(
+      await callPrecompile(
+        Helper_PrecompileCaller,
+        OVM_ECDSAContractAccount,
+        'execute',
+        [
+          message,
+          0, //isEthSignedMessage
+          `0x${sig.v}`, //v
+          `0x${sig.r}`, //r
+          `0x${sig.s}`, //s
+        ]
+      )
+      const ovmREVERT: any =
+        Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
+      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
         'Transaction nonce does not match the expected nonce.'
       )
     })

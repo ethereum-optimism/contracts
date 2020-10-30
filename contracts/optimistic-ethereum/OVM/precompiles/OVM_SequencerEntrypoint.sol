@@ -105,15 +105,18 @@ contract OVM_SequencerEntrypoint {
         uint8 _transactionType
     )
         internal
-        pure
         returns (
             TransactionType
         )
     {
-        require(
-            _transactionType == 2 || _transactionType == 0,
-            "Transaction type must be 0 or 2"
-        );
+        if (
+            _transactionType != 2 && _transactionType != 0
+        ) {
+            Lib_SafeExecutionManagerWrapper.safeREVERT(
+                msg.sender,
+                bytes("Transaction type must be 0 or 2")
+            );
+        }
 
         if (_transactionType == 0) {
             return TransactionType.NATIVE_ETH_TRANSACTION;

@@ -240,6 +240,28 @@ library Lib_SafeExecutionManagerWrapper {
         );
     }
 
+    /**
+     * Performs a Safe Revert call.
+     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
+     * @param _data Bytes data to pass along with the REVERT.
+     */
+    function safeREVERT(
+        address _ovmExecutionManager,
+        bytes memory _data
+    )
+        internal
+    {
+
+        _safeExecutionManagerInteraction(
+            _ovmExecutionManager,
+            abi.encodeWithSignature(
+                "ovmREVERT(bytes)",
+                _data
+            )
+        );
+    }
+
+
 
     /*********************
      * Private Functions *

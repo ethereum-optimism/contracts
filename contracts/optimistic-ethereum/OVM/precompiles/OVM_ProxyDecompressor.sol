@@ -10,12 +10,22 @@ contract OVM_ProxyEntrypoint {
     address public owner;
     address public implementation;
     function upgradeEntrypoint(address _newImplementation) external {
-        require(owner == Lib_SafeExecutionManagerWrapper.safeCALLER(msg.sender), "only owner can upgrade the Entrypoint");
+        if (owner != Lib_SafeExecutionManagerWrapper.safeCALLER(msg.sender)) {
+            Lib_SafeExecutionManagerWrapper.safeREVERT(
+                msg.sender,
+                bytes("only owner can upgrade the Entrypoint")
+            );
+        }
         implementation = _newImplementation;
     }
 
     function init(address _implementation, address _owner) external {
-        require(owner == address(0));
+        if (owner != address(0)) {
+            Lib_SafeExecutionManagerWrapper.safeREVERT(
+                msg.sender,
+                bytes("ProxyEntrypoint has already been inited")
+            );
+        }
         owner = _owner;
         implementation = _implementation;
     }

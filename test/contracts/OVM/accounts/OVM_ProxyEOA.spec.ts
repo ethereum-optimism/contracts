@@ -91,11 +91,17 @@ describe('OVM_ProxyEOA', () => {
         await wallet.getAddress()
       )
       const newImpl = `0x${'81'.repeat(20)}`
-      await expect(
-        callPrecompile(Helper_PrecompileCaller, OVM_ProxyEOA, 'upgradeEOA', [
-          newImpl,
-        ])
-      ).to.be.revertedWith('EOAs can only upgrade their own EOA implementation')
+      await callPrecompile(
+        Helper_PrecompileCaller,
+        OVM_ProxyEOA,
+        'upgradeEOA',
+        [newImpl]
+      )
+      const ovmREVERT: any =
+        Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
+      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+        'EOAs can only upgrade their own EOA implementation'
+      )
     })
   })
   describe('Integration tests', () => {

@@ -15,11 +15,15 @@ contract OVM_ProxyEOA {
     address public implementation  = 0x4200000000000000000000000000000000000003;
     
     function upgradeEOA(address _implementation) external {
-        require(
-            Lib_SafeExecutionManagerWrapper.safeADDRESS(msg.sender) ==
-            Lib_SafeExecutionManagerWrapper.safeCALLER(msg.sender),
-            "EOAs can only upgrade their own EOA implementation"
-        );
+        if (
+            Lib_SafeExecutionManagerWrapper.safeADDRESS(msg.sender) !=
+            Lib_SafeExecutionManagerWrapper.safeCALLER(msg.sender)
+        ) {
+            Lib_SafeExecutionManagerWrapper.safeREVERT(
+                msg.sender,
+                bytes("EOAs can only upgrade their own EOA implementation")
+            );
+        }
         implementation = _implementation;
     }
     fallback() external {

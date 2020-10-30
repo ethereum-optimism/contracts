@@ -80,6 +80,22 @@ describe('OVM_ProxyEntrypoint', () => {
       OVM_SequencerEntrypoint.address
     )
   })
+  it(`should revert if proxy has already been inited`, async () => {
+    await callPrecompile(Helper_PrecompileCaller, OVM_ProxyEntrypoint, 'init', [
+      OVM_SequencerEntrypoint.address,
+      await wallet.getAddress(),
+    ])
+
+    await callPrecompile(Helper_PrecompileCaller, OVM_ProxyEntrypoint, 'init', [
+      ZERO_ADDRESS,
+      ZERO_ADDRESS,
+    ])
+
+    const ovmREVERT: any = Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
+    expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+      'ProxyEntrypoint has already been inited'
+    )
+  })
 
   it(`should allow owner to upgrade Entrypoint`, async () => {
     await callPrecompile(Helper_PrecompileCaller, OVM_ProxyEntrypoint, 'init', [
@@ -98,15 +114,16 @@ describe('OVM_ProxyEntrypoint', () => {
   })
 
   it(`should revert if non-owner tries to upgrade Entrypoint`, async () => {
-    await expect(
-      callPrecompile(
-        Helper_PrecompileCaller,
-        OVM_ProxyEntrypoint,
-        'upgradeEntrypoint',
-        [`0x${'12'.repeat(20)}`]
-      )
-    ).to.be.revertedWith('only owner can upgrade the Entrypoint')
-    expect(await OVM_ProxyEntrypoint.implementation()).to.equal(ZERO_ADDRESS)
+    await callPrecompile(
+      Helper_PrecompileCaller,
+      OVM_ProxyEntrypoint,
+      'upgradeEntrypoint',
+      [`0x${'12'.repeat(20)}`]
+    )
+    const ovmREVERT: any = Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
+    expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+      'only owner can upgrade the Entrypoint'
+    )
   })
 
   it(`successfully calls ovmCREATEEOA through Entrypoint fallback`, async () => {

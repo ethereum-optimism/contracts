@@ -50,7 +50,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         // Address of this contract within the ovm (ovmADDRESS) should be the same as the
         // recovered address of the user who signed this message. This is how we manage to shim
         // account abstraction even though the user isn't a contract.
-        require(
+        if (
             Lib_ECDSAUtils.recover(
                 _transaction,
                 isEthSign,
@@ -58,16 +58,24 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
                 _r,
                 _s,
                 Lib_SafeExecutionManagerWrapper.safeCHAINID(ovmExecutionManager)
-            ) == Lib_SafeExecutionManagerWrapper.safeADDRESS(ovmExecutionManager),
-            "Signature provided for EOA transaction execution is invalid."
-        );
+            ) != Lib_SafeExecutionManagerWrapper.safeADDRESS(ovmExecutionManager)
+        ) {
+            Lib_SafeExecutionManagerWrapper.safeREVERT(
+                msg.sender,
+                bytes("Signature provided for EOA transaction execution is invalid.")
+            );
+        }
         Lib_OVMCodec.EIP155Transaction memory decodedTx = Lib_OVMCodec.decodeEIP155Transaction(_transaction, isEthSign);
 
         // Need to make sure that the transaction nonce is right and bump it if so.
-        require(
-            decodedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(ovmExecutionManager) + 1,
-            "Transaction nonce does not match the expected nonce."
-        );
+        if (
+            decodedTx.nonce != Lib_SafeExecutionManagerWrapper.safeGETNONCE(ovmExecutionManager) + 1
+        ) {
+            Lib_SafeExecutionManagerWrapper.safeREVERT(
+                msg.sender,
+                bytes("Transaction nonce does not match the expected nonce.")
+            );
+        }
 
         // Contract creations are signalled by sending a transaction to the zero address.
         if (decodedTx.to == address(0)) {
