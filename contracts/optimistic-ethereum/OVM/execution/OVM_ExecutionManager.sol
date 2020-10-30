@@ -129,8 +129,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // OVM_StateManager (expected to be an OVM_StateTransitioner). We can revert here because
         // this would make the `run` itself invalid.
         require(
-            msg.sender == ovmStateManager.owner(),
-            "Only the owner of the ovmStateManager can call this function"
+            ovmStateManager.isAuthenticated(msg.sender)
+            "Only authenticated addresses in ovmStateManager can call this function"
         );
 
         // Check whether we need to start a new epoch, do so if necessary.
