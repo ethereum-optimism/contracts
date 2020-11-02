@@ -51,7 +51,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     /*************
      * Variables *
      *************/
-    
+
     uint256 internal forceInclusionPeriodSeconds;
     uint256 internal lastOVMTimestamp;
     Lib_RingBuffer.RingBuffer internal batches;
@@ -61,7 +61,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     /***************
      * Constructor *
      ***************/
-    
+
     constructor(
         address _libAddressManager,
         uint256 _forceInclusionPeriodSeconds
@@ -542,14 +542,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             bytes32
         )
     {
-        Lib_OVMCodec.QueueElement memory element = getQueueElement(_index);
-
-        require(
-            msg.sender == resolve("OVM_Sequencer")
-            || element.timestamp + forceInclusionPeriodSeconds <= block.timestamp,
-            "Queue transactions cannot be submitted during the sequencer inclusion period."
-        );
-
         return _hashTransactionChainElement(
             Lib_OVMCodec.TransactionChainElement({
                 isSequenced: false,
@@ -615,7 +607,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             mstore(add(chainElementStart, 33), ctxBlockNumber)
 
             calldatacopy(add(chainElementStart, BYTES_TILL_TX_DATA), add(_nextTransactionPtr, 3), _txDataLength)
-            
+
             leafHash := keccak256(chainElementStart, add(BYTES_TILL_TX_DATA, _txDataLength))
         }
 
