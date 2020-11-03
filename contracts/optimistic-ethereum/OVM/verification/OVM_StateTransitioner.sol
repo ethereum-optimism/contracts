@@ -21,7 +21,7 @@ import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
 /**
  * @title OVM_StateTransitioner
  */
-contract OVM_StateTransitioner is OVM_FraudContributor, iOVM_StateTransitioner, Lib_AddressResolver {
+contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOVM_StateTransitioner {
 
     /*******************
      * Data Structures *
@@ -76,7 +76,6 @@ contract OVM_StateTransitioner is OVM_FraudContributor, iOVM_StateTransitioner, 
         transactionHash = _transactionHash;
 
         ovmStateManager = iOVM_StateManagerFactory(resolve("OVM_StateManagerFactory")).create(address(this));
-        ovmBondManager = iOVM_BondManager(resolve("OVM_BondManager"));
     }
 
 

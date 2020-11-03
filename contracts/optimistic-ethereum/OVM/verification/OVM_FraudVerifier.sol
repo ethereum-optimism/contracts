@@ -19,7 +19,7 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 /* Contract Imports */
 import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
 
-contract OVM_FraudVerifier is OVM_FraudContributor, iOVM_FraudVerifier, Lib_AddressResolver {
+contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_FraudVerifier {
 
     /*******************************************
      * Contract Variables: Internal Accounting *
@@ -37,7 +37,9 @@ contract OVM_FraudVerifier is OVM_FraudContributor, iOVM_FraudVerifier, Lib_Addr
      */
     constructor(
         address _libAddressManager
-    ) Lib_AddressResolver(_libAddressManager) {}
+    )
+        Lib_AddressResolver(_libAddressManager)
+    {}
 
 
     /***************************************
