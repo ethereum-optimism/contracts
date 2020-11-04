@@ -263,9 +263,9 @@ export class ExecutionManagerTestRunner {
       await this.contracts.OVM_ExecutionManager.run(
         {
           timestamp: step.functionParams.timestamp,
-          number: 0,
+          blockNumber: 0,
           l1QueueOrigin: step.functionParams.queueOrigin,
-          l1Txorigin: step.functionParams.origin,
+          l1TxOrigin: step.functionParams.origin,
           entrypoint: step.functionParams.entrypoint,
           gasLimit: step.functionParams.gasLimit,
           data: calldata,

@@ -10,17 +10,18 @@ import { Lib_SecureMerkleTrie } from "../../libraries/trie/Lib_SecureMerkleTrie.
 
 /* Interface Imports */
 import { iOVM_StateTransitioner } from "../../iOVM/verification/iOVM_StateTransitioner.sol";
+import { iOVM_BondManager } from "../../iOVM/verification/iOVM_BondManager.sol";
 import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManager.sol";
 import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
 import { iOVM_StateManagerFactory } from "../../iOVM/execution/iOVM_StateManagerFactory.sol";
 
-/* Logging Imports */
-import { console } from "@nomiclabs/buidler/console.sol";
+/* Contract Imports */
+import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
 
 /**
  * @title OVM_StateTransitioner
  */
-contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
+contract OVM_StateTransitioner is OVM_FraudContributor, iOVM_StateTransitioner, Lib_AddressResolver {
 
     /*******************
      * Data Structures *
@@ -77,6 +78,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
 
         ovmExecutionManager = iOVM_ExecutionManager(resolve("OVM_ExecutionManager"));
         ovmStateManager = iOVM_StateManagerFactory(resolve("OVM_StateManagerFactory")).create(address(this));
+        ovmBondManager = iOVM_BondManager(resolve("OVM_BondManager"));
     }
 
 
@@ -168,6 +170,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
+        contributesToFraudProof(preStateRoot)
     {
         // Exit quickly to avoid unnecessary work.
         require(
@@ -215,6 +218,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
+        contributesToFraudProof(preStateRoot)
     {
         // Exit quickly to avoid unnecessary work.
         require(
@@ -250,6 +254,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
+        contributesToFraudProof(preStateRoot)
     {
         // Exit quickly to avoid unnecessary work.
         require(
@@ -305,6 +310,7 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
+        contributesToFraudProof(preStateRoot)
     {
         require(
             Lib_OVMCodec.hashTransaction(_transaction) == transactionHash,
@@ -332,26 +338,29 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
     /**
      * Allows a user to commit the final state of a contract.
      * @param _ovmContractAddress Address of the contract on the OVM.
-     * @param _account Claimed account state.
      * @param _stateTrieWitness Proof of the account state.
      */
     function commitContractState(
         address _ovmContractAddress,
-        Lib_OVMCodec.EVMAccount memory _account,
         bytes memory _stateTrieWitness
     )
         override
         public
         onlyDuringPhase(TransitionPhase.POST_EXECUTION)
+        contributesToFraudProof(preStateRoot)
     {
         require(
             ovmStateManager.commitAccount(_ovmContractAddress) == true,
             "Account was not changed or has already been committed."
         );
 
+        Lib_OVMCodec.Account memory account = ovmStateManager.getAccount(_ovmContractAddress);
+
         postStateRoot = Lib_SecureMerkleTrie.update(
             abi.encodePacked(_ovmContractAddress),
-            Lib_OVMCodec.encodeEVMAccount(_account),
+            Lib_OVMCodec.encodeEVMAccount(
+                Lib_OVMCodec.toEVMAccount(account)
+            ),
             _stateTrieWitness,
             postStateRoot
         );
@@ -361,43 +370,45 @@ contract OVM_StateTransitioner is iOVM_StateTransitioner, Lib_AddressResolver {
      * Allows a user to commit the final state of a contract storage slot.
      * @param _ovmContractAddress Address of the contract on the OVM.
      * @param _key Claimed account slot key.
-     * @param _value Claimed account slot value.
      * @param _stateTrieWitness Proof of the account state.
      * @param _storageTrieWitness Proof of the storage slot.
      */
     function commitStorageSlot(
         address _ovmContractAddress,
         bytes32 _key,
-        bytes32 _value,
         bytes memory _stateTrieWitness,
         bytes memory _storageTrieWitness
     )
         override
         public
         onlyDuringPhase(TransitionPhase.POST_EXECUTION)
+        contributesToFraudProof(preStateRoot)
     {
         require(
             ovmStateManager.commitContractStorage(_ovmContractAddress, _key) == true,
             "Storage slot was not changed or has already been committed."
         );
 
-        Lib_OVMCodec.EVMAccount memory account = Lib_OVMCodec.toEVMAccount(
-            ovmStateManager.getAccount(_ovmContractAddress)
-        );
+        Lib_OVMCodec.Account memory account = ovmStateManager.getAccount(_ovmContractAddress);
+        bytes32 value = ovmStateManager.getContractStorage(_ovmContractAddress, _key);
 
         account.storageRoot = Lib_SecureMerkleTrie.update(
             abi.encodePacked(_key),
-            abi.encodePacked(_value),
+            abi.encodePacked(value),
             _storageTrieWitness,
             account.storageRoot
         );
 
         postStateRoot = Lib_SecureMerkleTrie.update(
             abi.encodePacked(_ovmContractAddress),
-            Lib_OVMCodec.encodeEVMAccount(account),
+            Lib_OVMCodec.encodeEVMAccount(
+                Lib_OVMCodec.toEVMAccount(account)
+            ),
             _stateTrieWitness,
             postStateRoot
         );
+
+        ovmStateManager.putAccount(_ovmContractAddress, account);
     }
 
 

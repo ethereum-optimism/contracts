@@ -15,9 +15,6 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
 
-/* Logging */
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /**
  * @title OVM_ExecutionManager
  */
@@ -741,7 +738,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         override
         public
-    {
+    {   
         // Since this function is public, anyone can attempt to directly call it. We need to make
         // sure that the OVM_ExecutionManager itself is the only party that can actually try to
         // call this function.
@@ -801,6 +798,22 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             keccak256(deployedCode)
         );
     }
+
+    /***************************************
+     * Public Functions: Execution Context *
+     ***************************************/
+
+    function getMaxTransactionGasLimit()
+        external
+        view
+        override
+        returns (
+            uint256 _maxTransactionGasLimit
+        )
+    {
+        return gasMeterConfig.maxTransactionGasLimit;
+    }
+
 
 
     /********************************************
@@ -876,10 +889,16 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes memory _returndata
         )
     {
+        // EVM precompiles have the same address on L1 and L2 --> no trie lookup neededgit s.
+        address codeContractAddress = 
+            uint(_contract) < 100
+            ? _contract
+            : _getAccountEthAddress(_contract);
+
         return _handleExternalInteraction(
             _nextMessageContext,
             _gasLimit,
-            _getAccountEthAddress(_contract),
+            codeContractAddress,
             _calldata,
             _isStaticEntrypoint
         );
@@ -1313,6 +1332,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         bytes memory _data
     )
         internal
+        view
         returns (
             bytes memory _revertdata
         )
@@ -1356,6 +1376,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         bytes memory _revertdata
     )
         internal
+        pure
         returns (
             RevertFlag _flag,
             uint256 _nuisanceGasLeft,
@@ -1666,10 +1687,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         internal
     {
         transactionContext.ovmTIMESTAMP = _transaction.timestamp;
-        transactionContext.ovmNUMBER = _transaction.number;
+        transactionContext.ovmNUMBER = _transaction.blockNumber;
         transactionContext.ovmTXGASLIMIT = _transaction.gasLimit;
         transactionContext.ovmL1QUEUEORIGIN = _transaction.l1QueueOrigin;
-        transactionContext.ovmL1TXORIGIN = _transaction.l1Txorigin;
+        transactionContext.ovmL1TXORIGIN = _transaction.l1TxOrigin;
         transactionContext.ovmGASLIMIT = gasMeterConfig.maxGasPerQueuePerEpoch;
 
         messageRecord.nuisanceGasLeft = _getNuisanceGasLimit(_transaction.gasLimit);

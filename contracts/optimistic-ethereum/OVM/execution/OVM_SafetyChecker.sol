@@ -24,7 +24,7 @@ contract OVM_SafetyChecker is iOVM_SafetyChecker {
     )
         override
         external
-        view
+        pure
         returns (bool)
     {
         return true;

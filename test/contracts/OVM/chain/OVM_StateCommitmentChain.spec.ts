@@ -13,13 +13,16 @@ import {
   ZERO_ADDRESS,
   toHexString32,
   getEthTime,
+  NULL_BYTES32,
+  increaseEthTime,
 } from '../../../helpers'
-import { keccak256 } from 'ethers/lib/utils'
+import { keccak256, defaultAbiCoder } from 'ethers/lib/utils'
 
 describe('OVM_StateCommitmentChain', () => {
-  let signer: Signer
+  let sequencer: Signer
+  let user: Signer
   before(async () => {
-    ;[signer] = await ethers.getSigners()
+    ;[sequencer, user] = await ethers.getSigners()
   })
 
   let AddressManager: Contract
@@ -28,6 +31,7 @@ describe('OVM_StateCommitmentChain', () => {
   })
 
   let Mock__OVM_CanonicalTransactionChain: MockContract
+  let Mock__OVM_BondManager: MockContract
   before(async () => {
     Mock__OVM_CanonicalTransactionChain = smockit(
       await ethers.getContractFactory('OVM_CanonicalTransactionChain')
@@ -37,6 +41,23 @@ describe('OVM_StateCommitmentChain', () => {
       AddressManager,
       'OVM_CanonicalTransactionChain',
       Mock__OVM_CanonicalTransactionChain
+    )
+
+    Mock__OVM_BondManager = smockit(
+      await ethers.getContractFactory('OVM_BondManager')
+    )
+
+    await setProxyTarget(
+      AddressManager,
+      'OVM_BondManager',
+      Mock__OVM_BondManager
+    )
+
+    Mock__OVM_BondManager.smocked.isCollateralized.will.return.with(true)
+
+    await AddressManager.setAddress(
+      'OVM_Sequencer',
+      await sequencer.getAddress()
     )
   })
 
@@ -60,13 +81,23 @@ describe('OVM_StateCommitmentChain', () => {
 
       it('should revert', async () => {
         await expect(
-          OVM_StateCommitmentChain.appendStateBatch(batch)
+          OVM_StateCommitmentChain.appendStateBatch(batch, 0)
         ).to.be.revertedWith('Cannot submit an empty state batch.')
       })
     })
 
     describe('when the provided batch is not empty', () => {
       const batch = [NON_NULL_BYTES32]
+
+      describe('when start index does not match total elements', () => {
+        it('should revert', async () => {
+          await expect(
+            OVM_StateCommitmentChain.appendStateBatch(batch, 1)
+          ).to.be.revertedWith(
+            'Actual batch start index does not match expected start index.'
+          )
+        })
+      })
 
       describe('when submitting more elements than present in the OVM_CanonicalTransactionChain', () => {
         before(() => {
@@ -77,7 +108,7 @@ describe('OVM_StateCommitmentChain', () => {
 
         it('should revert', async () => {
           await expect(
-            OVM_StateCommitmentChain.appendStateBatch(batch)
+            OVM_StateCommitmentChain.appendStateBatch(batch, 0)
           ).to.be.revertedWith(
             'Number of state roots cannot exceed the number of canonical transactions.'
           )
@@ -92,8 +123,47 @@ describe('OVM_StateCommitmentChain', () => {
         })
 
         it('should append the state batch', async () => {
-          await expect(OVM_StateCommitmentChain.appendStateBatch(batch)).to.not
-            .be.reverted
+          await expect(OVM_StateCommitmentChain.appendStateBatch(batch, 0)).to
+            .not.be.reverted
+        })
+      })
+
+      describe('when a sequencer submits ', () => {
+        beforeEach(async () => {
+          Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
+            batch.length * 2
+          )
+
+          await OVM_StateCommitmentChain.connect(sequencer).appendStateBatch(
+            batch,
+            0
+          )
+        })
+
+        describe('when inside sequencer publish window', () => {
+          it('should revert', async () => {
+            await expect(
+              OVM_StateCommitmentChain.connect(user).appendStateBatch(batch, 1)
+            ).to.be.revertedWith(
+              'Cannot publish state roots within the sequencer publication window.'
+            )
+          })
+        })
+
+        describe('when outside sequencer publish window', () => {
+          beforeEach(async () => {
+            const SEQUENCER_PUBLISH_WINDOW = await OVM_StateCommitmentChain.SEQUENCER_PUBLISH_WINDOW()
+            await increaseEthTime(
+              ethers.provider,
+              SEQUENCER_PUBLISH_WINDOW.toNumber() + 1
+            )
+          })
+
+          it('should succeed', async () => {
+            await expect(
+              OVM_StateCommitmentChain.connect(user).appendStateBatch(batch, 1)
+            ).to.not.be.reverted
+          })
         })
       })
     })
@@ -106,16 +176,18 @@ describe('OVM_StateCommitmentChain', () => {
       batchRoot: keccak256(NON_NULL_BYTES32),
       batchSize: 1,
       prevTotalElements: 0,
-      timestamp: 0,
-      extraData: '0x',
+      extraData: NULL_BYTES32,
     }
 
     beforeEach(async () => {
       Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
         batch.length
       )
-      await OVM_StateCommitmentChain.appendStateBatch(batch)
-      batchHeader.timestamp = await getEthTime(ethers.provider)
+      await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
+      batchHeader.extraData = defaultAbiCoder.encode(
+        ['uint256', 'address'],
+        [await getEthTime(ethers.provider), await sequencer.getAddress()]
+      )
     })
 
     describe('when the sender is not the OVM_FraudVerifier', () => {
@@ -136,7 +208,7 @@ describe('OVM_StateCommitmentChain', () => {
       before(async () => {
         await AddressManager.setAddress(
           'OVM_FraudVerifier',
-          await signer.getAddress()
+          await sequencer.getAddress()
         )
       })
 
@@ -147,7 +219,7 @@ describe('OVM_StateCommitmentChain', () => {
               ...batchHeader,
               batchIndex: 1,
             })
-          ).to.be.revertedWith('Invalid batch index.')
+          ).to.be.revertedWith('Index out of bounds.')
         })
       })
 
@@ -157,7 +229,7 @@ describe('OVM_StateCommitmentChain', () => {
             await expect(
               OVM_StateCommitmentChain.deleteStateBatch({
                 ...batchHeader,
-                extraData: '0x1234',
+                extraData: '0x' + '22'.repeat(32),
               })
             ).to.be.revertedWith('Invalid batch header.')
           })
@@ -186,7 +258,7 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -200,7 +272,7 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -214,8 +286,8 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length * 2
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 32)
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -237,7 +309,7 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -253,7 +325,7 @@ describe('OVM_StateCommitmentChain', () => {
         )
 
         for (let i = 0; i < 8; i++) {
-          await OVM_StateCommitmentChain.appendStateBatch(batch)
+          await OVM_StateCommitmentChain.appendStateBatch(batch, i)
         }
       })
 

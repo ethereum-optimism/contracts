@@ -6,11 +6,10 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_SecureMerkleTrie } from "../../libraries/trie/Lib_SecureMerkleTrie.sol";
-import { Lib_BytesUtils } from "../../libraries/utils/Lib_BytesUtils.sol";
 
 /* Interface Imports */
 import { iOVM_L1CrossDomainMessenger } from "../../iOVM/bridge/iOVM_L1CrossDomainMessenger.sol";
-import { iOVM_L1ToL2TransactionQueue } from "../../iOVM/queue/iOVM_L1ToL2TransactionQueue.sol";
+import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
 import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitmentChain.sol";
 
 /* Contract Imports */
@@ -25,7 +24,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
      * Contract Variables: Contract References *
      *******************************************/
     
-    iOVM_L1ToL2TransactionQueue internal ovmL1ToL2TransactionQueue;
+    iOVM_CanonicalTransactionChain internal ovmCanonicalTransactionChain;
     iOVM_StateCommitmentChain internal ovmStateCommitmentChain;
 
 
@@ -41,7 +40,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
     )
         Lib_AddressResolver(_libAddressManager)
     {
-        ovmL1ToL2TransactionQueue = iOVM_L1ToL2TransactionQueue(resolve("OVM_L1ToL2TransactionQueue"));
+        ovmCanonicalTransactionChain = iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain"));
         ovmStateCommitmentChain = iOVM_StateCommitmentChain(resolve("OVM_StateCommitmentChain"));
     }
 
@@ -80,19 +79,29 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
         );
 
         require(
-            receivedMessages[keccak256(xDomainCalldata)] == false,
+            successfulMessages[keccak256(xDomainCalldata)] == false,
             "Provided message has already been received."
         );
 
         xDomainMessageSender = _sender;
-        _target.call(_message);
+        (bool success, ) = _target.call(_message);
 
-        // Messages are considered successfully executed if they complete
-        // without running out of gas (revert or not). As a result, we can
-        // ignore the result of the call and always mark the message as
-        // successfully executed because we won't get here unless we have
-        // enough gas left over.
-        receivedMessages[keccak256(xDomainCalldata)] = true;
+        // Mark the message as received if the call was successful. Ensures that a message can be
+        // relayed multiple times in the case that the call reverted.
+        if (success == true) {
+            successfulMessages[keccak256(xDomainCalldata)] = true;
+        }
+
+        // Store an identifier that can be used to prove that the given message was relayed by some
+        // user. Gives us an easy way to pay relayers for their work.
+        bytes32 relayId = keccak256(
+            abi.encodePacked(
+                xDomainCalldata,
+                msg.sender,
+                block.number
+            )
+        );
+        relayedMessages[relayId] = true;
     }
 
     /**
@@ -140,6 +149,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
         L2MessageInclusionProof memory _proof
     )
         internal
+        view
         returns (
             bool
         )
@@ -159,14 +169,15 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
         L2MessageInclusionProof memory _proof
     )
         internal
+        view
         returns (
             bool
         )
     {
         return (
             ovmStateCommitmentChain.insideFraudProofWindow(_proof.stateRootBatchHeader) == false
-            && ovmStateCommitmentChain.verifyElement(
-                abi.encodePacked(_proof.stateRoot),
+            && ovmStateCommitmentChain.verifyStateCommitment(
+                _proof.stateRoot,
                 _proof.stateRootBatchHeader,
                 _proof.stateRootProof
             )
@@ -184,14 +195,20 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
         L2MessageInclusionProof memory _proof
     )
         internal
+        view
         returns (
             bool
         )
     {
         bytes32 storageKey = keccak256(
-            Lib_BytesUtils.concat(
-                abi.encodePacked(keccak256(_xDomainCalldata)),
-                abi.encodePacked(uint256(0))
+            abi.encodePacked(
+                keccak256(
+                    abi.encodePacked(
+                        _xDomainCalldata,
+                        resolve("OVM_L2CrossDomainMessenger")
+                    )
+                ),
+                uint256(0)
             )
         );
 
@@ -217,7 +234,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
             abi.encodePacked(storageKey),
             abi.encodePacked(uint256(1)),
             _proof.storageTrieWitness,
-            _proof.stateRoot
+            account.storageRoot
         );
     }
 
@@ -233,7 +250,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
         override
         internal
     {
-        ovmL1ToL2TransactionQueue.enqueue(
+        ovmCanonicalTransactionChain.enqueue(
             resolve("OVM_L2CrossDomainMessenger"),
             _gasLimit,
             _message
