@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 /* Contract Imports */
 import { iOVM_BaseCrossDomainMessenger } from "../../iOVM/bridge/iOVM_BaseCrossDomainMessenger.sol";
-import { console } from "@nomiclabs/buidler/console.sol";
+
 /**
  * @title mockOVM_CrossDomainMessenger
  */
