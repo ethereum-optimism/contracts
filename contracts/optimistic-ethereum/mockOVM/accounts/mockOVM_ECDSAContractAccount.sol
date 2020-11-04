@@ -52,7 +52,6 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
         // Contract creations are signalled by sending a transaction to the zero address.
         if (decodedTx.target == address(0)) {
-            _incrementNonce();
             address created = Lib_SafeExecutionManagerWrapper.safeCREATE(
                 ovmExecutionManager,
                 decodedTx.gasLimit,
@@ -63,13 +62,13 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             // initialization. Always return `true` for our success value here.
             return (created != address(0), abi.encode(created));
         } else {
+            _incrementNonce();
             (_success, _returndata) =  Lib_SafeExecutionManagerWrapper.safeCALL(
                 ovmExecutionManager,
                 decodedTx.gasLimit,
                 decodedTx.target,
                 decodedTx.data
             );
-            _incrementNonce();
         }
     }
 

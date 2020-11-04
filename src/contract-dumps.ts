@@ -113,7 +113,7 @@ export const makeStateDump = async (): Promise<any> => {
       minTransactionGasLimit: 0,
       maxTransactionGasLimit: 1_000_000_000,
       maxGasPerQueuePerEpoch: 1_000_000_000_000,
-      secondsPerEpoch: 600,
+      secondsPerEpoch: 0,
     },
     ovmGlobalContext: {
       ovmCHAINID: 420,
