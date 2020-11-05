@@ -5,7 +5,7 @@ import { ethers, waffle } from '@nomiclabs/buidler'
 import { ContractFactory, Contract, Wallet } from 'ethers'
 import { MockContract, smockit } from '@eth-optimism/smock'
 import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
-import { keccak256 } from 'ethers/lib/utils'
+import { AbiCoder, keccak256 } from 'ethers/lib/utils'
 import {
   DEFAULT_EIP155_TX,
   remove0x,
@@ -18,8 +18,18 @@ const callPrecompile = async (
   Helper_PrecompileCaller: Contract,
   precompile: Contract,
   functionName: string,
-  functionParams?: any[]
+  functionParams?: any[],
+  ethCall: boolean = false
 ): Promise<any> => {
+  if (ethCall) {
+    console.log('BRUH')
+    const ret = await Helper_PrecompileCaller.callStatic.callPrecompileAbi(
+      precompile.address,
+      precompile.interface.encodeFunctionData(functionName, functionParams || [])
+    )
+    console.log('return value!', ret)
+    return ret
+  }
   return Helper_PrecompileCaller.callPrecompile(
     precompile.address,
     precompile.interface.encodeFunctionData(functionName, functionParams || [])
@@ -70,12 +80,21 @@ describe.only('OVM_ProxyEOA', () => {
     Mock__OVM_ExecutionManager.smocked.ovmCALLER.will.return.with(
       OVM_ProxyEOA.address
     )
-    Mock__OVM_ExecutionManager.smocked.ovmSLOAD.will.return.with(eoaDefaultAddr)
   })
 
   describe('Unit tests', () => {
     it.only(`should be created with implementation at precompile address`, async () => {
-      expect(await OVM_ProxyEOA.getImplementation()).to.equal(eoaDefaultAddr)
+      const addrToBytes32 = (addr: string) => '0x' + '00'.repeat(12) + remove0x(addr)
+      const eoaDefaultAddrBytes32 = addrToBytes32(eoaDefaultAddr)
+      Mock__OVM_ExecutionManager.smocked.ovmSLOAD.will.return.with(eoaDefaultAddrBytes32)
+      const implAddr = await callPrecompile(
+        Helper_PrecompileCaller,
+        OVM_ProxyEOA,
+        'getImplementation',
+        [],
+        true
+      )
+      expect(implAddr).to.equal(eoaDefaultAddr)
     })
     it(`should upgrade the proxy implementation`, async () => {
       const newImpl = `0x${'81'.repeat(20)}`

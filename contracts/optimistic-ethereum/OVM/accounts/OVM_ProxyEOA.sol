@@ -6,6 +6,8 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
+import { console } from "@nomiclabs/buidler/console.sol";
+
 /**
  * @title OVM_ProxyEOA
  */
@@ -73,12 +75,16 @@ contract OVM_ProxyEOA {
             address _implementation
         )
     {
-        return address(bytes20(
+        console.log("Getting implementation.");
+        address addr = address(bytes20(
             Lib_SafeExecutionManagerWrapper.safeSSLOAD(
                 msg.sender,
                 bytes32(uint256(0))
             )
         ));
+        console.log("This addr");
+        console.log(addr);
+        return addr;
     }
 
     /**********************

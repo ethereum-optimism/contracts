@@ -3,6 +3,8 @@ pragma solidity ^0.7.0;
 
 import { Helper_SimpleProxy } from "./Helper_SimpleProxy.sol";
 
+import { console } from "@nomiclabs/buidler/console.sol";
+
 contract Helper_PrecompileCaller is Helper_SimpleProxy {
     function callPrecompile(
         address _precompile,
@@ -15,6 +17,27 @@ contract Helper_PrecompileCaller is Helper_SimpleProxy {
         } else {
             makeExternalCall(target, msg.data);
         }
+    }
+
+    function callPrecompileAbi(
+        address _precompile,
+        bytes memory _data
+    )
+        public
+        returns (
+            bytes memory
+        )
+    {
+
+        bool success;
+        bytes memory returndata;
+        if (msg.sender == owner) {
+            makeExternalCall(_precompile, _data);
+            (success, returndata) = _precompile.call(_data);
+        } else {
+            (success, returndata) = target.call(msg.data);
+        }
+        return returndata;
     }
 
     function getL1MessageSender(
