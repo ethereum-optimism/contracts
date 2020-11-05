@@ -71,12 +71,18 @@ const HD_PATH = env.HD_PATH || utils.defaultPath;
   if (failedDeployments.length !== 0)
     throw new Error(`Contract deployment failed: ${failedDeployments.join(',')}`);
 
+  // Slightly different schema for the AddressManager, OVM_Sequencer
+  // and Deployer, maintains backwards compat
   const out = {};
   out.AddressManager = AddressManager.address;
   out.OVM_Sequencer = SEQUENCER_ADDRESS;
   out.Deployer = await signer.getAddress()
-  for (const [name, contract] of Object.entries(result.contracts)) {
-    out[name] = contract.address;
+  for (const [name, info] of Object.entries(result.contracts)) {
+    out[name] = {
+      address: info.contract.address,
+      blockNumber: info.receipt.blockNumber,
+      transactionHash: info.receipt.transactionHash
+    };
   }
   console.log(JSON.stringify(out, null, 2));
 })().catch(err => {

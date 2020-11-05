@@ -146,7 +146,8 @@ export const makeStateDump = async (): Promise<any> => {
   }
 
   const deploymentResult = await deploy(config)
-  deploymentResult.contracts['Lib_AddressManager'] =
+  deploymentResult.contracts['Lib_AddressManager'] = {} as any
+  deploymentResult.contracts['Lib_AddressManager'].contract =
     deploymentResult.AddressManager
 
   if (deploymentResult.failedDeployments.length > 0) {
@@ -164,10 +165,10 @@ export const makeStateDump = async (): Promise<any> => {
 
   for (let i = 0; i < Object.keys(deploymentResult.contracts).length; i++) {
     const name = Object.keys(deploymentResult.contracts)[i]
-    const contract = deploymentResult.contracts[name]
+    const result = deploymentResult.contracts[name]
 
     const codeBuf = await pStateManager.getContractCode(
-      fromHexString(contract.address)
+      fromHexString(result.contract.address)
     )
     const code = toHexString(codeBuf)
 
@@ -179,14 +180,14 @@ export const makeStateDump = async (): Promise<any> => {
       address: deadAddress,
       code,
       codeHash: keccak256(code),
-      storage: await getStorageDump(cStateManager, contract.address),
+      storage: await getStorageDump(cStateManager, result.contract.address),
       abi: getContractDefinition(name.replace('Proxy__', '')).abi,
     }
   }
 
   const addressMap = Object.keys(dump.accounts).map((name) => {
     return {
-      originalAddress: deploymentResult.contracts[name].address,
+      originalAddress: deploymentResult.contracts[name].contract.address,
       deadAddress: dump.accounts[name].address,
     }
   })

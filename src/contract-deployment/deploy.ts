@@ -1,5 +1,6 @@
 /* External Imports */
 import { Signer, Contract, ContractFactory } from 'ethers'
+import { TransactionReceipt } from '@ethersproject/abstract-provider'
 
 /* Internal Imports */
 import { RollupDeployConfig, makeContractDeployConfig } from './config'
@@ -9,7 +10,7 @@ export interface DeployResult {
   AddressManager: Contract
   failedDeployments: string[]
   contracts: {
-    [name: string]: Contract
+    [name: string]: { contract: Contract; receipt: TransactionReceipt }
   }
 }
 
@@ -28,7 +29,7 @@ export const deploy = async (
 
   const failedDeployments: string[] = []
   const contracts: {
-    [name: string]: Contract
+    [name: string]: { contract: Contract; receipt: TransactionReceipt }
   } = {}
 
   for (const [name, contractDeployParameters] of Object.entries(
@@ -39,13 +40,26 @@ export const deploy = async (
     }
 
     try {
-      contracts[name] = await contractDeployParameters.factory
+      contracts[name] = {} as any
+      contracts[name].contract = await contractDeployParameters.factory
         .connect(config.deploymentSigner)
         .deploy(...(contractDeployParameters.params || []))
-      await AddressManager.setAddress(name, contracts[name].address)
+      await AddressManager.setAddress(name, contracts[name].contract.address)
     } catch (err) {
       failedDeployments.push(name)
     }
+  }
+
+  const names = []
+  let receipts = []
+  for (const [name, deployParams] of Object.entries(contracts)) {
+    names.push(name)
+    receipts.push(deployParams.contract.deployTransaction.wait())
+  }
+
+  receipts = await Promise.all(receipts)
+  for (let i = 0; i < receipts.length; i++) {
+    contracts[names[i]].receipt = receipts[i]
   }
 
   for (const [name, contractDeployParameters] of Object.entries(

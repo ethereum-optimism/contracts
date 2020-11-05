@@ -1,5 +1,6 @@
 /* External Imports */
 import { Signer, ContractFactory, Contract } from 'ethers'
+import { TransactionReceipt } from '@ethersproject/abstract-provider'
 
 /* Internal Imports */
 import { getContractFactory } from '../contract-defs'
@@ -29,7 +30,9 @@ export interface RollupDeployConfig {
 export interface ContractDeployParameters {
   factory: ContractFactory
   params?: any[]
-  afterDeploy?: (contracts?: { [name: string]: Contract }) => Promise<void>
+  afterDeploy?: (contracts?: {
+    [name: string]: { contract: Contract; receipt: TransactionReceipt }
+  }) => Promise<void>
 }
 
 export interface ContractDeployConfig {
@@ -63,14 +66,14 @@ export const makeContractDeployConfig = async (
             : await sequencer.getAddress()
         await AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
         await AddressManager.setAddress('Sequencer', sequencerAddress)
-        await contracts.OVM_CanonicalTransactionChain.init()
+        await contracts.OVM_CanonicalTransactionChain.contract.init()
       },
     },
     OVM_StateCommitmentChain: {
       factory: getContractFactory('OVM_StateCommitmentChain'),
       params: [AddressManager.address],
       afterDeploy: async (contracts): Promise<void> => {
-        await contracts.OVM_StateCommitmentChain.init()
+        await contracts.OVM_StateCommitmentChain.contract.init()
       },
     },
     OVM_DeployerWhitelist: {
@@ -101,8 +104,8 @@ export const makeContractDeployConfig = async (
       factory: getContractFactory('OVM_StateManager'),
       params: [await config.deploymentSigner.getAddress()],
       afterDeploy: async (contracts): Promise<void> => {
-        await contracts.OVM_StateManager.setExecutionManager(
-          contracts.OVM_ExecutionManager.address
+        await contracts.OVM_StateManager.contract.setExecutionManager(
+          contracts.OVM_ExecutionManager.contract.address
         )
       },
     },
