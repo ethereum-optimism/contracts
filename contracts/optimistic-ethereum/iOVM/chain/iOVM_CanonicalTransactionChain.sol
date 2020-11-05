@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -53,6 +53,11 @@ interface iOVM_CanonicalTransactionChain {
      ********************/
 
     /**
+     * Initializes this contract.
+     */
+    function init() external;
+
+    /**
      * Retrieves the total number of elements submitted.
      * @return _totalElements Total submitted elements.
      */
@@ -72,6 +77,28 @@ interface iOVM_CanonicalTransactionChain {
         view
         returns (
             uint256 _totalBatches
+        );
+
+    /**
+     * Returns the index of the next element to be enqueued.
+     * @return Index for the next queue element.
+     */
+    function getNextQueueIndex()
+        external
+        view
+        returns (
+            uint40
+        );
+
+    /**
+     * Get the number of queue elements which have not yet been included.
+     * @return Length of the queue.
+     */
+    function getNumPendingQueueElements()
+        external
+        view
+        returns (
+            uint40
         );
 
     /**

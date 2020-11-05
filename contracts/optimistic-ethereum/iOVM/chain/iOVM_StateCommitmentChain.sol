@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -13,6 +13,11 @@ interface iOVM_StateCommitmentChain {
     /********************
      * Public Functions *
      ********************/
+
+    /**
+     * Initializes this contract.
+     */
+    function init() external;
 
     /**
      * Retrieves the total number of elements submitted.
