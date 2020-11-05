@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.7.0;
 
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /**
  * @title Lib_SafeExecutionManagerWrapper
  */
@@ -320,7 +318,7 @@ library Lib_SafeExecutionManagerWrapper {
     /**
      * Performs a safe ovmSLOAD call.
      */
-    function safeSSLOAD(
+    function safeSLOAD(
         address _ovmExecutionManager,
         bytes32 _key
     )
@@ -329,7 +327,6 @@ library Lib_SafeExecutionManagerWrapper {
             bytes32
         )
     {
-        console.log("About to SLOAD!");
         bytes memory returndata = _safeExecutionManagerInteraction(
             _ovmExecutionManager,
             abi.encodeWithSignature(
@@ -337,16 +334,12 @@ library Lib_SafeExecutionManagerWrapper {
                 _key
             )
         );
-        console.log("Heres the return data");
-        console.logBytes(returndata);
-        (bytes32 ret) = abi.decode(returndata, (bytes32));
-        console.logBytes32(ret);
 
-        return ret;
+        return abi.decode(returndata, (bytes32));
     }
 
     /**
-     * Performs a safe ovmSLOAD call.
+     * Performs a safe ovmSSTORE call.
      */
     function safeSSTORE(
         address _ovmExecutionManager,

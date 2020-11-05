@@ -37,9 +37,8 @@ contract OVM_ProxySequencerEntrypoint {
         Lib_SafeExecutionManagerWrapper.safeREQUIRE(
             msg.sender,
             _getOwner() == address(0),
-            "ProxyEntrypoint has already been inited"
+            "ProxySequencerEntrypoint has already been inited"
         );
-
         _setOwner(_owner);
         _setImplementation(_implementation);
     }
@@ -71,7 +70,7 @@ contract OVM_ProxySequencerEntrypoint {
         Lib_SafeExecutionManagerWrapper.safeSSTORE(
             msg.sender,
             bytes32(uint256(0)),
-            bytes32(bytes20(_implementation))
+            bytes32(uint256(uint160(_implementation)))
         );
     }
 
@@ -81,12 +80,12 @@ contract OVM_ProxySequencerEntrypoint {
             address _implementation
         )
     {
-        return address(bytes20(
-            Lib_SafeExecutionManagerWrapper.safeSSLOAD(
+        return address(uint160(uint256(
+            Lib_SafeExecutionManagerWrapper.safeSLOAD(
                 msg.sender,
                 bytes32(uint256(0))
             )
-        ));
+        )));
     }
 
     function _setOwner(
@@ -97,7 +96,7 @@ contract OVM_ProxySequencerEntrypoint {
         Lib_SafeExecutionManagerWrapper.safeSSTORE(
             msg.sender,
             bytes32(uint256(1)),
-            bytes32(bytes20(_owner))
+            bytes32(uint256(uint160(_owner)))
         );
     }
 
@@ -107,11 +106,11 @@ contract OVM_ProxySequencerEntrypoint {
             address _owner
         )
     {
-        return address(bytes20(
-            Lib_SafeExecutionManagerWrapper.safeSSLOAD(
+        return address(uint160(uint256(
+            Lib_SafeExecutionManagerWrapper.safeSLOAD(
                 msg.sender,
                 bytes32(uint256(1))
             )
-        ));
+        )));
     }
 }
