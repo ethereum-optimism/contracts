@@ -81,7 +81,7 @@ describe('OVM_ECDSAContractAccount', () => {
         'execute',
         [
           message,
-          0, //isEthSignedMessage
+          0, // isEthSignedMessage
           `0x${sig.v}`, //v
           `0x${sig.r}`, //r
           `0x${sig.s}`, //s
@@ -95,7 +95,7 @@ describe('OVM_ECDSAContractAccount', () => {
 
       const ovmSETNONCE: any =
         Mock__OVM_ExecutionManager.smocked.ovmSETNONCE.calls[0]
-      expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce)
+      expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce + 1)
     })
 
     it(`should successfully execute an ETHSignedTransaction`, async () => {
@@ -122,7 +122,7 @@ describe('OVM_ECDSAContractAccount', () => {
 
       const ovmSETNONCE: any =
         Mock__OVM_ExecutionManager.smocked.ovmSETNONCE.calls[0]
-      expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce)
+      expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce + 1)
     })
 
     it(`should ovmCREATE if EIP155Transaction.to is zero address`, async () => {
