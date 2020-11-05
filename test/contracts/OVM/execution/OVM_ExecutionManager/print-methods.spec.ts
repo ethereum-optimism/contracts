@@ -7,7 +7,7 @@ import { Contract, ContractFactory } from 'ethers'
 /* Internal Imports */
 import { SAFETY_CHECKER_TEST_JSON } from '../../../../data'
 
-describe('EM MethodIds', () => {
+describe.skip('EM methodID logger utility', () => {
   let Factory__OVM_ExecutionManager: ContractFactory
   before(async () => {
     Factory__OVM_ExecutionManager = await ethers.getContractFactory(
@@ -24,7 +24,7 @@ describe('EM MethodIds', () => {
       )
     })
 
-    it.only('print all', async () => {
+    it('print all', async () => {
         for (let frag of Factory__OVM_ExecutionManager.interface.fragments) {
             try {
               console.log(`func ${frag.name}: ${Factory__OVM_ExecutionManager.interface.getSighash(frag as any)}`)
