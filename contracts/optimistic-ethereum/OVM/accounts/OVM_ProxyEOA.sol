@@ -7,9 +7,9 @@ import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
 /**
- * @title OVM_ProxyECDSAContractAccount
+ * @title OVM_ProxyEOA
  */
-contract OVM_ProxyECDSAContractAccount {
+contract OVM_ProxyEOA {
 
     /***************
      * Constructor *
@@ -32,7 +32,7 @@ contract OVM_ProxyECDSAContractAccount {
         (bool success, bytes memory returndata) = Lib_SafeExecutionManagerWrapper.safeDELEGATECALL(
             msg.sender,
             gasleft(),
-            _getImplementation(),
+            getImplementation(),
             msg.data
         );
 
@@ -67,6 +67,19 @@ contract OVM_ProxyECDSAContractAccount {
         _setImplementation(_implementation);
     }
 
+    function getImplementation()
+        public
+        returns (
+            address _implementation
+        )
+    {
+        return address(bytes20(
+            Lib_SafeExecutionManagerWrapper.safeSSLOAD(
+                msg.sender,
+                bytes32(uint256(0))
+            )
+        ));
+    }
 
     /**********************
      * Internal Functions *
@@ -82,19 +95,5 @@ contract OVM_ProxyECDSAContractAccount {
             bytes32(uint256(0)),
             bytes32(bytes20(_implementation))
         );
-    }
-
-    function _getImplementation()
-        internal
-        returns (
-            address _implementation
-        )
-    {
-        return address(bytes20(
-            Lib_SafeExecutionManagerWrapper.safeSSLOAD(
-                msg.sender,
-                bytes32(uint256(0))
-            )
-        ));
     }
 }

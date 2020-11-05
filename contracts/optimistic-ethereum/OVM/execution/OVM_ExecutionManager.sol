@@ -14,7 +14,7 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
-import { OVM_ProxyECDSAContractAccount } from "../accounts/OVM_ProxyECDSAContractAccount.sol";
+import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
 
 /**
  * @title OVM_ExecutionManager
@@ -470,7 +470,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Now actually create the account and get its bytecode. We're not worried about reverts
         // (other than out of gas, which we can't capture anyway) because this contract is trusted.
-        OVM_ProxyECDSAContractAccount proxyEOA = new OVM_ProxyECDSAContractAccount(0x4200000000000000000000000000000000000003);
+        OVM_ProxyEOA proxyEOA = new OVM_ProxyEOA(0x4200000000000000000000000000000000000003);
 
         // Reset the address now that we're done deploying.
         messageContext.ovmADDRESS = prevADDRESS;

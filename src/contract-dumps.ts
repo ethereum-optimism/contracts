@@ -131,7 +131,7 @@ export const makeStateDump = async (): Promise<any> => {
       'OVM_DeployerWhitelist',
       'OVM_L1MessageSender',
       'OVM_L2ToL1MessagePasser',
-      'OVM_ProxyECDSAContractAccount',
+      'OVM_ProxyEOA',
       'OVM_ECDSAContractAccount',
       'OVM_ProxySequencerEntrypoint',
       'OVM_SequencerEntrypoint',

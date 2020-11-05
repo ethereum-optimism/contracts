@@ -26,7 +26,9 @@ const callPrecompile = async (
   )
 }
 
-describe('OVM_ProxyEOA', () => {
+const eoaDefaultAddr = '0x4200000000000000000000000000000000000003'
+
+describe.only('OVM_ProxyEOA', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
@@ -59,7 +61,7 @@ describe('OVM_ProxyEOA', () => {
   let OVM_ProxyEOA: Contract
   let OVM_ECDSAContractAccount: Contract
   beforeEach(async () => {
-    OVM_ProxyEOA = await OVM_ProxyEOAFactory.deploy()
+    OVM_ProxyEOA = await OVM_ProxyEOAFactory.deploy(eoaDefaultAddr)
     OVM_ECDSAContractAccount = await OVM_ECDSAContractAccountFactory.deploy()
 
     Mock__OVM_ExecutionManager.smocked.ovmADDRESS.will.return.with(
@@ -68,23 +70,22 @@ describe('OVM_ProxyEOA', () => {
     Mock__OVM_ExecutionManager.smocked.ovmCALLER.will.return.with(
       OVM_ProxyEOA.address
     )
+    Mock__OVM_ExecutionManager.smocked.ovmSLOAD.will.return.with(eoaDefaultAddr)
   })
 
   describe('Unit tests', () => {
-    it(`should be created with implementation at precompile address`, async () => {
-      expect(await OVM_ProxyEOA.implementation()).to.equal(
-        '0x4200000000000000000000000000000000000003'
-      )
+    it.only(`should be created with implementation at precompile address`, async () => {
+      expect(await OVM_ProxyEOA.getImplementation()).to.equal(eoaDefaultAddr)
     })
     it(`should upgrade the proxy implementation`, async () => {
       const newImpl = `0x${'81'.repeat(20)}`
       await callPrecompile(
         Helper_PrecompileCaller,
         OVM_ProxyEOA,
-        'upgradeEOA',
+        'upgrade',
         [newImpl]
       )
-      expect(await OVM_ProxyEOA.implementation()).to.equal(newImpl)
+      expect(await OVM_ProxyEOA.getImplementation()).to.equal(newImpl)
     })
     it(`should not allow upgrade of the proxy implementation by another account`, async () => {
       Mock__OVM_ExecutionManager.smocked.ovmCALLER.will.return.with(
@@ -94,7 +95,7 @@ describe('OVM_ProxyEOA', () => {
       await callPrecompile(
         Helper_PrecompileCaller,
         OVM_ProxyEOA,
-        'upgradeEOA',
+        'upgrade',
         [newImpl]
       )
       const ovmREVERT: any =
@@ -109,7 +110,7 @@ describe('OVM_ProxyEOA', () => {
       await callPrecompile(
         Helper_PrecompileCaller,
         OVM_ProxyEOA,
-        'upgradeEOA',
+        'upgrade',
         [OVM_ECDSAContractAccount.address]
       )
       Mock__OVM_ExecutionManager.smocked.ovmADDRESS.will.return.with(
