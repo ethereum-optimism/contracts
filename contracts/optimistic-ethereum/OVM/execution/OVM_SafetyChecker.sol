@@ -46,11 +46,9 @@ contract OVM_SafetyChecker is iOVM_SafetyChecker {
 
         uint256 codeLength;
         uint256 _pc;
-        uint256 _pcStart;
         assembly {
             _pc := add(_bytecode, 0x20)
         }
-        _pcStart = _pc;
         codeLength = _pc + _bytecode.length;
         do {
             // current opcode: 0x00...0xff
