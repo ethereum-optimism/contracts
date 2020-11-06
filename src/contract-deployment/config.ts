@@ -50,6 +50,8 @@ export const makeContractDeployConfig = async (
       params: [AddressManager.address, 'Impl_OVM_L1CrossDomainMessenger'],
       afterDeploy: async (contracts): Promise<void> => {
         console.log('Deploying Lib_ResolvedDelegateProxy...')
+        console.log('Contracts obj', contracts)
+        console.log('Contracts keys', Object.keys(contracts))
         console.log('Impl_OVM_L1CrossDomainMessenger.address', contracts.Impl_OVM_L1CrossDomainMessenger.address)
         console.log('Setting the implementation addr in the L1MessengerProxy')
         console.log('AddressManager addr:', AddressManager.address)
