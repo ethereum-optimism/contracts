@@ -2,18 +2,19 @@
 pragma solidity ^0.7.0;
 
 /* Library Imports */
-import { Lib_AddressResolver } from "./Lib_AddressResolver.sol";
+import { Lib_AddressManager } from "./Lib_AddressManager.sol";
 
 /**
  * @title Lib_ResolvedDelegateProxy
  */
-contract Lib_ResolvedDelegateProxy is Lib_AddressResolver {
+contract Lib_ResolvedDelegateProxy {
 
     /*************
      * Variables *
      *************/
 
-    string private name;
+    mapping(address=>string) private implementationName;
+    mapping(address=>Lib_AddressManager) private addressManager;
 
 
     /***************
@@ -22,15 +23,15 @@ contract Lib_ResolvedDelegateProxy is Lib_AddressResolver {
 
     /**
      * @param _libAddressManager Address of the Lib_AddressManager.
-     * @param _name Name of the contract to proxy to.
+     * @param _implementationName implementationName of the contract to proxy to.
      */
     constructor(
         address _libAddressManager,
-        string memory _name
+        string memory _implementationName
     )
-        Lib_AddressResolver(_libAddressManager)
     {
-        name = _name;
+        implementationName[address(this)] = _implementationName;
+        addressManager[address(this)] = Lib_AddressManager(_libAddressManager);
     }
 
 
@@ -41,14 +42,14 @@ contract Lib_ResolvedDelegateProxy is Lib_AddressResolver {
     fallback()
         external
     {
-        address target = resolve(name);
+        address target = addressManager[address(this)].getAddress((implementationName[address(this)]));
         require(
             target != address(0),
             "Target address must be initialized."
         );
 
         (bool success, bytes memory returndata) = target.delegatecall(msg.data);
-        
+
         if (success == true) {
             assembly {
                 return(add(returndata, 0x20), mload(returndata))

@@ -41,13 +41,25 @@ export const makeContractDeployConfig = async (
   AddressManager: Contract
 ): Promise<ContractDeployConfig> => {
   return {
-    OVM_L1CrossDomainMessenger: {
+    Impl_OVM_L1CrossDomainMessenger: {
       factory: getContractFactory('OVM_L1CrossDomainMessenger'),
       params: [AddressManager.address],
     },
-    Proxy__OVM_L1CrossDomainMessenger: {
+    OVM_L1CrossDomainMessenger: {
       factory: getContractFactory('Lib_ResolvedDelegateProxy'),
-      params: [AddressManager.address, 'OVM_L1CrossDomainMessenger'],
+      params: [AddressManager.address, 'Impl_OVM_L1CrossDomainMessenger'],
+      afterDeploy: async (contracts): Promise<void> => {
+        console.log('Deploying Lib_ResolvedDelegateProxy...')
+        console.log('Impl_OVM_L1CrossDomainMessenger.address', contracts.Impl_OVM_L1CrossDomainMessenger.address)
+        console.log('Setting the implementation addr in the L1MessengerProxy')
+        console.log('AddressManager addr:', AddressManager.address)
+        const data = await contracts.Impl_OVM_L1CrossDomainMessenger.interface.encodeFunctionData('initialize', [AddressManager.address])
+        console.log('Calling with data:', data)
+        await config.deploymentSigner.sendTransaction({
+          to: contracts.OVM_L1CrossDomainMessenger.address,
+          data
+        })
+      },
     },
     OVM_L2CrossDomainMessenger: {
       factory: getContractFactory('OVM_L2CrossDomainMessenger'),

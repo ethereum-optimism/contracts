@@ -25,11 +25,24 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
      ***************/
 
     /**
+     * Pass a default zero address to the address resolver. This will be updated when initialized.
+     */
+    constructor()
+        Lib_AddressResolver(address(0))
+    {}
+
+    /**
      * @param _libAddressManager Address of the Address Manager.
      */
-    constructor(
+    function initialize(
         address _libAddressManager
-    ) Lib_AddressResolver(_libAddressManager) {}
+    )
+        public
+    {
+        require(address(libAddressManager) == address(0), "L1CrossDomainMessenger already intialized.");
+        ovmCanonicalTransactionChain = iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain"));
+        ovmStateCommitmentChain = iOVM_StateCommitmentChain(resolve("OVM_StateCommitmentChain"));
+    }
 
 
     /********************
