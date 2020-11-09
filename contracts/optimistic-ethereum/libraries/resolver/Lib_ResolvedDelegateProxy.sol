@@ -30,8 +30,8 @@ contract Lib_ResolvedDelegateProxy {
         string memory _implementationName
     )
     {
-        implementationName[address(this)] = _implementationName;
         addressManager[address(this)] = Lib_AddressManager(_libAddressManager);
+        implementationName[address(this)] = _implementationName;
     }
 
 
