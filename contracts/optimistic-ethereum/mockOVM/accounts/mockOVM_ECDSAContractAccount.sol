@@ -56,8 +56,7 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
                 decodedTx.data
             );
 
-            // EVM doesn't tell us whether a contract creation failed, even if it reverted during
-            // initialization. Always return `true` for our success value here.
+            // If the created address is the ZERO_ADDRESS then we know the deployment failed, though not why
             return (created != address(0), abi.encode(created));
         } else {
             _incrementNonce();
