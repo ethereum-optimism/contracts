@@ -42,8 +42,6 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
     {
         require(address(libAddressManager) == address(0), "L1CrossDomainMessenger already intialized.");
         libAddressManager = Lib_AddressManager(_libAddressManager);
-        ovmCanonicalTransactionChain = iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain"));
-        ovmStateCommitmentChain = iOVM_StateCommitmentChain(resolve("OVM_StateCommitmentChain"));
     }
 
 
