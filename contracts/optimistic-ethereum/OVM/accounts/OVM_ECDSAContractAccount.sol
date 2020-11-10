@@ -75,7 +75,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         if (decodedTx.to == address(0)) {
             address created = Lib_SafeExecutionManagerWrapper.safeCREATE(
                 ovmExecutionManager,
-                decodedTx.gasLimit,
+                decodedTx.gasLimit - 2000,
                 decodedTx.data
             );
 
@@ -90,7 +90,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
             return Lib_SafeExecutionManagerWrapper.safeCALL(
                 ovmExecutionManager,
-                decodedTx.gasLimit,
+                decodedTx.gasLimit - 2000,
                 decodedTx.to,
                 decodedTx.data
             );
