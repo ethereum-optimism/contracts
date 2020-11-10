@@ -43,7 +43,17 @@ export const makeContractDeployConfig = async (
   return {
     OVM_L1CrossDomainMessenger: {
       factory: getContractFactory('OVM_L1CrossDomainMessenger'),
-      params: [AddressManager.address],
+      params: [],
+    },
+    Proxy__OVM_L1CrossDomainMessenger: {
+      factory: getContractFactory('Lib_ResolvedDelegateProxy'),
+      params: [AddressManager.address, 'OVM_L1CrossDomainMessenger'],
+      afterDeploy: async (contracts): Promise<void> => {
+        const xDomainMessenger = getContractFactory(
+          'OVM_L1CrossDomainMessenger'
+        ).attach(contracts.Proxy__Proxy__OVM_L1CrossDomainMessenger.address)
+        await xDomainMessenger.initialize(AddressManager.address)
+      },
     },
     OVM_L2CrossDomainMessenger: {
       factory: getContractFactory('OVM_L2CrossDomainMessenger'),
@@ -55,18 +65,23 @@ export const makeContractDeployConfig = async (
         AddressManager.address,
         config.transactionChainConfig.forceInclusionPeriodSeconds,
       ],
-      afterDeploy: async (): Promise<void> => {
+      afterDeploy: async (contracts): Promise<void> => {
         const sequencer = config.transactionChainConfig.sequencer
         const sequencerAddress =
           typeof sequencer === 'string'
             ? sequencer
             : await sequencer.getAddress()
+        await AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
         await AddressManager.setAddress('Sequencer', sequencerAddress)
+        await contracts.OVM_CanonicalTransactionChain.init()
       },
     },
     OVM_StateCommitmentChain: {
       factory: getContractFactory('OVM_StateCommitmentChain'),
       params: [AddressManager.address],
+      afterDeploy: async (contracts): Promise<void> => {
+        await contracts.OVM_StateCommitmentChain.init()
+      },
     },
     OVM_DeployerWhitelist: {
       factory: getContractFactory('OVM_DeployerWhitelist'),
