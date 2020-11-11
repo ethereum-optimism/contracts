@@ -15,6 +15,8 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
  */
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
+    address constant ETH_ERC20_ADDRESS = 0x4200000000000000000000000000000000000006;
+
     /********************
      * Public Functions *
      ********************/
@@ -69,6 +71,16 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             msg.sender,
             decodedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(ovmExecutionManager),
             "Transaction nonce does not match the expected nonce."
+        );
+
+        // Transfer fee to relayer.
+        address relayer = Lib_SafeExecutionManagerWrapper.safeCALLER(ovmExecutionManager);
+        uint256 fee = decodedTx.gasLimit * decodedTx.gasPrice;
+        Lib_SafeExecutionManagerWrapper.safeCALL(
+            ovmExecutionManager,
+            gasleft(),
+            ETH_ERC20_ADDRESS,
+            abi.encodeWithSignature("transfer(address,uint256)", relayer, fee)
         );
 
         // Contract creations are signalled by sending a transaction to the zero address.

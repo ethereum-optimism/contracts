@@ -68,6 +68,9 @@ describe('OVM_ECDSAContractAccount', () => {
     Mock__OVM_ExecutionManager.smocked.ovmCREATE.will.return.with(
       NON_ZERO_ADDRESS
     )
+    Mock__OVM_ExecutionManager.smocked.ovmCALLER.will.return.with(
+      NON_ZERO_ADDRESS
+    )
   })
 
   describe('fallback()', () => {
@@ -88,7 +91,8 @@ describe('OVM_ECDSAContractAccount', () => {
         ]
       )
 
-      const ovmCALL: any = Mock__OVM_ExecutionManager.smocked.ovmCALL.calls[0]
+      // The ovmCALL is the 2nd call because the first call transfers the fee.
+      const ovmCALL: any = Mock__OVM_ExecutionManager.smocked.ovmCALL.calls[1]
       expect(ovmCALL._gasLimit).to.equal(DEFAULT_EIP155_TX.gasLimit)
       expect(ovmCALL._address).to.equal(DEFAULT_EIP155_TX.to)
       expect(ovmCALL._calldata).to.equal(DEFAULT_EIP155_TX.data)
@@ -115,7 +119,8 @@ describe('OVM_ECDSAContractAccount', () => {
         ]
       )
 
-      const ovmCALL: any = Mock__OVM_ExecutionManager.smocked.ovmCALL.calls[0]
+      // The ovmCALL is the 2nd call because the first call transfers the fee.
+      const ovmCALL: any = Mock__OVM_ExecutionManager.smocked.ovmCALL.calls[1]
       expect(ovmCALL._gasLimit).to.equal(DEFAULT_EIP155_TX.gasLimit)
       expect(ovmCALL._address).to.equal(DEFAULT_EIP155_TX.to)
       expect(ovmCALL._calldata).to.equal(DEFAULT_EIP155_TX.data)
