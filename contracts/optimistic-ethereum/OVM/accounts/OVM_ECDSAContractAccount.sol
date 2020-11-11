@@ -90,7 +90,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
             return Lib_SafeExecutionManagerWrapper.safeCALL(
                 ovmExecutionManager,
-                decodedTx.gasLimit - 2000,
+                decodedTx.gasLimit,
                 decodedTx.to,
                 decodedTx.data
             );
