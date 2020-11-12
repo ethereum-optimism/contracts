@@ -3,7 +3,7 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 /* Logging */
-import { console } from "@nomiclabs/buidler/console.sol";
+import { console } from "hardhat/console.sol";
 
 /**
  * @title Helper_TestRunner
