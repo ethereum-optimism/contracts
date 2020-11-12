@@ -55,11 +55,8 @@ export const makeContractDeployConfig = async (
           .connect(config.deploymentSigner)
           .attach(contracts.Proxy__OVM_L1CrossDomainMessenger.address)
         await xDomainMessenger.initialize(AddressManager.address)
+        await AddressManager.setAddress('OVM_L2CrossDomainMessenger', '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000')
       },
-    },
-    OVM_L2CrossDomainMessenger: {
-      factory: getContractFactory('OVM_L2CrossDomainMessenger'),
-      params: [AddressManager.address],
     },
     OVM_CanonicalTransactionChain: {
       factory: getContractFactory('OVM_CanonicalTransactionChain'),
