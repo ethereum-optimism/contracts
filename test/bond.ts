@@ -2,6 +2,7 @@ import { waffle, ethers as deployer } from 'hardhat'
 import { smoddit, smockit } from '@eth-optimism/smock'
 import { expect } from 'chai'
 import { ethers, Contract, BigNumber } from 'ethers'
+import { ModifiableContract, MockContract } from '@eth-optimism/smock'
 
 async function mineBlock(provider: any, timestamp: number): Promise<void> {
   await provider.send('evm_mine', [timestamp])
@@ -11,7 +12,7 @@ describe('BondManager', () => {
   const provider = waffle.provider
   let wallets = provider.getWallets()
 
-  let bondManager: Contract
+  let bondManager: ModifiableContract
   let token: Contract
   let manager: Contract
   let fraudVerifier: Contract
@@ -36,10 +37,8 @@ describe('BondManager', () => {
     ).deploy()
 
     // deploy the state manager and mock it for the state transitioner
-    const stateManagerFactory = smockit(
-      await (
-        await deployer.getContractFactory('OVM_StateManagerFactory')
-      ).deploy()
+    const stateManagerFactory = await smockit(
+        (await deployer.getContractFactory('OVM_StateManagerFactory')) as any
     )
     stateManagerFactory.smocked.create.will.return.with(
       ethers.constants.AddressZero

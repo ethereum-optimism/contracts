@@ -1,7 +1,7 @@
 import { expect } from '../../../setup'
 
 /* External Imports */
-import { ethers } from '@nomiclabs/buidler'
+import { ethers } from 'hardhat'
 import { ContractFactory, Contract, BigNumber } from 'ethers'
 import { smockit, MockContract } from '@eth-optimism/smock'
 
@@ -38,23 +38,23 @@ describe('OVM_FraudVerifier', () => {
   let Mock__OVM_StateTransitionerFactory: MockContract
   let Mock__OVM_BondManager: MockContract
   before(async () => {
-    Mock__OVM_StateCommitmentChain = smockit(
+    Mock__OVM_StateCommitmentChain = await smockit(
       await ethers.getContractFactory('OVM_StateCommitmentChain')
     )
 
-    Mock__OVM_CanonicalTransactionChain = smockit(
+    Mock__OVM_CanonicalTransactionChain = await smockit(
       await ethers.getContractFactory('OVM_CanonicalTransactionChain')
     )
 
-    Mock__OVM_StateTransitioner = smockit(
+    Mock__OVM_StateTransitioner = await smockit(
       await ethers.getContractFactory('OVM_StateTransitioner')
     )
 
-    Mock__OVM_StateTransitionerFactory = smockit(
+    Mock__OVM_StateTransitionerFactory = await smockit(
       await ethers.getContractFactory('OVM_StateTransitionerFactory')
     )
 
-    Mock__OVM_BondManager = smockit(
+    Mock__OVM_BondManager = await smockit(
       await ethers.getContractFactory('OVM_BondManager')
     )
 

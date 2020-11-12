@@ -8,6 +8,7 @@ import {
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import 'hardhat-typechain'
+import '@eth-optimism/smock/build/src/plugins/hardhat-storagelayout'
 
 //import '@eth-optimism/smock/build/src/buidler-plugins/compiler-storage-layout' // TODO: upgrade to hardhat
 

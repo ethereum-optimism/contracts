@@ -1,7 +1,7 @@
 import { expect } from '../../setup'
 
 /* External Imports */
-import { ethers } from '@nomiclabs/buidler'
+import { ethers } from 'hardhat'
 import { Contract, BigNumber, ContractFactory } from 'ethers'
 import { cloneDeep, merge } from 'lodash'
 import { smoddit, smockit, ModifiableContract } from '@eth-optimism/smock'
@@ -154,10 +154,10 @@ export class ExecutionManagerTestRunner {
       await ethers.getContractFactory('OVM_SafetyChecker')
     ).deploy()
 
-    const MockSafetyChecker = smockit(SafetyChecker)
+    const MockSafetyChecker = await smockit(SafetyChecker as any)
     MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(true)
 
-    this.contracts.OVM_SafetyChecker = MockSafetyChecker
+    this.contracts.OVM_SafetyChecker = MockSafetyChecker as any
 
     await AddressManager.setAddress(
       'OVM_SafetyChecker',
