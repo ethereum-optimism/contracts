@@ -84,8 +84,14 @@ export class ExecutionManagerTestRunner {
           replacedParameter = this.setPlaceholderStrings(parameter)
         })
 
-        beforeEach(() => {
+        beforeEach(async () => {
+          this.contracts.OVM_ExecutionManager.smodify.set(
+            replacedTest.preState.ExecutionManager
+          )
+
           this.contracts.OVM_StateManager.smodify.set({
+            ...replacedTest.preState.StateManager,
+            owner: await this.contracts.OVM_ExecutionManager.signer.getAddress(),
             accounts: {
               [this.contracts.Helper_TestRunner.address]: {
                 nonce: 0,
@@ -94,15 +100,6 @@ export class ExecutionManagerTestRunner {
               },
             },
           })
-        })
-
-        beforeEach(() => {
-          this.contracts.OVM_ExecutionManager.smodify.set(
-            replacedTest.preState.ExecutionManager
-          )
-          this.contracts.OVM_StateManager.smodify.set(
-            replacedTest.preState.StateManager
-          )
         })
 
         afterEach(async () => {
@@ -182,6 +179,7 @@ export class ExecutionManagerTestRunner {
     this.contracts.OVM_StateManager = await (
       await smoddit('OVM_StateManager')
     ).deploy(await this.contracts.OVM_ExecutionManager.signer.getAddress())
+
     await this.contracts.OVM_StateManager.setExecutionManager(
       this.contracts.OVM_ExecutionManager.address
     )

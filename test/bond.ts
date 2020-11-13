@@ -38,7 +38,7 @@ describe('BondManager', () => {
 
     // deploy the state manager and mock it for the state transitioner
     const stateManagerFactory = await smockit(
-        (await deployer.getContractFactory('OVM_StateManagerFactory')) as any
+      (await deployer.getContractFactory('OVM_StateManagerFactory')) as any
     )
     stateManagerFactory.smocked.create.will.return.with(
       ethers.constants.AddressZero
