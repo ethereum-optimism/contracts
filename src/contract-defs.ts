@@ -6,11 +6,13 @@ import { isLength } from 'lodash'
 
 export const getContractDefinition = (name: string): any => {
   //console.log(glob.sync(path.join(__dirname, '../artifacts') + `/**/${name}.json`))
-  const files = glob.sync(path.join(__dirname, '../artifacts') + `/**/${name}.json`)
-  if (files.length == 0 ) {
-    throw new Error (`Could not find artifact for ${name}`)
+  const files = glob.sync(
+    path.join(__dirname, '../artifacts') + `/**/${name}.json`
+  )
+  if (files.length == 0) {
+    throw new Error(`Could not find artifact for ${name}`)
   }
-  if (files.length > 1 ) {
+  if (files.length > 1) {
     throw new Error(`Found more than 1 artifact for ${name}`)
   }
   return require(files[0])
