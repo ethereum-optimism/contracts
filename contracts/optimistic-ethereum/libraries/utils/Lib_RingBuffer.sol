@@ -1,4 +1,6 @@
-pragma solidity ^0.7.0;
+// SPDX-License-Identifier: UNLICENSED
+// +build evm
+pragma solidity >=0.5.0 <0.8.0;
 
 interface iRingBufferOverwriter {
     function canOverwrite(bytes32 _id, uint256 _index) external returns (bool);

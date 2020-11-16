@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >0.6.0 <0.8.0;
+// +build ovm
+pragma solidity >=0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -15,7 +16,6 @@ import { OVM_BaseCrossDomainMessenger } from "./OVM_BaseCrossDomainMessenger.sol
 
 /**
  * @title OVM_L2CrossDomainMessenger
- * @dev L2 CONTRACT (COMPILED)
  */
 contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCrossDomainMessenger, Lib_AddressResolver {
 
@@ -28,7 +28,10 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
      */
     constructor(
         address _libAddressManager
-    ) Lib_AddressResolver(_libAddressManager) {}
+    )
+        public
+        Lib_AddressResolver(_libAddressManager)
+    {}
 
 
     /********************
@@ -37,7 +40,7 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
 
     /**
      * Relays a cross domain message to a contract.
-     * @inheritdoc iOVM_L2CrossDomainMessenger
+     * .inheritdoc iOVM_L2CrossDomainMessenger
      */
     function relayMessage(
         address _target,

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.7.0;
+// +build evm
+pragma solidity >=0.5.0 <0.8.0;
 
 /* Library Imports */
 import { Lib_BytesUtils } from "../utils/Lib_BytesUtils.sol";

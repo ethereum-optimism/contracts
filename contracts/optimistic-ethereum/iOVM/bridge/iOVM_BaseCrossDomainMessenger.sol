@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
+// +build evm
 pragma solidity >=0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -10,13 +11,17 @@ interface iOVM_BaseCrossDomainMessenger {
     /**********
      * Events *
      **********/
+
     event SentMessage(bytes message);
     event RelayedMessage(bytes32 msgHash);
+
 
     /**********************
      * Contract Variables *
      **********************/
+
     function xDomainMessageSender() external view returns (address);
+
 
     /********************
      * Public Functions *

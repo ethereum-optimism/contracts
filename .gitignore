@@ -1,5 +1,9 @@
 node_modules/
 artifacts/
+evm-artifacts/
+ovm-artifacts/
 cache/
+evm-cache/
+ovm-cache/
 yarn-error.log
 build/

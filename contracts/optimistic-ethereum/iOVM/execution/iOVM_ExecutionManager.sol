@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
+// +build evm
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -104,15 +105,15 @@ interface iOVM_ExecutionManager {
      * Halting Opcodes *
      *******************/
     
-    function ovmREVERT(bytes memory _data) external;
+    function ovmREVERT(bytes calldata _data) external;
 
 
     /*****************************
      * Contract Creation Opcodes *
      *****************************/
 
-    function ovmCREATE(bytes memory _bytecode) external returns (address _contract);
-    function ovmCREATE2(bytes memory _bytecode, bytes32 _salt) external returns (address _contract);
+    function ovmCREATE(bytes calldata _bytecode) external returns (address _contract);
+    function ovmCREATE2(bytes calldata _bytecode, bytes32 _salt) external returns (address _contract);
 
 
     /*******************************
@@ -128,9 +129,9 @@ interface iOVM_ExecutionManager {
      * Contract Calling Opcodes *
      ****************************/
 
-    function ovmCALL(uint256 _gasLimit, address _address, bytes memory _calldata) external returns (bool _success, bytes memory _returndata);
-    function ovmSTATICCALL(uint256 _gasLimit, address _address, bytes memory _calldata) external returns (bool _success, bytes memory _returndata);
-    function ovmDELEGATECALL(uint256 _gasLimit, address _address, bytes memory _calldata) external returns (bool _success, bytes memory _returndata);
+    function ovmCALL(uint256 _gasLimit, address _address, bytes calldata _calldata) external returns (bool _success, bytes memory _returndata);
+    function ovmSTATICCALL(uint256 _gasLimit, address _address, bytes calldata _calldata) external returns (bool _success, bytes memory _returndata);
+    function ovmDELEGATECALL(uint256 _gasLimit, address _address, bytes calldata _calldata) external returns (bool _success, bytes memory _returndata);
 
 
     /****************************
@@ -154,7 +155,7 @@ interface iOVM_ExecutionManager {
      * Public Functions: Execution Safety *
      **************************************/
     
-    function safeCREATE(address _address, bytes memory _bytecode) external;
+    function safeCREATE(address _address, bytes calldata _bytecode) external;
 
     /***************************************
      * Public Functions: Execution Context *

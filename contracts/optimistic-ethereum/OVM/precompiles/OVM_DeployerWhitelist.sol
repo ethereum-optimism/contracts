@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.7.0;
+// +build evm
+pragma solidity >=0.5.0 <0.8.0;
 
 /* Library Imports */
 import { Lib_Bytes32Utils } from "../../libraries/utils/Lib_Bytes32Utils.sol";
@@ -10,7 +11,6 @@ import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManage
 
 /**
  * @title OVM_DeployerWhitelist
- * @dev L2 CONTRACT (NOT COMPILED)
  */
 contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
 
