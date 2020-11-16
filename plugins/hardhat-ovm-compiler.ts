@@ -33,11 +33,7 @@ subtask(
         solcJsPath: (config as any).solc
       })
     } else {
-      const ret = await runSuper({ input, solcPath })
-
-      console.log(ret)
-
-      return ret
+      return runSuper({ input, solcPath })
     }
   }
 )

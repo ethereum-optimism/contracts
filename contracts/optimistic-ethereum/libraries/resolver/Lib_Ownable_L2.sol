@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-// +build evm
-pragma solidity ^0.7.0;
+// +build ovm
+pragma solidity >=0.5.0 <0.8.0;
 
 /**
  * @title Ownable
  * @dev Adapted from https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol
  */
-abstract contract Ownable {
+contract Ownable {
 
     /*************
      * Variables *
@@ -29,7 +29,9 @@ abstract contract Ownable {
      * Constructor *
      ***************/
 
-    constructor() {
+    constructor()
+        internal
+    {
         owner = msg.sender;
         emit OwnershipTransferred(address(0), owner);
     }

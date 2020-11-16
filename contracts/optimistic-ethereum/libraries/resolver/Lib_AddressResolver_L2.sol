@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-// +build evm
-pragma solidity ^0.7.0;
+// +build ovm
+pragma solidity >=0.5.0 <0.8.0;
 
 /* Library Imports */
-import { Lib_AddressManager } from "./Lib_AddressManager.sol";
+import { Lib_AddressManager } from "./Lib_AddressManager_L2.sol";
 
 /**
  * @title Lib_AddressResolver
