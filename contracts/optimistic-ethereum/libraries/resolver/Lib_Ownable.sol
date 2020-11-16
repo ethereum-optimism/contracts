@@ -6,7 +6,7 @@ pragma solidity >=0.5.0 <0.8.0;
  * @title Ownable
  * @dev Adapted from https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol
  */
-abstract contract Ownable {
+contract Ownable {
 
     /*************
      * Variables *
@@ -56,7 +56,6 @@ abstract contract Ownable {
 
     function renounceOwnership()
         public
-        virtual
         onlyOwner 
     {
         emit OwnershipTransferred(owner, address(0));
@@ -65,7 +64,6 @@ abstract contract Ownable {
 
     function transferOwnership(address _newOwner)
         public
-        virtual
         onlyOwner
     {
         require(

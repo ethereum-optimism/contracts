@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-// +build ovm evm
+// +build ovm
 pragma solidity >=0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -48,7 +48,6 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
         bytes memory _message,
         uint256 _messageNonce
     )
-        override
         public
     {
         require(
@@ -121,7 +120,6 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
         bytes memory _message,
         uint256 _gasLimit
     )
-        override
         internal
     {
         iOVM_L2ToL1MessagePasser(resolve("OVM_L2ToL1MessagePasser")).passMessageToL1(_message);

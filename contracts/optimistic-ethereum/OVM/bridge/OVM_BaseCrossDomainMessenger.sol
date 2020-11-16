@@ -19,7 +19,7 @@ contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
     mapping (bytes32 => bool) public successfulMessages;
     mapping (bytes32 => bool) public sentMessages;
     uint256 public messageNonce;
-    address override public xDomainMessageSender;
+    address public xDomainMessageSender;
 
 
     /********************
@@ -37,7 +37,6 @@ contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
         bytes memory _message,
         uint32 _gasLimit
     )
-        override
         public
     {
         bytes memory xDomainCalldata = _getXDomainCalldata(
@@ -54,6 +53,7 @@ contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
 
         emit SentMessage(xDomainCalldata);
     }
+
 
     /**********************
      * Internal Functions *
@@ -97,7 +97,6 @@ contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
         bytes memory _message,
         uint256 _gasLimit
     )
-        virtual
         internal
     {
         revert("Implement me in child contracts!");

@@ -18,7 +18,9 @@ export const deploy = async (
 ): Promise<DeployResult> => {
   const AddressManager: Contract = await getContractFactory(
     'Lib_AddressManager',
-    config.deploymentSigner
+    {
+      signer: config.deploymentSigner
+    }
   ).deploy()
 
   const contractDeployConfig = await makeContractDeployConfig(
