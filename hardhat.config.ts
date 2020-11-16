@@ -11,7 +11,8 @@ import {
 
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
-import '@eth-optimism/smock/build/src/plugins/hardhat-storagelayout'
+import './plugins/hardhat-ovm-compiler'
+//import '@eth-optimism/smock/build/src/plugins/hardhat-storagelayout'
 
 subtask(
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
@@ -33,10 +34,27 @@ subtask(
 );
 
 task('compile')
+  .addFlag('ovm','Compile with the OVM Solidity compiler')
   .setAction(async (taskArguments, hre, runSuper) => {
+    if (taskArguments.ovm) {
+			hre.config.solidity = {
+        compilers: [
+          {
+            settings: {},
+            version: '0.6.0',
+          }
+        ]
+      } as any
+      ;(hre.config as any).ovm = true
+      ;(hre.config as any).solc = path.resolve(__dirname, 'node_modules', '@eth-optimism', 'solc', 'soljson.js')
+      hre.config.paths.artifacts = 'ovm-artifacts'
+      hre.config.paths.cache = 'ovm-cache'
+		}
     // Run the task.
     await runSuper(taskArguments)
   })
+
+
 
 const config: HardhatUserConfig = {
   networks: {
@@ -55,10 +73,9 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    artifacts: 'ovm-artifacts',
-    cache: 'ovm-cache',
+    artifacts: 'evm-artifacts',
+    cache: 'evm-cache',
   },
-  ovm: true,
 } as any
 
 export default config
