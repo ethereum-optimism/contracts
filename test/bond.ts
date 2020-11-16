@@ -308,6 +308,54 @@ describe('BondManager', () => {
           Errors.WRONG_STATE
         )
       })
+
+      describe('same publisher commits fraud multiple times', async () => {
+        let timestamp: number
+        let root1 =
+          '0x0000000000000000000000000000000000000000000000000000000000000000'
+        let ts1 = 100
+        let root2 =
+          '0x0000000000000000000000000000000000000000000000000000000000000001'
+        let ts2 = 110
+
+        beforeEach(async () => {
+          await fraudVerifier.finalize(root2, sender, ts2)
+          const block = await provider.getBlock('latest')
+          timestamp = block.timestamp
+        })
+
+        it('initial dispute data is stored', async () => {
+          const bond = await bondManager.bonds(sender)
+          expect(bond.firstDisputeAt).to.be.equal(timestamp)
+          expect(bond.earliestTimestamp).to.be.equal(ts2)
+          expect(bond.earliestDisputedStateRoot).to.be.equal(root2)
+        })
+
+        it('earlier dispute replaces initial data', async () => {
+          await fraudVerifier.finalize(root1, sender, ts1)
+          const bond = await bondManager.bonds(sender)
+          expect(bond.firstDisputeAt).to.be.equal(timestamp)
+          expect(bond.earliestTimestamp).to.be.equal(ts1)
+          expect(bond.earliestDisputedStateRoot).to.be.equal(root1)
+        })
+
+        it('earlier dispute does not replace initial data if not in time', async () => {
+          await mineBlock(deployer.provider, timestamp + ONE_WEEK)
+          await fraudVerifier.finalize(root1, sender, ts1)
+          const bond = await bondManager.bonds(sender)
+          expect(bond.firstDisputeAt).to.be.equal(timestamp)
+          expect(bond.earliestTimestamp).to.be.equal(ts2)
+          expect(bond.earliestDisputedStateRoot).to.be.equal(root2)
+        })
+
+        it('later dispute does not replace initial data', async () => {
+          await fraudVerifier.finalize(root1, sender, ts2 + 1)
+          const bond = await bondManager.bonds(sender)
+          expect(bond.firstDisputeAt).to.be.equal(timestamp)
+          expect(bond.earliestTimestamp).to.be.equal(ts2)
+          expect(bond.earliestDisputedStateRoot).to.be.equal(root2)
+        })
+      })
     })
   })
 })

@@ -85,6 +85,19 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         witnessProviders[_preStateRoot].canClaim = true;
 
         Bond storage bond = bonds[publisher];
+        if (bond.firstDisputeAt == 0) {
+            bond.firstDisputeAt = block.timestamp;
+            bond.earliestDisputedStateRoot = _preStateRoot;
+            bond.earliestTimestamp = timestamp;
+        } else if (
+            // only update the disputed state root for the publisher if it's within
+            // the dispute period _and_ if it's before the previous one
+            block.timestamp < bond.firstDisputeAt + multiFraudProofPeriod &&
+            timestamp < bond.earliestTimestamp
+        ) {
+            bond.earliestDisputedStateRoot = _preStateRoot;
+            bond.earliestTimestamp = timestamp;
+        }
 
         // if the fraud proof's dispute period does not intersect with the 
         // withdrawal's timestamp, then the user should not be slashed
