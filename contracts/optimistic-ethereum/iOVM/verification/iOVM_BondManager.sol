@@ -75,7 +75,6 @@ interface iOVM_BondManager {
 
     function finalize(
         bytes32 _preStateRoot,
-        uint256 _batchIndex,
         address _publisher,
         uint256 _timestamp
     ) external;

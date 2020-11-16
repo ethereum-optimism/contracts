@@ -73,7 +73,7 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
 
     /// Slashes + distributes rewards or frees up the sequencer's bond, only called by
     /// `FraudVerifier.finalizeFraudVerification`
-    function finalize(bytes32 _preStateRoot, uint256 batchIndex, address publisher, uint256 timestamp) override public {
+    function finalize(bytes32 _preStateRoot, address publisher, uint256 timestamp) override public {
         require(msg.sender == resolve("OVM_FraudVerifier"), Errors.ONLY_FRAUD_VERIFIER);
         require(witnessProviders[_preStateRoot].canClaim == false, Errors.ALREADY_FINALIZED);
 

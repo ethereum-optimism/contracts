@@ -230,8 +230,6 @@ describe('BondManager', () => {
     })
 
     describe('finalize', () => {
-      const batchIdx = 1
-
       beforeEach(async () => {
         await token.approve(bondManager.address, ethers.constants.MaxUint256)
         await bondManager.deposit()
@@ -239,19 +237,19 @@ describe('BondManager', () => {
 
       it('only fraud verifier can finalize', async () => {
         await expect(
-          bondManager.finalize(preStateRoot, batchIdx, sender, 0)
+          bondManager.finalize(preStateRoot, sender, 0)
         ).to.be.revertedWith(Errors.ONLY_FRAUD_VERIFIER)
       })
 
       it('proving fraud allows claiming', async () => {
-        await fraudVerifier.finalize(preStateRoot, batchIdx, sender, 0)
+        await fraudVerifier.finalize(preStateRoot, sender, 0)
 
         expect((await bondManager.witnessProviders(preStateRoot)).canClaim).to
           .be.true
 
         // cannot double finalize
         await expect(
-          fraudVerifier.finalize(preStateRoot, batchIdx, sender, 0)
+          fraudVerifier.finalize(preStateRoot, sender, 0)
         ).to.be.revertedWith(Errors.ALREADY_FINALIZED)
       })
 
@@ -264,7 +262,6 @@ describe('BondManager', () => {
         const disputeTimestamp = withdrawalTimestamp - 100
         await fraudVerifier.finalize(
           preStateRoot,
-          batchIdx,
           sender,
           disputeTimestamp
         )
@@ -284,7 +281,6 @@ describe('BondManager', () => {
         const disputeTimestamp = withdrawalTimestamp - ONE_WEEK - 1
         await fraudVerifier.finalize(
           preStateRoot,
-          batchIdx,
           sender,
           disputeTimestamp
         )
@@ -295,7 +291,7 @@ describe('BondManager', () => {
       })
 
       it('proving fraud prevents starting a withdrawal due to slashing', async () => {
-        await fraudVerifier.finalize(preStateRoot, batchIdx, sender, 0)
+        await fraudVerifier.finalize(preStateRoot, sender, 0)
         await expect(bondManager.startWithdrawal()).to.be.revertedWith(
           Errors.WRONG_STATE
         )
