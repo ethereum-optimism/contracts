@@ -22,12 +22,12 @@ subtask(
     if ((config as any).ovm) {
       return paths.filter((file) => {
         const content = fs.readFileSync(file).toString()
-        return content.includes('// +build ovm')
+        return content.includes('// +build ovm' || '// +build evm ovm')
       })
     } else {
       return paths.filter((file) => {
         const content = fs.readFileSync(file).toString()
-        return content.includes('// +build evm')
+        return content.includes('// +build evm' || '// +build ovm evm')
       })
     }
   }

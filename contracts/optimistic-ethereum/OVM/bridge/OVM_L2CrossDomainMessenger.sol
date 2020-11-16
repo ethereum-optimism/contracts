@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-// +build ovm
+// +build ovm evm
 pragma solidity >=0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -22,7 +22,7 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
     /***************
      * Constructor *
      ***************/
-    
+
     /**
      * @param _libAddressManager Address of the Address Manager.
      */
