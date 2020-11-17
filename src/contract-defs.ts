@@ -9,11 +9,18 @@ export const getContractDefinition = (
     ovm?: boolean
   } = {}
 ): any => {
-  const files = glob.sync(
-    path.join(__dirname, '../artifacts') + `/**/${name}.json`
-  )
+  var files
+  if (options.ovm) {
+    files = glob.sync(
+      path.join(__dirname, '../ovm-artifacts') + `/**/${name}.json`
+    )
+  } else {
+    files = glob.sync(
+      path.join(__dirname, '../evm-artifacts') + `/**/${name}.json`
+    )
+  }
 
-  if (files.length == 0) {
+  if (files.length === 0) {
     throw new Error(`Could not find artifact for ${name}`)
   }
 
@@ -30,7 +37,7 @@ export const getContractInterface = (
     ovm?: boolean
   } = {}
 ): Interface => {
-  const definition = getContractDefinition(name)
+  const definition = getContractDefinition(name, options)
   return new ethers.utils.Interface(definition.abi)
 }
 
@@ -41,7 +48,11 @@ export const getContractFactory = (
     ovm?: boolean
   } = {}
 ): ContractFactory => {
-  const definition = getContractDefinition(name)
-  const contractInterface = getContractInterface(name)
-  return new ContractFactory(contractInterface, definition.bytecode, options.signer)
+  const definition = getContractDefinition(name, options)
+  const contractInterface = getContractInterface(name, options)
+  return new ContractFactory(
+    contractInterface,
+    definition.bytecode,
+    options.signer
+  )
 }
