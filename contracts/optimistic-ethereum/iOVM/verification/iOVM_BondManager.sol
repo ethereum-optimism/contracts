@@ -72,6 +72,7 @@ interface iOVM_BondManager {
     
     function recordGasSpent(
         bytes32 _preStateRoot,
+        bytes32 _txHash,
         address _who,
         uint256 _gasSpent
     ) external;
