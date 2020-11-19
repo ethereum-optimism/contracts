@@ -14,6 +14,7 @@ import {
   DUMMY_OVM_TRANSACTIONS,
   NON_NULL_BYTES32,
   NULL_BYTES32,
+  hashTransaction,
 } from '../../../helpers'
 
 const DUMMY_TX_CHAIN_ELEMENTS = [...Array(10)].map(() => {
@@ -25,6 +26,8 @@ const DUMMY_TX_CHAIN_ELEMENTS = [...Array(10)].map(() => {
     txData: NULL_BYTES32,
   }
 })
+
+const DUMMY_HASH = hashTransaction(DUMMY_OVM_TRANSACTIONS[0])
 
 describe('OVM_FraudVerifier', () => {
   let AddressManager: Contract
@@ -174,7 +177,7 @@ describe('OVM_FraudVerifier', () => {
           ).to.not.be.reverted
 
           expect(
-            await OVM_FraudVerifier.getStateTransitioner(NULL_BYTES32)
+            await OVM_FraudVerifier.getStateTransitioner(NULL_BYTES32, DUMMY_HASH)
           ).to.equal(Mock__OVM_StateTransitioner.address)
         })
       })
@@ -212,6 +215,7 @@ describe('OVM_FraudVerifier', () => {
             NULL_BYTES32,
             DUMMY_BATCH_HEADERS[0],
             DUMMY_BATCH_PROOFS[0],
+            DUMMY_HASH,
             NON_NULL_BYTES32,
             DUMMY_BATCH_HEADERS[0],
             DUMMY_BATCH_PROOFS[0]
@@ -239,6 +243,7 @@ describe('OVM_FraudVerifier', () => {
               NULL_BYTES32,
               DUMMY_BATCH_HEADERS[0],
               DUMMY_BATCH_PROOFS[0],
+              DUMMY_HASH,
               NON_NULL_BYTES32,
               DUMMY_BATCH_HEADERS[0],
               batchProof
@@ -266,6 +271,7 @@ describe('OVM_FraudVerifier', () => {
                 NULL_BYTES32,
                 DUMMY_BATCH_HEADERS[0],
                 DUMMY_BATCH_PROOFS[0],
+                DUMMY_HASH,
                 NON_NULL_BYTES32,
                 DUMMY_BATCH_HEADERS[0],
                 batchProof
@@ -296,6 +302,7 @@ describe('OVM_FraudVerifier', () => {
                   NULL_BYTES32,
                   DUMMY_BATCH_HEADERS[0],
                   DUMMY_BATCH_PROOFS[0],
+                  DUMMY_HASH,
                   NON_NULL_BYTES32,
                   DUMMY_BATCH_HEADERS[0],
                   batchProof
@@ -324,6 +331,7 @@ describe('OVM_FraudVerifier', () => {
                     NULL_BYTES32,
                     DUMMY_BATCH_HEADERS[0],
                     DUMMY_BATCH_PROOFS[0],
+                    DUMMY_HASH,
                     NON_NULL_BYTES32,
                     DUMMY_BATCH_HEADERS[0],
                     batchProof
@@ -346,6 +354,7 @@ describe('OVM_FraudVerifier', () => {
                   NULL_BYTES32,
                   DUMMY_BATCH_HEADERS[0],
                   DUMMY_BATCH_PROOFS[0],
+                  DUMMY_HASH,
                   NON_NULL_BYTES32,
                   DUMMY_BATCH_HEADERS[0],
                   batchProof
