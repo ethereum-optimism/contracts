@@ -208,7 +208,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         require(
             Lib_MerkleUtils.verify(
                 _batchHeader.batchRoot,
-                _element,
+                abi.encodePacked(_element),
                 _proof.index,
                 _proof.siblings
             ),
@@ -406,6 +406,14 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
             prevTotalElements: totalElements,
             extraData: _extraData
         });
+
+        emit StateBatchAppended(
+            batchHeader.batchIndex,
+            batchHeader.batchRoot,
+            batchHeader.batchSize,
+            batchHeader.prevTotalElements,
+            batchHeader.extraData
+        );
 
         batches.push(
             Lib_OVMCodec.hashBatchHeader(batchHeader),
