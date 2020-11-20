@@ -431,7 +431,6 @@ describe('OVM_FraudVerifier', () => {
           index: DUMMY_BATCH_PROOFS[0].index + 1,
         }
 
-        // 1. after a successful fraud proof from pre-execution state s, the transaction is removed and a new (potentially unrelated) transaction will now have pre-execution state s.
         it('Case 1: allows proving fraud on the same pre-state root twice', async () => {
           // finalize previous fraud
           await OVM_FraudVerifier.finalizeFraudVerification(
@@ -476,13 +475,7 @@ describe('OVM_FraudVerifier', () => {
           ])
         })
 
-        // 2. after successful fraud proof that deletes a state with an ongoing (or completed) fraud verification, the new Canonical Transaction chain could be constructed to recreate the same state.
-        it.skip('Case 2: concurrent fraud proofs', async () => {
-          // ?
-        })
-
-        // 3. some transactions (particularly those without any gas in the epoch) may not change the state, leading to the same state root existing in consecutive positions of the State Commitment chain.
-        it.only('Case 3: does not get blocked by the first transitioner', async () => {
+        it('Case 2: does not get blocked by the first transitioner', async () => {
           // start new fraud
           await OVM_FraudVerifier.initializeFraudVerification(
             NULL_BYTES32,
