@@ -119,7 +119,7 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
         );
 
         require (
-            _preStateRootBatchHeader.prevTotalElements + _preStateRootBatchHeader.batchIndex == _transactionBatchHeader.prevTotalElements + _transactionBatchHeader.batchIndex,
+            _preStateRootBatchHeader.prevTotalElements + _preStateRootProof.index == _transactionBatchHeader.prevTotalElements + _transactionProof.index,
             "Pre-state root global index must equal to the transaction root global index"
         );
 
