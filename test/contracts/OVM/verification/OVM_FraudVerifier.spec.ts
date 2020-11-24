@@ -179,6 +179,28 @@ describe('OVM_FraudVerifier', () => {
         })
       })
     })
+
+    describe('when provided an invalid transaction', () => {
+      before(() => {
+        Mock__OVM_StateCommitmentChain.smocked.verifyStateCommitment.will.return.with(
+          false
+        )
+      })
+
+      it('should revert', async () => {
+        await expect(
+          OVM_FraudVerifier.initializeFraudVerification(
+            NULL_BYTES32,
+            DUMMY_BATCH_HEADERS[0],
+            DUMMY_BATCH_PROOFS[0],
+            NON_NULL_BYTES32,
+            DUMMY_TX_CHAIN_ELEMENTS[0],
+            DUMMY_BATCH_HEADERS[0],
+            DUMMY_BATCH_PROOFS[0]
+          )
+        ).to.be.reverted;
+      })
+    })
   })
 
   describe('finalizeFraudVerification', () => {
