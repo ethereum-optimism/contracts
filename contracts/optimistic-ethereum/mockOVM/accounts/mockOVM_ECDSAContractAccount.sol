@@ -52,6 +52,12 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             "Transaction nonce does not match the expected nonce."
         );
 
+        // Need to make sure that the transaction chainId is correct.
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+            decodedTx.chainId == Lib_SafeExecutionManagerWrapper.safeCHAINID(),
+            "Transaction chainID does not match expected OVM chainID."
+        );
+
         // Contract creations are signalled by sending a transaction to the zero address.
         if (decodedTx.to == address(0)) {
             address created = Lib_SafeExecutionManagerWrapper.safeCREATE(

@@ -70,6 +70,12 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             "Transaction nonce does not match the expected nonce."
         );
 
+        // Need to make sure that the transaction chainId is correct.
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+            decodedTx.chainId == Lib_SafeExecutionManagerWrapper.safeCHAINID(),
+            "Transaction chainID does not match expected OVM chainID."
+        );
+
         // Transfer fee to relayer.
         address relayer = Lib_SafeExecutionManagerWrapper.safeCALLER();
         uint256 fee = decodedTx.gasLimit * decodedTx.gasPrice;
