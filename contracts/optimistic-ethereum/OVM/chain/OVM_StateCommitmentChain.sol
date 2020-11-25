@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
@@ -25,8 +25,8 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
      * Constants *
      *************/
 
-    uint256 constant public FRAUD_PROOF_WINDOW = 7 days;
-    uint256 constant public SEQUENCER_PUBLISH_WINDOW = 30 minutes;
+    uint256 public FRAUD_PROOF_WINDOW;
+    uint256 public SEQUENCER_PUBLISH_WINDOW;
 
 
     /*************
@@ -36,9 +36,6 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
     uint256 internal lastDeletableIndex;
     uint256 internal lastDeletableTimestamp;
     Lib_RingBuffer.RingBuffer internal batches;
-    iOVM_CanonicalTransactionChain internal ovmCanonicalTransactionChain;
-    iOVM_FraudVerifier internal ovmFraudVerifier;
-    iOVM_BondManager internal ovmBondManager;
 
 
     /***************
@@ -49,25 +46,32 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
      * @param _libAddressManager Address of the Address Manager.
      */
     constructor(
-        address _libAddressManager
-    )
-        Lib_AddressResolver(_libAddressManager)
-    {
-        ovmCanonicalTransactionChain = iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain"));
-        ovmFraudVerifier = iOVM_FraudVerifier(resolve("OVM_FraudVerifier"));
-        ovmBondManager = iOVM_BondManager(resolve("OVM_BondManager"));
-
-        batches.init(
-            16,
-            Lib_OVMCodec.RING_BUFFER_SCC_BATCHES,
-            iRingBufferOverwriter(address(this))
-        );
+        address _libAddressManager,
+        uint256 _fraudProofWindow,
+        uint256 _sequencerPublishWindow
+    ) Lib_AddressResolver(_libAddressManager) {
+        FRAUD_PROOF_WINDOW = _fraudProofWindow;
+        SEQUENCER_PUBLISH_WINDOW = _sequencerPublishWindow;
     }
 
 
     /********************
      * Public Functions *
      ********************/
+
+    /**
+     * @inheritdoc iOVM_StateCommitmentChain
+     */
+    function init()
+        override
+        public
+    {
+        batches.init(
+            16,
+            Lib_OVMCodec.RING_BUFFER_SCC_BATCHES,
+            iRingBufferOverwriter(address(this))
+        );
+    }
 
     /**
      * @inheritdoc iOVM_StateCommitmentChain
@@ -132,7 +136,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
 
         // Proposers must have previously staked at the BondManager
         require(
-            ovmBondManager.isCollateralized(msg.sender),
+            iOVM_BondManager(resolve("OVM_BondManager")).isCollateralized(msg.sender),
             "Proposer does not have enough collateral posted"
         );
 
@@ -142,7 +146,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         );
 
         require(
-            getTotalElements() + _batch.length <= ovmCanonicalTransactionChain.getTotalElements(),
+            getTotalElements() + _batch.length <= iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain")).getTotalElements(),
             "Number of state roots cannot exceed the number of canonical transactions."
         );
 
@@ -164,7 +168,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         public
     {
         require(
-            msg.sender == address(ovmFraudVerifier),
+            msg.sender == resolve("OVM_FraudVerifier"),
             "State batches can only be deleted by the OVM_FraudVerifier."
         );
 
@@ -204,7 +208,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         require(
             Lib_MerkleUtils.verify(
                 _batchHeader.batchRoot,
-                _element,
+                abi.encodePacked(_element),
                 _proof.index,
                 _proof.siblings
             ),
@@ -269,7 +273,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         );
 
         require(
-            ovmCanonicalTransactionChain.verifyTransaction(
+            iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain")).verifyTransaction(
                 _transaction,
                 _txChainElement,
                 _txBatchHeader,
@@ -297,7 +301,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         )
     {
         if (_id == Lib_OVMCodec.RING_BUFFER_CTC_QUEUE) {
-            return ovmCanonicalTransactionChain.getQueueElement(_index / 2).timestamp < lastDeletableTimestamp;
+            return iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain")).getQueueElement(_index / 2).timestamp < lastDeletableTimestamp;
         } else {
             return _index < lastDeletableIndex;
         }
@@ -402,6 +406,14 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
             prevTotalElements: totalElements,
             extraData: _extraData
         });
+
+        emit StateBatchAppended(
+            batchHeader.batchIndex,
+            batchHeader.batchRoot,
+            batchHeader.batchSize,
+            batchHeader.prevTotalElements,
+            batchHeader.extraData
+        );
 
         batches.push(
             Lib_OVMCodec.hashBatchHeader(batchHeader),

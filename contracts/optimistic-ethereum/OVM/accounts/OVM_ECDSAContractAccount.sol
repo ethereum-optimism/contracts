@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
@@ -14,6 +14,8 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
  * @title OVM_ECDSAContractAccount
  */
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
+
+    address constant ETH_ERC20_ADDRESS = 0x4200000000000000000000000000000000000006;
 
     /********************
      * Public Functions *
@@ -43,36 +45,44 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             bytes memory _returndata
         )
     {
-        address ovmExecutionManager = msg.sender;
+        bool isEthSign = _signatureType == Lib_OVMCodec.EOASignatureType.ETH_SIGNED_MESSAGE;
 
         // Address of this contract within the ovm (ovmADDRESS) should be the same as the
         // recovered address of the user who signed this message. This is how we manage to shim
         // account abstraction even though the user isn't a contract.
-        require(
+        // Need to make sure that the transaction nonce is right and bump it if so.
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
             Lib_ECDSAUtils.recover(
                 _transaction,
-                _signatureType == Lib_OVMCodec.EOASignatureType.ETH_SIGNED_MESSAGE,
+                isEthSign,
                 _v,
                 _r,
-                _s,
-                Lib_SafeExecutionManagerWrapper.safeCHAINID(ovmExecutionManager)
-            ) == Lib_SafeExecutionManagerWrapper.safeADDRESS(ovmExecutionManager),
+                _s
+            ) == Lib_SafeExecutionManagerWrapper.safeADDRESS(),
             "Signature provided for EOA transaction execution is invalid."
         );
 
-        Lib_OVMCodec.EOATransaction memory decodedTx = Lib_OVMCodec.decodeEOATransaction(_transaction);
+        Lib_OVMCodec.EIP155Transaction memory decodedTx = Lib_OVMCodec.decodeEIP155Transaction(_transaction, isEthSign);
 
-        // Need to make sure that the transaction nonce is right and bump it if so.
-        require(
-            decodedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(ovmExecutionManager) + 1,
+        // Need to make sure that the transaction nonce is right.
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+            decodedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(),
             "Transaction nonce does not match the expected nonce."
         );
 
+        // Transfer fee to relayer.
+        address relayer = Lib_SafeExecutionManagerWrapper.safeCALLER();
+        uint256 fee = decodedTx.gasLimit * decodedTx.gasPrice;
+        Lib_SafeExecutionManagerWrapper.safeCALL(
+            gasleft(),
+            ETH_ERC20_ADDRESS,
+            abi.encodeWithSignature("transfer(address,uint256)", relayer, fee)
+        );
+
         // Contract creations are signalled by sending a transaction to the zero address.
-        if (decodedTx.target == address(0)) {
+        if (decodedTx.to == address(0)) {
             address created = Lib_SafeExecutionManagerWrapper.safeCREATE(
-                ovmExecutionManager,
-                decodedTx.gasLimit,
+                decodedTx.gasLimit - 2000,
                 decodedTx.data
             );
 
@@ -83,12 +93,11 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             // We only want to bump the nonce for `ovmCALL` because `ovmCREATE` automatically bumps
             // the nonce of the calling account. Normally an EOA would bump the nonce for both
             // cases, but since this is a contract we'd end up bumping the nonce twice.
-            Lib_SafeExecutionManagerWrapper.safeSETNONCE(ovmExecutionManager, decodedTx.nonce);
+            Lib_SafeExecutionManagerWrapper.safeSETNONCE(decodedTx.nonce + 1);
 
             return Lib_SafeExecutionManagerWrapper.safeCALL(
-                ovmExecutionManager,
                 decodedTx.gasLimit,
-                decodedTx.target,
+                decodedTx.to,
                 decodedTx.data
             );
         }

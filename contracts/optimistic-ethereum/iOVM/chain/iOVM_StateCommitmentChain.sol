@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -10,9 +10,26 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
  */
 interface iOVM_StateCommitmentChain {
 
+    /**********
+     * Events *
+     **********/
+
+    event StateBatchAppended(
+        uint256 indexed _batchIndex,
+        bytes32 _batchRoot,
+        uint256 _batchSize,
+        uint256 _prevTotalElements,
+        bytes _extraData
+    );
+
     /********************
      * Public Functions *
      ********************/
+
+    /**
+     * Initializes this contract.
+     */
+    function init() external;
 
     /**
      * Retrieves the total number of elements submitted.

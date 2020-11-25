@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
 /* Library Imports */
@@ -14,8 +14,7 @@ contract TestLib_ECDSAUtils {
         bool _isEthSignedMessage,
         uint8 _v,
         bytes32 _r,
-        bytes32 _s,
-        uint256 _chainId
+        bytes32 _s
     )
         public
         pure
@@ -28,8 +27,7 @@ contract TestLib_ECDSAUtils {
             _isEthSignedMessage,
             _v,
             _r,
-            _s,
-            _chainId
+            _s
         );
     }
 }

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
@@ -18,7 +18,7 @@ contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
     mapping (bytes32 => bool) public successfulMessages;
     mapping (bytes32 => bool) public sentMessages;
     uint256 public messageNonce;
-    address public xDomainMessageSender;
+    address override public xDomainMessageSender;
 
 
     /********************
@@ -34,7 +34,7 @@ contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
     function sendMessage(
         address _target,
         bytes memory _message,
-        uint256 _gasLimit
+        uint32 _gasLimit
     )
         override
         public
@@ -50,6 +50,8 @@ contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
 
         messageNonce += 1;
         sentMessages[keccak256(xDomainCalldata)] = true;
+
+        emit SentMessage(xDomainCalldata);
     }
 
     /**********************

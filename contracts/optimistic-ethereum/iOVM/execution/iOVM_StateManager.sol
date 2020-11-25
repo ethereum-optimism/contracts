@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -21,6 +21,11 @@ interface iOVM_StateManager {
         ITEM_COMMITTED
     }
 
+    /***************************
+     * Public Functions: Misc *
+     ***************************/
+
+    function isAuthenticated(address _address) external view returns (bool);
 
     /***************************
      * Public Functions: Setup *

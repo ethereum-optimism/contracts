@@ -34,6 +34,20 @@ const getXDomainCalldata = (
   ).encodeFunctionData('relayMessage', [target, sender, message, messageNonce])
 }
 
+const deployProxyXDomainMessenger = async (
+  addressManager: Contract,
+  l1XDomainMessenger: Contract
+): Promise<Contract> => {
+  await addressManager.setAddress(
+    'OVM_L1CrossDomainMessenger',
+    l1XDomainMessenger.address
+  )
+  const proxy = await (
+    await ethers.getContractFactory('Lib_ResolvedDelegateProxy')
+  ).deploy(addressManager.address, 'OVM_L1CrossDomainMessenger')
+  return l1XDomainMessenger.attach(proxy.address)
+}
+
 describe('OVM_L1CrossDomainMessenger', () => {
   let signer: Signer
   before(async () => {
@@ -89,9 +103,13 @@ describe('OVM_L1CrossDomainMessenger', () => {
 
   let OVM_L1CrossDomainMessenger: Contract
   beforeEach(async () => {
-    OVM_L1CrossDomainMessenger = await Factory__OVM_L1CrossDomainMessenger.deploy(
-      AddressManager.address
+    const xDomainMessenerImpl = await Factory__OVM_L1CrossDomainMessenger.deploy()
+    // We use an upgradable proxy for the XDomainMessenger--deploy & set up the proxy.
+    OVM_L1CrossDomainMessenger = await deployProxyXDomainMessenger(
+      AddressManager,
+      xDomainMessenerImpl
     )
+    await OVM_L1CrossDomainMessenger.initialize(AddressManager.address)
   })
 
   describe('sendMessage', () => {
@@ -180,7 +198,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
         nodes: [
           {
             key: storageKey,
-            val: '0x' + '01'.padStart(64, '0'),
+            val: '0x' + '01'.padStart(2, '0'),
           },
         ],
         secure: true,

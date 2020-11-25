@@ -1,10 +1,11 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
+import { Lib_AddressManager } from "../../libraries/resolver/Lib_AddressManager.sol";
 import { Lib_SecureMerkleTrie } from "../../libraries/trie/Lib_SecureMerkleTrie.sol";
 
 /* Interface Imports */
@@ -19,29 +20,28 @@ import { OVM_BaseCrossDomainMessenger } from "./OVM_BaseCrossDomainMessenger.sol
  * @title OVM_L1CrossDomainMessenger
  */
 contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCrossDomainMessenger, Lib_AddressResolver {
-    
-    /*******************************************
-     * Contract Variables: Contract References *
-     *******************************************/
-    
-    iOVM_CanonicalTransactionChain internal ovmCanonicalTransactionChain;
-    iOVM_StateCommitmentChain internal ovmStateCommitmentChain;
-
 
     /***************
      * Constructor *
      ***************/
 
     /**
+     * Pass a default zero address to the address resolver. This will be updated when initialized.
+     */
+    constructor()
+        Lib_AddressResolver(address(0))
+    {}
+
+    /**
      * @param _libAddressManager Address of the Address Manager.
      */
-    constructor(
+    function initialize(
         address _libAddressManager
     )
-        Lib_AddressResolver(_libAddressManager)
+        public
     {
-        ovmCanonicalTransactionChain = iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain"));
-        ovmStateCommitmentChain = iOVM_StateCommitmentChain(resolve("OVM_StateCommitmentChain"));
+        require(address(libAddressManager) == address(0), "L1CrossDomainMessenger already intialized.");
+        libAddressManager = Lib_AddressManager(_libAddressManager);
     }
 
 
@@ -78,8 +78,10 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
             "Provided message could not be verified."
         );
 
+        bytes32 xDomainCalldataHash = keccak256(xDomainCalldata);
+
         require(
-            successfulMessages[keccak256(xDomainCalldata)] == false,
+            successfulMessages[xDomainCalldataHash] == false,
             "Provided message has already been received."
         );
 
@@ -89,7 +91,8 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
         // Mark the message as received if the call was successful. Ensures that a message can be
         // relayed multiple times in the case that the call reverted.
         if (success == true) {
-            successfulMessages[keccak256(xDomainCalldata)] = true;
+            successfulMessages[xDomainCalldataHash] = true;
+            emit RelayedMessage(xDomainCalldataHash);
         }
 
         // Store an identifier that can be used to prove that the given message was relayed by some
@@ -174,6 +177,8 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
             bool
         )
     {
+        iOVM_StateCommitmentChain ovmStateCommitmentChain = iOVM_StateCommitmentChain(resolve("OVM_StateCommitmentChain"));
+
         return (
             ovmStateCommitmentChain.insideFraudProofWindow(_proof.stateRootBatchHeader) == false
             && ovmStateCommitmentChain.verifyStateCommitment(
@@ -232,7 +237,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
 
         return Lib_SecureMerkleTrie.verifyInclusionProof(
             abi.encodePacked(storageKey),
-            abi.encodePacked(uint256(1)),
+            abi.encodePacked(uint8(1)),
             _proof.storageTrieWitness,
             account.storageRoot
         );
@@ -250,7 +255,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
         override
         internal
     {
-        ovmCanonicalTransactionChain.enqueue(
+        iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain")).enqueue(
             resolve("OVM_L2CrossDomainMessenger"),
             _gasLimit,
             _message

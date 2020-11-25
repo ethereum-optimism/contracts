@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
 /**
@@ -12,7 +12,6 @@ library Lib_SafeExecutionManagerWrapper {
 
     /**
      * Makes an ovmCALL and performs all the necessary safety checks.
-     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
      * @param _gasLimit Gas limit for the call.
      * @param _target Address to call.
      * @param _calldata Data to send to the call.
@@ -20,7 +19,6 @@ library Lib_SafeExecutionManagerWrapper {
      * @return _returndata Data returned by the call.
      */
     function safeCALL(
-        address _ovmExecutionManager,
         uint256 _gasLimit,
         address _target,
         bytes memory _calldata
@@ -32,7 +30,6 @@ library Lib_SafeExecutionManagerWrapper {
         )
     {
         bytes memory returndata = _safeExecutionManagerInteraction(
-            _ovmExecutionManager,
             abi.encodeWithSignature(
                 "ovmCALL(uint256,address,bytes)",
                 _gasLimit,
@@ -45,14 +42,43 @@ library Lib_SafeExecutionManagerWrapper {
     }
 
     /**
+     * Makes an ovmCALL and performs all the necessary safety checks.
+     * @param _gasLimit Gas limit for the call.
+     * @param _target Address to call.
+     * @param _calldata Data to send to the call.
+     * @return _success Whether or not the call reverted.
+     * @return _returndata Data returned by the call.
+     */
+    function safeDELEGATECALL(
+        uint256 _gasLimit,
+        address _target,
+        bytes memory _calldata
+    )
+        internal
+        returns (
+            bool _success,
+            bytes memory _returndata
+        )
+    {
+        bytes memory returndata = _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmDELEGATECALL(uint256,address,bytes)",
+                _gasLimit,
+                _target,
+                _calldata
+            )
+        );
+
+        return abi.decode(returndata, (bool, bytes));
+    }
+
+    /**
      * Performs an ovmCREATE and the necessary safety checks.
-     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
      * @param _gasLimit Gas limit for the creation.
      * @param _bytecode Code for the new contract.
      * @return _contract Address of the created contract.
      */
     function safeCREATE(
-        address _ovmExecutionManager,
         uint256 _gasLimit,
         bytes memory _bytecode
     )
@@ -62,7 +88,6 @@ library Lib_SafeExecutionManagerWrapper {
         )
     {
         bytes memory returndata = _safeExecutionManagerInteraction(
-            _ovmExecutionManager,
             _gasLimit,
             abi.encodeWithSignature(
                 "ovmCREATE(bytes)",
@@ -74,20 +99,39 @@ library Lib_SafeExecutionManagerWrapper {
     }
 
     /**
+     * Performs an ovmEXTCODESIZE and the necessary safety checks.
+     * @param _contract Address of the contract to query the size of.
+     * @return _EXTCODESIZE Size of the requested contract in bytes.
+     */
+    function safeEXTCODESIZE(
+        address _contract
+    )
+        internal
+        returns (
+            uint256 _EXTCODESIZE
+        )
+    {
+        bytes memory returndata = _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmEXTCODESIZE(address)",
+                _contract
+            )
+        );
+
+        return abi.decode(returndata, (uint256));
+    }
+
+    /**
      * Performs a safe ovmCHAINID call.
-     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
      * @return _CHAINID Result of calling ovmCHAINID.
      */
-    function safeCHAINID(
-        address _ovmExecutionManager
-    )
+    function safeCHAINID()
         internal
         returns (
             uint256 _CHAINID
         )
     {
         bytes memory returndata = _safeExecutionManagerInteraction(
-            _ovmExecutionManager,
             abi.encodeWithSignature(
                 "ovmCHAINID()"
             )
@@ -97,20 +141,35 @@ library Lib_SafeExecutionManagerWrapper {
     }
 
     /**
+     * Performs a safe ovmCALLER call.
+     * @return _CALLER Result of calling ovmCALLER.
+     */
+    function safeCALLER()
+        internal
+        returns (
+            address _CALLER
+        )
+    {
+        bytes memory returndata = _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmCALLER()"
+            )
+        );
+
+        return abi.decode(returndata, (address));
+    }
+
+    /**
      * Performs a safe ovmADDRESS call.
-     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
      * @return _ADDRESS Result of calling ovmADDRESS.
      */
-    function safeADDRESS(
-        address _ovmExecutionManager
-    )
+    function safeADDRESS()
         internal
         returns (
             address _ADDRESS
         )
     {
         bytes memory returndata = _safeExecutionManagerInteraction(
-            _ovmExecutionManager,
             abi.encodeWithSignature(
                 "ovmADDRESS()"
             )
@@ -121,19 +180,15 @@ library Lib_SafeExecutionManagerWrapper {
 
     /**
      * Performs a safe ovmGETNONCE call.
-     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
      * @return _nonce Result of calling ovmGETNONCE.
      */
-    function safeGETNONCE(
-        address _ovmExecutionManager
-    )
+    function safeGETNONCE()
         internal
         returns (
             uint256 _nonce
         )
     {
         bytes memory returndata = _safeExecutionManagerInteraction(
-            _ovmExecutionManager,
             abi.encodeWithSignature(
                 "ovmGETNONCE()"
             )
@@ -144,17 +199,14 @@ library Lib_SafeExecutionManagerWrapper {
 
     /**
      * Performs a safe ovmSETNONCE call.
-     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
      * @param _nonce New account nonce.
      */
     function safeSETNONCE(
-        address _ovmExecutionManager,
         uint256 _nonce
     )
         internal
     {
         _safeExecutionManagerInteraction(
-            _ovmExecutionManager,
             abi.encodeWithSignature(
                 "ovmSETNONCE(uint256)",
                 _nonce
@@ -162,6 +214,105 @@ library Lib_SafeExecutionManagerWrapper {
         );
     }
 
+    /**
+     * Performs a safe ovmCREATEEOA call.
+     * @param _messageHash Message hash which was signed by EOA
+     * @param _v v value of signature (0 or 1)
+     * @param _r r value of signature
+     * @param _s s value of signature
+     */
+    function safeCREATEEOA(
+        bytes32 _messageHash,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmCREATEEOA(bytes32,uint8,bytes32,bytes32)",
+                _messageHash,
+                _v,
+                _r,
+                _s
+            )
+        );
+    }
+
+    /**
+     * Performs a safe REVERT.
+     * @param _reason String revert reason to pass along with the REVERT.
+     */
+    function safeREVERT(
+        string memory _reason
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmREVERT(bytes)",
+                bytes(_reason)
+            )
+        );
+    }
+
+    /**
+     * Performs a safe "require".
+     * @param _condition Boolean condition that must be true or will revert.
+     * @param _reason String revert reason to pass along with the REVERT.
+     */
+    function safeREQUIRE(
+        bool _condition,
+        string memory _reason
+    )
+        internal
+    {
+        if (!_condition) {
+            safeREVERT(
+                _reason
+            );
+        }
+    }
+
+    /**
+     * Performs a safe ovmSLOAD call.
+     */
+    function safeSLOAD(
+        bytes32 _key
+    )
+        internal
+        returns (
+            bytes32
+        )
+    {
+        bytes memory returndata = _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmSLOAD(bytes32)",
+                _key
+            )
+        );
+
+        return abi.decode(returndata, (bytes32));
+    }
+
+    /**
+     * Performs a safe ovmSSTORE call.
+     */
+    function safeSSTORE(
+        bytes32 _key,
+        bytes32 _value
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmSSTORE(bytes32,bytes32)",
+                _key,
+                _value
+            )
+        );
+    }
 
     /*********************
      * Private Functions *
@@ -169,13 +320,11 @@ library Lib_SafeExecutionManagerWrapper {
 
     /**
      * Performs an ovm interaction and the necessary safety checks.
-     * @param _ovmExecutionManager Address of the OVM_ExecutionManager.
      * @param _gasLimit Gas limit for the interaction.
      * @param _calldata Data to send to the OVM_ExecutionManager (encoded with sighash).
      * @return _returndata Data sent back by the OVM_ExecutionManager.
      */
     function _safeExecutionManagerInteraction(
-        address _ovmExecutionManager,
         uint256 _gasLimit,
         bytes memory _calldata
     )
@@ -184,10 +333,11 @@ library Lib_SafeExecutionManagerWrapper {
             bytes memory _returndata
         )
     {
+        address ovmExecutionManager = msg.sender;
         (
             bool success,
             bytes memory returndata
-        ) = _ovmExecutionManager.call{gas: _gasLimit}(_calldata);
+        ) = ovmExecutionManager.call{gas: _gasLimit}(_calldata);
 
         if (success == false) {
             assembly {
@@ -203,7 +353,6 @@ library Lib_SafeExecutionManagerWrapper {
     }
 
     function _safeExecutionManagerInteraction(
-        address _ovmExecutionManager,
         bytes memory _calldata
     )
         private
@@ -212,7 +361,6 @@ library Lib_SafeExecutionManagerWrapper {
         )
     {
         return _safeExecutionManagerInteraction(
-            _ovmExecutionManager,
             gasleft(),
             _calldata
         );

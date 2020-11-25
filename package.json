@@ -1,6 +1,6 @@
 {
   "name": "@eth-optimism/contracts",
-  "version": "0.0.2-alpha.4",
+  "version": "0.0.2-alpha.7",
   "main": "build/src/index.js",
   "files": [
     "build/**/*.js",
@@ -13,20 +13,22 @@
     "all": "yarn clean && yarn build && yarn test && yarn lint:fix && yarn lint",
     "build": "yarn run build:contracts && yarn run build:typescript && yarn run build:copy && yarn run build:dump && yarn run build:typechain",
     "build:typescript": "tsc -p tsconfig.prod.json",
-    "build:contracts": "buidler compile",
+    "build:contracts": "buidler compile --show-stack-traces",
     "build:dump": "ts-node \"bin/take-dump.ts\"",
     "build:copy": "copyfiles -u 2 \"contracts/optimistic-ethereum/**/*.sol\" \"build/contracts\"",
     "build:typechain": "buidler typechain",
     "test": "yarn run test:contracts",
     "test:contracts": "buidler test --show-stack-traces",
+    "test:gas": "buidler test \"test/contracts/OVM/execution/OVM_StateManager.gas-spec.ts\" --no-compile --show-stack-traces",
     "lint": "yarn run lint:typescript",
     "lint:typescript": "tslint --format stylish --project .",
-    "lint:fix": "yarn run lint:fix:typescript",
     "lint:fix:typescript": "prettier --config prettier-config.json --write \"buidler.config.ts\" \"{src,test}/**/*.ts\"",
     "clean": "rm -rf ./artifacts ./build ./cache",
     "deploy": "./bin/deploy.js"
   },
   "dependencies": {
+    "@ethersproject/contracts": "^5.0.5",
+    "@ethersproject/hardware-wallets": "^5.0.8",
     "ethers": "5.0.0"
   },
   "devDependencies": {

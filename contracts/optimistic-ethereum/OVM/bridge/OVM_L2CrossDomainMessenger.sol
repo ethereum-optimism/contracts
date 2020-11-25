@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity >0.6.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -19,14 +19,6 @@ import { OVM_BaseCrossDomainMessenger } from "./OVM_BaseCrossDomainMessenger.sol
  */
 contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCrossDomainMessenger, Lib_AddressResolver {
 
-    /*******************************************
-     * Contract Variables: Contract References *
-     *******************************************/
-
-    iOVM_L1MessageSender internal ovmL1MessageSender;
-    iOVM_L2ToL1MessagePasser internal ovmL2ToL1MessagePasser;
-
-
     /***************
      * Constructor *
      ***************/
@@ -36,12 +28,7 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
      */
     constructor(
         address _libAddressManager
-    )
-        Lib_AddressResolver(_libAddressManager)
-    {
-        ovmL1MessageSender = iOVM_L1MessageSender(resolve("OVM_L1MessageSender"));
-        ovmL2ToL1MessagePasser = iOVM_L2ToL1MessagePasser(resolve("OVM_L2ToL1MessagePasser"));
-    }
+    ) Lib_AddressResolver(_libAddressManager) {}
 
 
     /********************
@@ -73,8 +60,10 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
             _messageNonce
         );
 
+        bytes32 xDomainCalldataHash = keccak256(xDomainCalldata);
+
         require(
-            successfulMessages[keccak256(xDomainCalldata)] == false,
+            successfulMessages[xDomainCalldataHash] == false,
             "Provided message has already been received."
         );
 
@@ -84,7 +73,8 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
         // Mark the message as received if the call was successful. Ensures that a message can be
         // relayed multiple times in the case that the call reverted.
         if (success == true) {
-            successfulMessages[keccak256(xDomainCalldata)] = true;
+            successfulMessages[xDomainCalldataHash] = true;
+            emit RelayedMessage(xDomainCalldataHash);
         }
 
         // Store an identifier that can be used to prove that the given message was relayed by some
@@ -115,7 +105,7 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
         )
     {
         return (
-            ovmL1MessageSender.getL1MessageSender() == resolve("OVM_L1CrossDomainMessenger")
+            iOVM_L1MessageSender(resolve("OVM_L1MessageSender")).getL1MessageSender() == resolve("OVM_L1CrossDomainMessenger")
         );
     }
 
@@ -131,6 +121,6 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCros
         override
         internal
     {
-        ovmL2ToL1MessagePasser.passMessageToL1(_message);
+        iOVM_L2ToL1MessagePasser(resolve("OVM_L2ToL1MessagePasser")).passMessageToL1(_message);
     }
 }

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
@@ -71,11 +71,26 @@ contract OVM_StateManager is iOVM_StateManager {
         _;
     }
 
+    /***************************
+     * Public Functions: Misc *
+     ***************************/
+
+
+    function isAuthenticated(
+        address _address
+    )
+        override
+        public
+        view
+        returns (bool)
+    {
+        return (_address == owner || _address == ovmExecutionManager);
+    }
 
     /***************************
      * Public Functions: Setup *
      ***************************/
-    
+
     /**
      * Sets the address of the OVM_ExecutionManager.
      * @param _ovmExecutionManager Address of the OVM_ExecutionManager.

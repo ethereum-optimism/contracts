@@ -1,11 +1,22 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity >0.5.0 <0.8.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /**
  * @title iOVM_BaseCrossDomainMessenger
  */
 interface iOVM_BaseCrossDomainMessenger {
+
+    /**********
+     * Events *
+     **********/
+    event SentMessage(bytes message);
+    event RelayedMessage(bytes32 msgHash);
+
+    /**********************
+     * Contract Variables *
+     **********************/
+    function xDomainMessageSender() external view returns (address);
 
     /********************
      * Public Functions *
@@ -20,6 +31,6 @@ interface iOVM_BaseCrossDomainMessenger {
     function sendMessage(
         address _target,
         bytes calldata _message,
-        uint256 _gasLimit
+        uint32 _gasLimit
     ) external;
 }
