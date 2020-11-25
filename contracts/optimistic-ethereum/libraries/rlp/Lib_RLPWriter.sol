@@ -89,6 +89,7 @@ library Lib_RLPWriter {
             bytes memory _out
         )
     {
+        _malloc(1);
         bytes memory inputBytes;
         assembly {
             let m := mload(0x40)
@@ -307,5 +308,20 @@ library Lib_RLPWriter {
         }
 
         return flattened;
+    }
+
+    function _malloc(
+        uint _numWords
+    )
+        internal
+        pure
+    {
+        uint numBytes = 0x20 * _numWords;
+        assembly {
+            let free_mem := mload(0x40)
+            for { let offset := 0x00 } lt(offset, numBytes) { offset := add(offset, 0x20) } {
+                mstore(add(free_mem, offset), 0x00)
+            }
+        }
     }
 }
