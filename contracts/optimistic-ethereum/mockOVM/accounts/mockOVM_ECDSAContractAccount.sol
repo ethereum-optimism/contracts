@@ -46,16 +46,16 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         bool isEthSign = _signatureType == Lib_OVMCodec.EOASignatureType.ETH_SIGNED_MESSAGE;
         Lib_OVMCodec.EIP155Transaction memory decodedTx = Lib_OVMCodec.decodeEIP155Transaction(_transaction, isEthSign);
 
+        // Need to make sure that the transaction chainId is correct.
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+            decodedTx.chainId == Lib_SafeExecutionManagerWrapper.safeCHAINID(),
+            "Transaction chainId does not match expected OVM chainId."
+        );
+
         // Need to make sure that the transaction nonce is right.
         Lib_SafeExecutionManagerWrapper.safeREQUIRE(
             decodedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(),
             "Transaction nonce does not match the expected nonce."
-        );
-
-        // Need to make sure that the transaction chainId is correct.
-        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
-            decodedTx.chainId == Lib_SafeExecutionManagerWrapper.safeCHAINID(),
-            "Transaction chainID does not match expected OVM chainID."
         );
 
         // Contract creations are signalled by sending a transaction to the zero address.

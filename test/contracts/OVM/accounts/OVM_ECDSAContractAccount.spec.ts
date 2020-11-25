@@ -202,14 +202,12 @@ describe('OVM_ECDSAContractAccount', () => {
     })
 
     it(`should revert on incorrect chainId`, async () => {
-      const alteredChainIdTx = DEFAULT_EIP155_TX
-      console.log(alteredChainIdTx)
-      alteredChainIdTx.chainId = 421
-      console.log(alteredChainIdTx)
+      const alteredChainIdTx = {
+        ...DEFAULT_EIP155_TX,
+        chainId : 421
+      }
       const message = serializeNativeTransaction(alteredChainIdTx)
-      console.log("message", message)
       const sig = await signNativeTransaction(wallet, alteredChainIdTx)
-      console.log("sig", sig)
 
       await callPrecompile(
         Helper_PrecompileCaller,
@@ -226,7 +224,7 @@ describe('OVM_ECDSAContractAccount', () => {
       const ovmREVERT: any =
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
       expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
-        'Transaction chainID does not match expected OVM chainID.'
+        'Transaction chainId does not match expected OVM chainId.'
       )
     })
   })
