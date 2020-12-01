@@ -18,6 +18,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
     using SafeMath for uint256;
     address constant ETH_ERC20_ADDRESS = 0x4200000000000000000000000000000000000006;
+    uint256 constant EXECUTION_VALIDATION_GAS_OVERHEAD = 25000; // TODO: should be the amount sufficient to cover the gas costs of all of the transactions up to and including the CALL/CREATE which forms the entrypoint of the transaction.
 
     /********************
      * Public Functions *
@@ -80,7 +81,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
         // Need to make sure that the gas is sufficient to execute the transaction.
         Lib_SafeExecutionManagerWrapper.safeREQUIRE(
-           gasleft() >= SafeMath.add(decodedTx.gasLimit, buffer),  // buffer should be the amount sufficient to cover the gas costs of all of the transactions up to and including the CALL/CREATE which forms the entrypoint of the transaction
+           gasleft() >= SafeMath.add(decodedTx.gasLimit, EXECUTION_VALIDATION_GAS_OVERHEAD),
            "Gas is not sufficient to execute the transaction."
         );
 
