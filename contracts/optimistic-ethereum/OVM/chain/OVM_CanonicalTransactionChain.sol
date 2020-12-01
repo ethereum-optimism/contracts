@@ -38,11 +38,14 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * Constants *
      *************/
 
+    // Sequencing constants
+    uint256 constant public TIMESTAMP_TIMEOUT_WINDOW = 10 minutes;
+    uint256 constant public BLOCK_NUMBER_TIMEOUT_WINDOW = 250;
+
+    // Tx/gas constants
     uint256 constant public MIN_ROLLUP_TX_GAS = 20000;
     uint256 constant public MAX_ROLLUP_TX_SIZE = 10000;
     uint256 constant public L2_GAS_DISCOUNT_DIVISOR = 10;
-    uint256 constant public TIMESTAMP_TIMEOUT_WINDOW = 10 minutes;
-    uint256 constant public BLOCK_NUMBER_TIMEOUT_WINDOW = 250;
 
     // Encoding constants (all in bytes)
     uint256 constant internal BATCH_CONTEXT_SIZE = 16;
@@ -379,7 +382,11 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                 transactionIndex++;
             }
 
+            console.log("made it through sequenced transactions");
+
             for (uint32 j = 0; j < context.numSubsequentQueueTransactions; j++) {
+                console.log("queueLength is:", queueLength);
+                console.log("nextQueueIndex is:", nextQueueIndex);
                 require(nextQueueIndex < queueLength, "Not enough queued transactions to append.");
                 leaves[transactionIndex] = _getQueueLeafHash(nextQueueIndex);
                 nextQueueIndex++;
@@ -750,12 +757,49 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         view
     {
         // Context ordering validation
+
+        // Checks on all contexts:
+        require(
+            _context.timestamp >= _prevContext.timestamp,
+            "Context timestamp values must monotonically increase"
+        );
+
+        require(
+            _context.blockNumber >= _prevContext.blockNumber,
+            "Context block number values must monotonically increase."
+        );
+
+        // Checks if there are some queue elements to consider:
+        if (getNumPendingQueueElements() > 0) {
+            Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_nextQueueIndex);
+
+            require(
+                block.timestamp < nextQueueElement.timestamp + forceInclusionPeriodSeconds,
+                "Older queue batches must be processed before a new sequencer batch."
+            );
+
+            require(
+                _context.timestamp <= nextQueueElement.timestamp,
+                "Sequencer transaction timestamp exceeds that of next queue element."
+            );
+
+            require(
+                _context.blockNumber <= nextQueueElement.blockNumber,
+                "Sequencer transaction blockNumber exceeds that of next queue element."
+            );
+        }
+
+        // checks on only first or last elements:
+
         if (_contextIndex == 0) {
-            // First context:
+            // Checks on first context:
             if (getTotalElements() == 0) {
-                // First batch:
+                // No check on first EVER batch:
                 return;
             }
+            console.log("_context.timestamp, then block.timestamp, are:");
+            console.log(_context.timestamp);
+            console.log(block.timestamp);
             (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
             require(_context.timestamp > lastTimestamp, "Context timestamp too low.");
             require(_context.timestamp > block.timestamp - TIMESTAMP_TIMEOUT_WINDOW, "Context timestamp too low.");
@@ -763,42 +807,11 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             require(_context.blockNumber > block.number - BLOCK_NUMBER_TIMEOUT_WINDOW, "Context block number too low.");
         }
         else if(_contextIndex == _totalContexts - 1) {
-            // Last context:
+            // Checks on last context:
             require(_context.timestamp < block.timestamp, "Context timestamp is from the future.");
             require(_context.blockNumber < block.number, "Context block number is from the future.");
         }
-
-        // Middle contexts:
-        require(
-            _context.timestamp > _prevContext.timestamp,
-            "Context timestamp larger than previous context timestamp."
-        );
-
-        require(
-            _context.blockNumber > _prevContext.blockNumber,
-            "Context block number larger than previous context block number."
-        );
-
-        if (getNumPendingQueueElements() == 0) {
-            return;
-        }
-
-        Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_nextQueueIndex);
-
-        require(
-            block.timestamp < nextQueueElement.timestamp + forceInclusionPeriodSeconds,
-            "Older queue batches must be processed before a new sequencer batch."
-        );
-
-        require(
-            _context.timestamp <= nextQueueElement.timestamp,
-            "Sequencer transactions timestamp too high."
-        );
-
-        require(
-            _context.blockNumber <= nextQueueElement.blockNumber,
-            "Sequencer transactions blockNumber too high."
-        );
+        
     }
 
     /**
