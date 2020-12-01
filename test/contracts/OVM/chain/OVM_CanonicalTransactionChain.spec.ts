@@ -764,7 +764,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
       const data = '0x' + '12'.repeat(1234)
 
       describe('when the sequencer attempts to add more queue transactions than exist', () => {
-        it('when there are no transactions in the queue', async () => {
+        it('reverts when there are zero transactions in the queue', async () => {
           await expect(
             appendSequencerBatch(OVM_CanonicalTransactionChain, {
               transactions: ['0x1234'],
@@ -784,7 +784,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
           )
         })
 
-        it('when there are transactions in the queue', async () => {
+        it('reverts when there are insufficient (but nonzero) transactions in the queue', async () => {
           const numEnqueues = 7
           for (let i = 0; i < numEnqueues; i++) {
             await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
@@ -801,11 +801,152 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                 },
               ],
               shouldStartAtBatch: 0,
-              totalElementsToAppend: 1,
+              totalElementsToAppend: numEnqueues + 1,
             })
           ).to.be.revertedWith(
             'Not enough queued transactions to append.'
           )
+        })
+      })
+
+      describe('when the sequencer attempts to add transactions which are not monotonically increasing', () => {
+        it('should revert when adding two out-of-order-timestamp sequencer elements', async () => {
+          await expect(
+            appendSequencerBatch(OVM_CanonicalTransactionChain, {
+              transactions: ['0x1234', '0x5678'],
+              contexts: [
+                {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 0,
+                  timestamp: 1,
+                  blockNumber: 0,
+                },
+                {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 0,
+                  timestamp: 0,
+                  blockNumber: 0,
+                },
+              ],
+              shouldStartAtBatch: 0,
+              totalElementsToAppend: 2,
+            })
+          ).to.be.revertedWith(
+            'Context timestamp values must monotonically increase.'
+          )
+        })
+
+        it('should revert when adding two out-of-order-blocknumber sequencer elements', async () => {
+          await expect(
+            appendSequencerBatch(OVM_CanonicalTransactionChain, {
+              transactions: ['0x1234', '0x5678'],
+              contexts: [
+                {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 0,
+                  timestamp: 0,
+                  blockNumber: 1,
+                },
+                {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 0,
+                  timestamp: 0,
+                  blockNumber: 0,
+                },
+              ],
+              shouldStartAtBatch: 0,
+              totalElementsToAppend: 2,
+            })
+          ).to.be.revertedWith(
+            'Context blockNumber values must monotonically increase.'
+          )
+        }) 
+
+        it('should revert if the first context timestamp is > the head queue element timestamp', async () => {
+          // enqueue a tx but do not yet expire
+          await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+          
+          const timestamp = await getEthTime(ethers.provider) + 100
+  
+          await expect(
+            appendSequencerBatch(OVM_CanonicalTransactionChain, {
+              transactions: ['0x1234'],
+              contexts: [
+                {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 0,
+                  timestamp: timestamp,
+                  blockNumber: 0,
+                },
+              ],
+              shouldStartAtBatch: 0,
+              totalElementsToAppend: 1,
+            })
+          ).to.be.revertedWith('Sequencer transaction timestamp exceeds that of next queue element.')
+        })
+  
+        it('should revert if the context block number is > the head queue element block number', async () => {
+            // enqueue a tx but do not yet expire
+            await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+            
+            const timestamp = (await getEthTime(ethers.provider)) - 100
+            const blockNumber = (await getNextBlockNumber(ethers.provider)) + 100
+  
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp: timestamp,
+                    blockNumber: blockNumber,
+                  },
+                ],
+                shouldStartAtBatch: 0,
+                totalElementsToAppend: 1,
+              })
+            ).to.be.revertedWith('Sequencer transaction blockNumber exceeds that of next queue element.')
+          })
+      })
+
+      // todo: later interspersement fails
+
+      describe('when the sequencer attempts to add transactions with out-of-bounds times', async () => {
+        // beforeEach(async () => {
+        //   const timestamp = await getEthTime(ethers.provider)
+        //   await appendSequencerBatch(OVM_CanonicalTransactionChain, {
+        //     transactions: ['0x1234'],
+        //     contexts: [
+        //       {
+        //         numSequencedTransactions: 1,
+        //         numSubsequentQueueTransactions: 0,
+        //         timestamp,
+        //         blockNumber: 0,
+        //       },
+        //     ],
+        //     shouldStartAtBatch: 0,
+        //     totalElementsToAppend: 1,
+        //   })
+        // })
+        it('reverts on initial timestamp in the future', async () => {
+          const timestamp = await getEthTime(ethers.provider)
+  
+          await expect(
+            appendSequencerBatch(OVM_CanonicalTransactionChain, {
+              transactions: ['0x1234'],
+              contexts: [
+                {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 0,
+                  timestamp: timestamp + 100_000_000,
+                  blockNumber: 0,
+                },
+              ],
+              shouldStartAtBatch: 0,
+              totalElementsToAppend: 1,
+            })
+          ).to.be.revertedWith('Context timestamp is from the future.')
         })
       })
 
@@ -837,56 +978,9 @@ describe.only('OVM_CanonicalTransactionChain', () => {
             totalElementsToAppend: 1,
           })
         ).to.be.revertedWith(
-          'Older queue batches must be processed before a new sequencer batch.'
+          'Previously enqueued batches have expired and must be appended before a new sequencer batch.'
         )
       })
-
-      it('should revert if the context timestamp is <= the head queue element timestamp', async () => {
-        // enqueue a tx but do not yet expire
-        await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
-        
-        const timestamp = await getEthTime(ethers.provider) + 100
-
-        await expect(
-          appendSequencerBatch(OVM_CanonicalTransactionChain, {
-            transactions: ['0x1234'],
-            contexts: [
-              {
-                numSequencedTransactions: 1,
-                numSubsequentQueueTransactions: 0,
-                timestamp: timestamp,
-                blockNumber: 0,
-              },
-            ],
-            shouldStartAtBatch: 0,
-            totalElementsToAppend: 1,
-          })
-        ).to.be.revertedWith('Sequencer transaction timestamp exceeds that of next queue element.')
-      })
-
-      it('should revert if the context block number is <= the head queue element block number', async () => {
-          // enqueue a tx but do not yet expire
-          await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
-          
-          const timestamp = (await getEthTime(ethers.provider)) - 100
-          const blockNumber = (await getNextBlockNumber(ethers.provider)) + 100
-
-          await expect(
-            appendSequencerBatch(OVM_CanonicalTransactionChain, {
-              transactions: ['0x1234'],
-              contexts: [
-                {
-                  numSequencedTransactions: 1,
-                  numSubsequentQueueTransactions: 0,
-                  timestamp: timestamp,
-                  blockNumber: blockNumber,
-                },
-              ],
-              shouldStartAtBatch: 0,
-              totalElementsToAppend: 1,
-            })
-          ).to.be.revertedWith('Sequencer transaction blockNumber exceeds that of next queue element.')
-        })
     })
 
     for (const size of ELEMENT_TEST_SIZES) {

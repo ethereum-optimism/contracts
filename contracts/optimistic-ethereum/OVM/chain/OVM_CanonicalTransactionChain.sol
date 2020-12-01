@@ -135,7 +135,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     /**
      * @inheritdoc iOVM_CanonicalTransactionChain
      */
-    function getNextQueueIndex()
+    function getLastStoredQueueIndex()
         override
         public
         view
@@ -189,7 +189,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint40
         )
     {
-        return  _getQueueLength() - getNextQueueIndex();
+        return  _getQueueLength() - getLastStoredQueueIndex();
     }
 
     /**
@@ -280,7 +280,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         bytes32[] memory leaves = new bytes32[](_numQueuedTransactions);
-        uint40 nextQueueIndex = getNextQueueIndex();
+        uint40 nextQueueIndex = getLastStoredQueueIndex();
 
         for (uint256 i = 0; i < _numQueuedTransactions; i++) {
             if (msg.sender != resolve("OVM_Sequencer")) {
@@ -358,10 +358,16 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             "Not enough BatchContexts provided."
         );
 
+        // initialize the array of canonical chain leaves that we will append.
         bytes32[] memory leaves = new bytes32[](totalElementsToAppend);
-        uint32 transactionIndex = 0;
-        uint32 numSequencerTransactionsProcessed = 0;
-        uint40 nextQueueIndex = getNextQueueIndex();
+        // indexing variable for leaves.
+        // Each of these corresponds to a tx, either sequenced or enqueued.
+        uint32 leafIndex = 0;
+        // counter for number of sequencer transactions appended so far.
+        uint32 numSequencerTransactions = 0;
+        // We will sequentially append leaves which are pointers to the queue.
+        // the initial queue index is what is currently in storage
+        uint40 nextQueueIndex = getLastStoredQueueIndex();
         uint40 queueLength = _getQueueLength();
         BatchContext memory context;
 
@@ -376,21 +382,17 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                     txDataLength := shr(232, calldataload(nextTransactionPtr))
                 }
 
-                leaves[transactionIndex] = _getSequencerLeafHash(context, nextTransactionPtr, txDataLength);
+                leaves[leafIndex] = _getSequencerLeafHash(context, nextTransactionPtr, txDataLength);
                 nextTransactionPtr += uint40(TX_DATA_HEADER_SIZE + txDataLength);
-                numSequencerTransactionsProcessed++;
-                transactionIndex++;
+                numSequencerTransactions++;
+                leafIndex++;
             }
 
-            console.log("made it through sequenced transactions");
-
             for (uint32 j = 0; j < context.numSubsequentQueueTransactions; j++) {
-                console.log("queueLength is:", queueLength);
-                console.log("nextQueueIndex is:", nextQueueIndex);
                 require(nextQueueIndex < queueLength, "Not enough queued transactions to append.");
-                leaves[transactionIndex] = _getQueueLeafHash(nextQueueIndex);
+                leaves[leafIndex] = _getQueueLeafHash(nextQueueIndex);
                 nextQueueIndex++;
-                transactionIndex++;
+                leafIndex++;
             }
         }
 
@@ -400,12 +402,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         require(
-            transactionIndex == totalElementsToAppend,
+            leafIndex == totalElementsToAppend,
             "Actual transaction index does not match expected total elements to append."
         );
 
         // Generate the required metadata that we need to append this batch
-        uint40 numQueuedTransactions = totalElementsToAppend - numSequencerTransactionsProcessed;
+        uint40 numQueuedTransactions = totalElementsToAppend - numSequencerTransactions;
         uint40 timestamp;
         uint40 blockNumber;
         if (context.numSubsequentQueueTransactions == 0) {
@@ -756,26 +758,25 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         internal
         view
     {
-        // Context ordering validation
-
         // Checks on all contexts:
         require(
             _context.timestamp >= _prevContext.timestamp,
-            "Context timestamp values must monotonically increase"
+            "Context timestamp values must monotonically increase."
         );
 
         require(
             _context.blockNumber >= _prevContext.blockNumber,
-            "Context block number values must monotonically increase."
+            "Context blockNumber values must monotonically increase."
         );
 
         // Checks if there are some queue elements to consider:
-        if (getNumPendingQueueElements() > 0) {
+        // RENAME ONE OF THESE DANGIT
+        if (_getQueueLength() - _nextQueueIndex > 0) {
             Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_nextQueueIndex);
 
             require(
                 block.timestamp < nextQueueElement.timestamp + forceInclusionPeriodSeconds,
-                "Older queue batches must be processed before a new sequencer batch."
+                "Previously enqueued batches have expired and must be appended before a new sequencer batch."
             );
 
             require(
@@ -789,25 +790,22 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             );
         }
 
-        // checks on only first or last elements:
-
-        if (_contextIndex == 0) {
-            // Checks on first context:
-            if (getTotalElements() == 0) {
-                // No check on first EVER batch:
-                return;
+        // Checks on only first context:
+        if (
+            _contextIndex == 0
+        ) {
+            if (getTotalElements() > 0) {
+                (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
+                require(_context.blockNumber > lastBlockNumber, "Context block number lower than last submitted.");
+                require(_context.timestamp > lastTimestamp, "Context timestamp lower than last submitted.");
             }
-            console.log("_context.timestamp, then block.timestamp, are:");
-            console.log(_context.timestamp);
-            console.log(block.timestamp);
-            (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
-            require(_context.timestamp > lastTimestamp, "Context timestamp too low.");
-            require(_context.timestamp > block.timestamp - TIMESTAMP_TIMEOUT_WINDOW, "Context timestamp too low.");
-            require(_context.blockNumber > lastBlockNumber, "Context block number too low.");
-            require(_context.blockNumber > block.number - BLOCK_NUMBER_TIMEOUT_WINDOW, "Context block number too low.");
+            // todo: make consistent with force inclusion
+            require(_context.timestamp > block.timestamp - TIMESTAMP_TIMEOUT_WINDOW, "Context timestamp too far in the past.");
+            require(_context.blockNumber > block.number - BLOCK_NUMBER_TIMEOUT_WINDOW, "Context block number too far in the past.");
         }
-        else if(_contextIndex == _totalContexts - 1) {
-            // Checks on last context:
+
+        // Checks on on only final context:
+        if (_contextIndex == _totalContexts - 1) {
             require(_context.timestamp < block.timestamp, "Context timestamp is from the future.");
             require(_context.blockNumber < block.number, "Context block number is from the future.");
         }
