@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
@@ -814,7 +814,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             bool
         )
     {
-        bytes32 leafHash = _getQueueLeafHash(_inclusionProof.index);
+        bytes32 leafHash = _getQueueLeafHash(_queueIndex);
 
         require(
             _verifyElement(

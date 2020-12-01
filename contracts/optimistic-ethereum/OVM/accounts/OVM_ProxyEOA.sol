@@ -11,6 +11,8 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
  */
 contract OVM_ProxyEOA {
 
+    bytes32 constant IMPLEMENTATION_KEY = 0xdeaddeaddeaddeaddeaddeaddeaddeaddeaddeaddeaddeaddeaddeaddeaddead;
+
     /***************
      * Constructor *
      ***************/
@@ -30,7 +32,6 @@ contract OVM_ProxyEOA {
         external
     {
         (bool success, bytes memory returndata) = Lib_SafeExecutionManagerWrapper.safeDELEGATECALL(
-            msg.sender,
             gasleft(),
             getImplementation(),
             msg.data
@@ -42,7 +43,6 @@ contract OVM_ProxyEOA {
             }
         } else {
             Lib_SafeExecutionManagerWrapper.safeREVERT(
-                msg.sender,
                 string(returndata)
             );
         }
@@ -59,8 +59,7 @@ contract OVM_ProxyEOA {
         external
     {
         Lib_SafeExecutionManagerWrapper.safeREQUIRE(
-            msg.sender,
-            Lib_SafeExecutionManagerWrapper.safeADDRESS(msg.sender) == Lib_SafeExecutionManagerWrapper.safeCALLER(msg.sender),
+            Lib_SafeExecutionManagerWrapper.safeADDRESS() == Lib_SafeExecutionManagerWrapper.safeCALLER(),
             "EOAs can only upgrade their own EOA implementation"
         );
 
@@ -75,8 +74,7 @@ contract OVM_ProxyEOA {
     {
         return address(uint160(uint256(
             Lib_SafeExecutionManagerWrapper.safeSLOAD(
-                msg.sender,
-                bytes32(uint256(0))
+                IMPLEMENTATION_KEY
             )
         )));
     }
@@ -91,8 +89,7 @@ contract OVM_ProxyEOA {
         internal
     {
         Lib_SafeExecutionManagerWrapper.safeSSTORE(
-            msg.sender,
-            bytes32(uint256(0)),
+            IMPLEMENTATION_KEY,
             bytes32(uint256(uint160(_implementation)))
         );
     }
