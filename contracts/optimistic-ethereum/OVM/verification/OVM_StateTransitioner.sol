@@ -45,9 +45,9 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
      * Contract Variables: Internal Accounting *
      *******************************************/
 
-    TransitionPhase public phase;
     bytes32 internal preStateRoot;
     bytes32 internal postStateRoot;
+    TransitionPhase public phase;
     uint256 internal stateTransitionIndex;
     bytes32 internal transactionHash;
 
