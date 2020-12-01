@@ -17,17 +17,14 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
      * Constants and Parameters *
      ****************************/
 
+    /// The period to find the earliest fraud proof for a publisher
+    uint256 public constant multiFraudProofPeriod = 7 days;
+
     /// The dispute period
     uint256 public constant disputePeriodSeconds = 7 days;
 
     /// The minimum collateral a sequencer must post
-    uint256 public requiredCollateral = 1 ether;
-
-    /// The maximum multiplier for updating the `requiredCollateral`
-    uint256 public constant MAX = 5;
-
-    /// Owner used to bump the security bond size
-    address immutable public owner;
+    uint256 public constant requiredCollateral = 1 ether;
 
 
     /*******************************************
@@ -36,9 +33,6 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
 
     /// The bond token
     ERC20 immutable public token;
-
-    /// The fraud verifier contract, used to get data about transitioners for a pre-state root
-    address public ovmFraudVerifier;
 
 
     /********************************************
@@ -62,7 +56,6 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
     constructor(ERC20 _token, address _libAddressManager)
         Lib_AddressResolver(_libAddressManager)
     {
-        owner = msg.sender;
         token = _token;
     }
 
@@ -72,9 +65,9 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
      ********************/
 
     /// Adds `who` to the list of witnessProviders for the provided `preStateRoot`.
-    function recordGasSpent(bytes32 _preStateRoot, address who, uint256 gasSpent) override public {
+    function recordGasSpent(bytes32 _preStateRoot, bytes32 _txHash, address who, uint256 gasSpent) override public {
         // The sender must be the transitioner that corresponds to the claimed pre-state root
-        address transitioner = address(iOVM_FraudVerifier(resolve("OVM_FraudVerifier")).getStateTransitioner(_preStateRoot));
+        address transitioner = address(iOVM_FraudVerifier(resolve("OVM_FraudVerifier")).getStateTransitioner(_preStateRoot, _txHash));
         require(transitioner == msg.sender, Errors.ONLY_TRANSITIONER);
 
         witnessProviders[_preStateRoot].total += gasSpent;
@@ -83,7 +76,7 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
 
     /// Slashes + distributes rewards or frees up the sequencer's bond, only called by
     /// `FraudVerifier.finalizeFraudVerification`
-    function finalize(bytes32 _preStateRoot, uint256 batchIndex, address publisher, uint256 timestamp) override public {
+    function finalize(bytes32 _preStateRoot, address publisher, uint256 timestamp) override public {
         require(msg.sender == resolve("OVM_FraudVerifier"), Errors.ONLY_FRAUD_VERIFIER);
         require(witnessProviders[_preStateRoot].canClaim == false, Errors.ALREADY_FINALIZED);
 
@@ -92,6 +85,19 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         witnessProviders[_preStateRoot].canClaim = true;
 
         Bond storage bond = bonds[publisher];
+        if (bond.firstDisputeAt == 0) {
+            bond.firstDisputeAt = block.timestamp;
+            bond.earliestDisputedStateRoot = _preStateRoot;
+            bond.earliestTimestamp = timestamp;
+        } else if (
+            // only update the disputed state root for the publisher if it's within
+            // the dispute period _and_ if it's before the previous one
+            block.timestamp < bond.firstDisputeAt + multiFraudProofPeriod &&
+            timestamp < bond.earliestTimestamp
+        ) {
+            bond.earliestDisputedStateRoot = _preStateRoot;
+            bond.earliestTimestamp = timestamp;
+        }
 
         // if the fraud proof's dispute period does not intersect with the 
         // withdrawal's timestamp, then the user should not be slashed
@@ -113,9 +119,9 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
 
     /// Sequencers call this function to post collateral which will be used for
     /// the `appendBatch` call
-    function deposit(uint256 amount) override public {
+    function deposit() override public {
         require(
-            token.transferFrom(msg.sender, address(this), amount),
+            token.transferFrom(msg.sender, address(this), requiredCollateral),
             Errors.ERC20_ERR
         );
 
@@ -153,8 +159,17 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         );
     }
 
-    /// Claims the user's reward for the witnesses they provided
-    function claim(bytes32 _preStateRoot) override public {
+    /// Claims the user's reward for the witnesses they provided for the earliest
+    /// disputed state root of the designated publisher
+    function claim(address who) override public {
+        Bond storage bond = bonds[who];
+        require(
+            block.timestamp >= bond.firstDisputeAt + multiFraudProofPeriod,
+            Errors.WAIT_FOR_DISPUTES
+        );
+
+        // reward the earliest state root for this publisher
+        bytes32 _preStateRoot = bond.earliestDisputedStateRoot;
         Rewards storage rewards = witnessProviders[_preStateRoot];
 
         // only allow claiming if fraud was proven in `finalize`
@@ -171,16 +186,7 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         require(token.transfer(msg.sender, amount), Errors.ERC20_ERR);
     }
 
-    /// Sets the required collateral for posting a state root
-    /// Callable only by the contract's deployer.
-    function setRequiredCollateral(uint256 newValue) override public {
-        require(newValue > requiredCollateral, Errors.LOW_VALUE);
-        require(newValue < MAX * requiredCollateral, Errors.HIGH_VALUE);
-        require(msg.sender == owner, Errors.ONLY_OWNER);
-        requiredCollateral = newValue;
-    }
-
-    /// Checks if the user is collateralized for the batchIndex
+    /// Checks if the user is collateralized
     function isCollateralized(address who) override public view returns (bool) {
         return bonds[who].state == State.COLLATERALIZED;
     }
