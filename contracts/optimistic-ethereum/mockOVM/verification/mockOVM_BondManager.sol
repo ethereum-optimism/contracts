@@ -42,7 +42,7 @@ contract mockOVM_BondManager is iOVM_BondManager {
     {}
 
     function claim(
-        bytes32 _preStateRoot
+        address who
     )
         override
         public
