@@ -19,8 +19,16 @@ const callPrecompile = async (
   Helper_PrecompileCaller: Contract,
   precompile: Contract,
   functionName: string,
-  functionParams?: any[]
+  functionParams?: any[],
+  gasLimit?: number
 ): Promise<any> => {
+  if (gasLimit) {
+    return Helper_PrecompileCaller.callPrecompile(
+      precompile.address,
+      precompile.interface.encodeFunctionData(functionName, functionParams || []),
+      {gasLimit}
+    )
+  }
   return Helper_PrecompileCaller.callPrecompile(
     precompile.address,
     precompile.interface.encodeFunctionData(functionName, functionParams || [])
@@ -233,7 +241,7 @@ describe('OVM_ECDSAContractAccount', () => {
     it(`should revert on insufficient gas`, async () => {
       const alteredInsufficientGasTx = {
         ...DEFAULT_EIP155_TX,
-        gasLimit : 88888888
+        gasLimit : 200000000
       }
       const message = serializeNativeTransaction(alteredInsufficientGasTx)
       const sig = await signNativeTransaction(wallet, alteredInsufficientGasTx)
@@ -248,7 +256,8 @@ describe('OVM_ECDSAContractAccount', () => {
           `0x${sig.v}`, //v
           `0x${sig.r}`, //r
           `0x${sig.s}`, //s
-        ]
+        ],
+        40000000,
       )
 
       const ovmREVERT: any =
