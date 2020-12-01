@@ -177,8 +177,10 @@ describe('OVM_ECDSAContractAccount', () => {
     })
 
     it(`should revert on incorrect nonce`, async () => {
-      const alteredNonceTx = DEFAULT_EIP155_TX
-      alteredNonceTx.nonce = 99
+      const alteredNonceTx = {
+        ...DEFAULT_EIP155_TX,
+        nonce : 99
+      }
       const message = serializeNativeTransaction(alteredNonceTx)
       const sig = await signNativeTransaction(wallet, alteredNonceTx)
 
@@ -225,6 +227,33 @@ describe('OVM_ECDSAContractAccount', () => {
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
       expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
         'Transaction chainId does not match expected OVM chainId.'
+      )
+    })
+
+    it(`should revert on too low transaction gas limit`, async () => {
+      const alteredGasLimitTx = {
+        ...DEFAULT_EIP155_TX,
+        gasLimit : 1111
+      }
+      const message = serializeNativeTransaction(alteredGasLimitTx)
+      const sig = await signNativeTransaction(wallet, alteredGasLimitTx)
+
+      await callPrecompile(
+        Helper_PrecompileCaller,
+        OVM_ECDSAContractAccount,
+        'execute',
+        [
+          message,
+          0, //isEthSignedMessage
+          `0x${sig.v}`, //v
+          `0x${sig.r}`, //r
+          `0x${sig.s}`, //s
+        ]
+      )
+      const ovmREVERT: any =
+        Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
+      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+        'Transaction gasLimit is below the minimum needed.'
       )
     })
   })

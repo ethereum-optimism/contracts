@@ -16,6 +16,7 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
     address constant ETH_ERC20_ADDRESS = 0x4200000000000000000000000000000000000006;
+    uint256 constant MIN_GAS_LIMIT_PER_TRANSACTION = 2000;
 
     /********************
      * Public Functions *
@@ -76,6 +77,12 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             "Transaction nonce does not match the expected nonce."
         );
 
+        // Need to check that the gas limit will not cause underflow.
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+            decodedTx.gasLimit >= MIN_GAS_LIMIT_PER_TRANSACTION,
+            "Transaction gasLimit is below the minimum needed."
+        );
+
         // Transfer fee to relayer.
         address relayer = Lib_SafeExecutionManagerWrapper.safeCALLER();
         uint256 fee = decodedTx.gasLimit * decodedTx.gasPrice;
@@ -88,7 +95,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         // Contract creations are signalled by sending a transaction to the zero address.
         if (decodedTx.to == address(0)) {
             address created = Lib_SafeExecutionManagerWrapper.safeCREATE(
-                decodedTx.gasLimit - 2000,
+                decodedTx.gasLimit - MIN_GAS_LIMIT_PER_TRANSACTION,
                 decodedTx.data
             );
 
