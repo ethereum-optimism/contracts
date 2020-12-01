@@ -96,7 +96,7 @@ library Lib_MerkleUtils {
 
         for (uint256 i = 0; i < _siblings.length; i++) {
             bytes32 sibling = _siblings[i];
-            bool isRightSibling = uint8(_path >> i & 1) == 1;
+            bool isRightSibling = uint8(_path >> i & 1) == 0;
 
             if (isRightSibling) {
                 computedRoot = _getParentHash(computedRoot, sibling);
@@ -141,7 +141,10 @@ library Lib_MerkleUtils {
 
         defaultHashes[0] = keccak256(abi.encodePacked(uint256(0)));
         for (uint256 i = 1; i < defaultHashes.length; i++) {
-            defaultHashes[i] = keccak256(abi.encodePacked(defaultHashes[i-1]));
+            defaultHashes[i] = keccak256(abi.encodePacked(
+                defaultHashes[i-1],
+                defaultHashes[i-1]
+            ));
         }
 
         return defaultHashes;

@@ -29,7 +29,7 @@ contract Mock_FraudVerifier {
         return transitioners[keccak256(abi.encodePacked(_preStateRoot, _txHash))];
     }
 
-    function finalize(bytes32 _preStateRoot, uint256 batchIndex, address publisher, uint256 timestamp) public {
-        bondManager.finalize(_preStateRoot, batchIndex, publisher, timestamp);
+    function finalize(bytes32 _preStateRoot, address publisher, uint256 timestamp) public {
+        bondManager.finalize(_preStateRoot, publisher, timestamp);
     }
 }
