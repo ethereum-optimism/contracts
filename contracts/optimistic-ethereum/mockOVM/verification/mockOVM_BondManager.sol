@@ -42,7 +42,7 @@ contract mockOVM_BondManager is iOVM_BondManager {
     {}
 
     function claim(
-        address who
+        address _who
     )
         override
         public
