@@ -419,7 +419,6 @@ describe('OVM_FraudVerifier', () => {
           state2.smocked.getPostStateRoot.will.return.with(NULL_BYTES32)
         })
 
-        // TODO: Should we add additional context? Is the tx hash enough?
         it('creates multiple state transitioners per tx hash', async () => {
           await expect(
             OVM_FraudVerifier.initializeFraudVerification(
@@ -472,7 +471,7 @@ describe('OVM_FraudVerifier', () => {
             DUMMY_OVM_TRANSACTIONS[1],
             DUMMY_TX_CHAIN_ELEMENTS[1],
             DUMMY_BATCH_HEADERS[1],
-            DUMMY_BATCH_PROOFS[1]
+            DUMMY_BATCH_PROOFS[0]
           )
 
           // finalize it as well
@@ -505,7 +504,7 @@ describe('OVM_FraudVerifier', () => {
             DUMMY_OVM_TRANSACTIONS[1],
             DUMMY_TX_CHAIN_ELEMENTS[1],
             DUMMY_BATCH_HEADERS[1],
-            DUMMY_BATCH_PROOFS[1]
+            DUMMY_BATCH_PROOFS[0]
           )
 
           // finalize the new fraud first
