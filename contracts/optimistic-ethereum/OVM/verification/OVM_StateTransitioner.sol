@@ -38,7 +38,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
      * Contract Variables: Contract References *
      *******************************************/
 
-    iOVM_StateManager internal ovmStateManager;
+    iOVM_StateManager public ovmStateManager;
 
 
     /*******************************************
@@ -47,7 +47,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
 
     bytes32 internal preStateRoot;
     bytes32 internal postStateRoot;
-    TransitionPhase internal phase;
+    TransitionPhase public phase;
     uint256 internal stateTransitionIndex;
     bytes32 internal transactionHash;
 
@@ -167,7 +167,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
-        contributesToFraudProof(preStateRoot)
+        contributesToFraudProof(preStateRoot, transactionHash)
     {
         // Exit quickly to avoid unnecessary work.
         require(
@@ -215,7 +215,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
-        contributesToFraudProof(preStateRoot)
+        contributesToFraudProof(preStateRoot, transactionHash)
     {
         // Exit quickly to avoid unnecessary work.
         require(
@@ -251,7 +251,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
-        contributesToFraudProof(preStateRoot)
+        contributesToFraudProof(preStateRoot, transactionHash)
     {
         // Exit quickly to avoid unnecessary work.
         require(
@@ -307,7 +307,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         override
         public
         onlyDuringPhase(TransitionPhase.PRE_EXECUTION)
-        contributesToFraudProof(preStateRoot)
+        contributesToFraudProof(preStateRoot, transactionHash)
     {
         require(
             Lib_OVMCodec.hashTransaction(_transaction) == transactionHash,
@@ -346,7 +346,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         override
         public
         onlyDuringPhase(TransitionPhase.POST_EXECUTION)
-        contributesToFraudProof(preStateRoot)
+        contributesToFraudProof(preStateRoot, transactionHash)
     {
         require(
             ovmStateManager.commitAccount(_ovmContractAddress) == true,
@@ -381,7 +381,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         override
         public
         onlyDuringPhase(TransitionPhase.POST_EXECUTION)
-        contributesToFraudProof(preStateRoot)
+        contributesToFraudProof(preStateRoot, transactionHash)
     {
         require(
             ovmStateManager.commitContractStorage(_ovmContractAddress, _key) == true,
