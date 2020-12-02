@@ -135,7 +135,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     /**
      * @inheritdoc iOVM_CanonicalTransactionChain
      */
-    function getLastStoredQueueIndex()
+    function getNextPendingQueueIndex()
         override
         public
         view
@@ -189,7 +189,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint40
         )
     {
-        return  _getQueueLength() - getLastStoredQueueIndex();
+        return  _getQueueLength() - getNextPendingQueueIndex();
     }
 
     /**
@@ -280,7 +280,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         bytes32[] memory leaves = new bytes32[](_numQueuedTransactions);
-        uint40 nextQueueIndex = getLastStoredQueueIndex();
+        uint40 nextQueueIndex = getNextPendingQueueIndex();
 
         for (uint256 i = 0; i < _numQueuedTransactions; i++) {
             if (msg.sender != resolve("OVM_Sequencer")) {
@@ -367,7 +367,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint32 numSequencerTransactions = 0;
         // We will sequentially append leaves which are pointers to the queue.
         // the initial queue index is what is currently in storage
-        uint40 nextQueueIndex = getLastStoredQueueIndex();
+        uint40 nextQueueIndex = getNextPendingQueueIndex();
         uint40 queueLength = _getQueueLength();
         BatchContext memory context;
 
@@ -808,8 +808,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                 require(_context.timestamp > lastTimestamp, "Context timestamp lower than last submitted.");
             }
             // todo: make consistent with force inclusion
-            require(_context.timestamp > block.timestamp - TIMESTAMP_TIMEOUT_WINDOW, "Context timestamp too far in the past.");
-            require(_context.blockNumber > block.number - BLOCK_NUMBER_TIMEOUT_WINDOW, "Context block number too far in the past.");
+            require(_context.timestamp + TIMESTAMP_TIMEOUT_WINDOW > block.timestamp, "Context timestamp too far in the past.");
+            require(_context.blockNumber + BLOCK_NUMBER_TIMEOUT_WINDOW > block.number, "Context block number too far in the past.");
         }
 
         // Checks on on only final context:

@@ -66,8 +66,8 @@ interface iOVM_CanonicalTransactionChain {
     function init() external;
 
     /**
-     * Retrieves the total number of elements submitted.
-     * @return _totalElements Total submitted elements.
+     * Retrieves the total number of elements appended to the CTC.
+     * @return _totalElements Total appended elements.
      */
     function getTotalElements()
         external
@@ -91,7 +91,7 @@ interface iOVM_CanonicalTransactionChain {
      * Returns the index of the next element to be enqueued.
      * @return Index for the next queue element.
      */
-    function getNextQueueIndex()
+    function getNextPendingQueueIndex()
         external
         view
         returns (
