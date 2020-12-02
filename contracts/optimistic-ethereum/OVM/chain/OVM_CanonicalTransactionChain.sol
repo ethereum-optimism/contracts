@@ -679,6 +679,14 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             extraData: hex""
         });
 
+        emit TransactionBatchAppended(
+            header.batchIndex,
+            header.batchRoot,
+            header.batchSize,
+            header.prevTotalElements,
+            header.extraData
+        );
+
         bytes32 batchHeaderHash = Lib_OVMCodec.hashBatchHeader(header);
         bytes27 latestBatchContext = _makeBatchExtraData(
             totalElements + uint40(header.batchSize),
@@ -814,7 +822,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             bool
         )
     {
-        bytes32 leafHash = _getQueueLeafHash(_inclusionProof.index);
+        bytes32 leafHash = _getQueueLeafHash(_queueIndex);
 
         require(
             _verifyElement(

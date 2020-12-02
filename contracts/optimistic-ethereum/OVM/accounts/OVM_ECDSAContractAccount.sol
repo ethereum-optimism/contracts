@@ -9,6 +9,7 @@ import { iOVM_ECDSAContractAccount } from "../../iOVM/accounts/iOVM_ECDSAContrac
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
+import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrapper.sol";
 
 /**
  * @title OVM_ECDSAContractAccount
@@ -16,6 +17,7 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
     address constant ETH_ERC20_ADDRESS = 0x4200000000000000000000000000000000000006;
+    uint256 constant EXECUTION_VALIDATION_GAS_OVERHEAD = 25000; // TODO: should be the amount sufficient to cover the gas costs of all of the transactions up to and including the CALL/CREATE which forms the entrypoint of the transaction.
 
     /********************
      * Public Functions *
@@ -64,10 +66,22 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
         Lib_OVMCodec.EIP155Transaction memory decodedTx = Lib_OVMCodec.decodeEIP155Transaction(_transaction, isEthSign);
 
+        // Need to make sure that the transaction chainId is correct.
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+            decodedTx.chainId == Lib_SafeExecutionManagerWrapper.safeCHAINID(),
+            "Transaction chainId does not match expected OVM chainId."
+        );
+
         // Need to make sure that the transaction nonce is right.
         Lib_SafeExecutionManagerWrapper.safeREQUIRE(
             decodedTx.nonce == Lib_SafeExecutionManagerWrapper.safeGETNONCE(),
             "Transaction nonce does not match the expected nonce."
+        );
+
+        // Need to make sure that the gas is sufficient to execute the transaction.
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+           gasleft() >= Lib_SafeMathWrapper.add(decodedTx.gasLimit, EXECUTION_VALIDATION_GAS_OVERHEAD),
+           "Gas is not sufficient to execute the transaction."
         );
 
         // Transfer fee to relayer.
@@ -82,7 +96,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         // Contract creations are signalled by sending a transaction to the zero address.
         if (decodedTx.to == address(0)) {
             address created = Lib_SafeExecutionManagerWrapper.safeCREATE(
-                decodedTx.gasLimit - 2000,
+                decodedTx.gasLimit,
                 decodedTx.data
             );
 
