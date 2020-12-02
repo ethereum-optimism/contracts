@@ -358,37 +358,39 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             "Not enough BatchContexts provided."
         );
 
-        // initialize the array of canonical chain leaves that we will append.
+        // Get queue length for future comparison/
+        uint40 queueLength = _getQueueLength();
+
+        // Initialize the array of canonical chain leaves that we will append.
         bytes32[] memory leaves = new bytes32[](totalElementsToAppend);
-        // indexing variable for leaves.
-        // Each of these corresponds to a tx, either sequenced or enqueued.
+        // Each leaf index corresponds to a tx, either sequenced or enqueued.
         uint32 leafIndex = 0;
-        // counter for number of sequencer transactions appended so far.
+        // Counter for number of sequencer transactions appended so far.
         uint32 numSequencerTransactions = 0;
         // We will sequentially append leaves which are pointers to the queue.
-        // the initial queue index is what is currently in storage
+        // The initial queue index is what is currently in storage.
         uint40 nextQueueIndex = getNextPendingQueueIndex();
-        uint40 queueLength = _getQueueLength();
-        BatchContext memory context;
+
+        BatchContext memory curContext;
 
         for (uint32 i = 0; i < numContexts; i++) {
             BatchContext memory nextContext = _getBatchContext(i);
-            _validateBatchContext(nextContext, context, nextQueueIndex, i, numContexts);
-            context = nextContext;
+            _validateBatchContext(nextContext, curContext, nextQueueIndex, i, numContexts);
+            curContext = nextContext;
 
-            for (uint32 j = 0; j < context.numSequencedTransactions; j++) {
+            for (uint32 j = 0; j < curContext.numSequencedTransactions; j++) {
                 uint256 txDataLength;
                 assembly {
                     txDataLength := shr(232, calldataload(nextTransactionPtr))
                 }
 
-                leaves[leafIndex] = _getSequencerLeafHash(context, nextTransactionPtr, txDataLength);
+                leaves[leafIndex] = _getSequencerLeafHash(curContext, nextTransactionPtr, txDataLength);
                 nextTransactionPtr += uint40(TX_DATA_HEADER_SIZE + txDataLength);
                 numSequencerTransactions++;
                 leafIndex++;
             }
 
-            for (uint32 j = 0; j < context.numSubsequentQueueTransactions; j++) {
+            for (uint32 j = 0; j < curContext.numSubsequentQueueTransactions; j++) {
                 require(nextQueueIndex < queueLength, "Not enough queued transactions to append.");
                 leaves[leafIndex] = _getQueueLeafHash(nextQueueIndex);
                 nextQueueIndex++;
@@ -410,10 +412,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint40 numQueuedTransactions = totalElementsToAppend - numSequencerTransactions;
         uint40 timestamp;
         uint40 blockNumber;
-        if (context.numSubsequentQueueTransactions == 0) {
+        if (curContext.numSubsequentQueueTransactions == 0) {
             // The last element is a sequencer tx, therefore pull timestamp and block number from the last context.
-            timestamp = uint40(context.timestamp);
-            blockNumber = uint40(context.blockNumber);
+            timestamp = uint40(curContext.timestamp);
+            blockNumber = uint40(curContext.blockNumber);
         } else {
             // The last element is a queue tx, therefore pull timestamp and block number from the queue element.
             Lib_OVMCodec.QueueElement memory lastElement = getQueueElement(nextQueueIndex - 1);
@@ -603,7 +605,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * Retrieves the length of the queue.
+     * Retrieves the length of the queue, including
+     * both pending and canonical transactions.
      * @return Length of the queue.
      */
     function _getQueueLength()
@@ -777,8 +780,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             "Context blockNumber values must monotonically increase."
         );
 
-        // Checks if there are some queue elements to consider:
-        // RENAME ONE OF THESE DANGIT
+        // Checks if there are some queue elements pending:
         if (_getQueueLength() - _nextQueueIndex > 0) {
             Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_nextQueueIndex);
 
@@ -813,6 +815,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         }
 
         // Checks on on only final context:
+        // todo move this out to the end?
         if (_contextIndex == _totalContexts - 1) {
             require(_context.timestamp < block.timestamp, "Context timestamp is from the future.");
             require(_context.blockNumber < block.number, "Context block number is from the future.");
