@@ -57,7 +57,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
     uint256 internal forceInclusionPeriodSeconds;
     uint256 internal forceInclusionPeriodBlocks;
-    uint256 internal lastOVMTimestamp;
     Lib_RingBuffer.RingBuffer internal batches;
     Lib_RingBuffer.RingBuffer internal queue;
 
@@ -808,7 +807,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                 require(_context.blockNumber >= lastBlockNumber, "Context block number is lower than last submitted.");
                 require(_context.timestamp >= lastTimestamp, "Context timestamp is lower than last submitted.");
             }
-            // todo: make consistent with force inclusion
             require(_context.timestamp + forceInclusionPeriodSeconds >= block.timestamp, "Context timestamp too far in the past.");
             require(_context.blockNumber + forceInclusionPeriodBlocks >= block.number, "Context block number too far in the past.");
         }
