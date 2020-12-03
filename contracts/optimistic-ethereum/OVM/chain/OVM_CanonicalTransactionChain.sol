@@ -184,7 +184,24 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint40
         )
     {
-        return  _getQueueLength() - getNextPendingQueueIndex();
+        return  getQueueLength() - getNextPendingQueueIndex();
+    }
+
+    /**
+     * @inheritdoc iOVM_CanonicalTransactionChain
+     */
+    function getQueueLength()
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+        // The underlying queue data structure stores 2 elements
+        // per insertion, so to get the real queue length we need
+        // to divide by 2. See the usage of `push2(..)`.
+        return queue.getLength() / 2;
     }
 
     /**
@@ -354,7 +371,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         // Get queue length for future comparison/
-        uint40 queueLength = _getQueueLength();
+        uint40 queueLength = getQueueLength();
 
         // Initialize the array of canonical chain leaves that we will append.
         bytes32[] memory leaves = new bytes32[](totalElementsToAppend);
@@ -600,24 +617,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * Retrieves the length of the queue, including
-     * both pending and canonical transactions.
-     * @return Length of the queue.
-     */
-    function _getQueueLength()
-        internal
-        view
-        returns (
-            uint40
-        )
-    {
-        // The underlying queue data structure stores 2 elements
-        // per insertion, so to get the real queue length we need
-        // to divide by 2. See the usage of `push2(..)`.
-        return queue.getLength() / 2;
-    }
-
-    /**
      * Retrieves the hash of a sequencer element.
      * @param _context Batch context for the given element.
      * @param _nextTransactionPtr Pointer to the next transaction in the calldata.
@@ -776,7 +775,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         // Checks if there are some queue elements pending:
-        if (_getQueueLength() - _nextQueueIndex > 0) {
+        if (getQueueLength() - _nextQueueIndex > 0) {
             Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_nextQueueIndex);
 
             require(

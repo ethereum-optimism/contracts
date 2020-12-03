@@ -110,6 +110,18 @@ interface iOVM_CanonicalTransactionChain {
         );
 
     /**
+     * Retrieves the length of the queue, including
+     * both pending and canonical transactions.
+     * @return Length of the queue.
+     */
+    function getQueueLength()
+        external
+        view
+        returns (
+            uint40
+        );
+
+    /**
      * Gets the queue element at a particular index.
      * @param _index Index of the queue element to access.
      * @return _element Queue element at the given index.
