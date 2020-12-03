@@ -812,12 +812,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         }
 
         // Checks on on only final context:
-        // todo move this out to the end?
         if (_contextIndex == _totalContexts - 1) {
             require(_context.timestamp <= block.timestamp, "Context timestamp is from the future.");
             require(_context.blockNumber <= block.number, "Context block number is from the future.");
-        }
-        
+        }        
     }
 
     /**
