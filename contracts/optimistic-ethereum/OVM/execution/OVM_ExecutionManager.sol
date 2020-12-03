@@ -134,20 +134,25 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             "Only authenticated addresses in ovmStateManager can call this function"
         );
 
-        // Check whether we need to start a new epoch, do so if necessary.
-        _checkNeedsNewEpoch(_transaction.timestamp);
-
         // Make sure the transaction's gas limit is valid. We don't revert here because we reserve
         // reverts for INVALID_STATE_ACCESS.
         if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
             return;
         }
 
+        // We require gas to complete the logic here in run() before/after execution,
+        // But must ensure the full _tx.gasLimit can be given to the ovmCALL (determinism)
+        // This includes 1/64 of the gas getting lost because of EIP-150
+        uint256 gasProvided = gasleft();
+        require(gasProvided >= 100000 + _transaction.gasLimit * 64 / 63, "Not enough gas to execute deterministically");
+
+        // Check whether we need to start a new epoch, do so if necessary.
+        _checkNeedsNewEpoch(_transaction.timestamp);
+
         // Initialize the execution context.
         _initContext(_transaction);
 
         // Run the transaction, make sure to meter the gas usage.
-        uint256 gasProvided = gasleft();
         ovmCALL(
             _transaction.gasLimit - gasMeterConfig.minTransactionGasLimit,
             _transaction.entrypoint,
