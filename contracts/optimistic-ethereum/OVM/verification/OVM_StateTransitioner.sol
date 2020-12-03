@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_EthUtils } from "../../libraries/utils/Lib_EthUtils.sol";
+import { Lib_BytesUtils } from "../../libraries/utils/Lib_BytesUtils.sol";
 import { Lib_SecureMerkleTrie } from "../../libraries/trie/Lib_SecureMerkleTrie.sol";
 import { Lib_RLPWriter } from "../../libraries/rlp/Lib_RLPWriter.sol";
 import { Lib_RLPReader } from "../../libraries/rlp/Lib_RLPReader.sol";
@@ -299,7 +300,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             if (exists == true) {
                 bytes memory value = Lib_RLPReader.readBytes(encodedValue);
                 require(
-                    keccak256(value) == keccak256(abi.encodePacked(_value)),
+                    keccak256(abi.encodePacked(Lib_BytesUtils.toBytes32(value))) == keccak256(abi.encodePacked(_value)),
                     "OVM_StateTransitioner: Provided value does not match proven value."
                 );
             } else {
