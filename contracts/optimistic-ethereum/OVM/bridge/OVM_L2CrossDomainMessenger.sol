@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 // +build ovm
-pragma solidity >=0.5.0 <0.8.0;
+// +build evm
+pragma solidity >=0.6.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver_L2.sol";
+import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 
 /* Interface Imports */
 import { iOVM_BaseCrossDomainMessenger } from "../../iOVM/bridge/iOVM_BaseCrossDomainMessenger.sol";
@@ -25,8 +26,8 @@ contract OVM_L2CrossDomainMessenger is iOVM_BaseCrossDomainMessenger, iOVM_L2Cro
     mapping (bytes32 => bool) public successfulMessages;
     mapping (bytes32 => bool) public sentMessages;
     uint256 public messageNonce;
-    address public xDomainMessageSender;
-    
+    address public override xDomainMessageSender;
+
 
     /***************
      * Constructor *
@@ -59,6 +60,7 @@ contract OVM_L2CrossDomainMessenger is iOVM_BaseCrossDomainMessenger, iOVM_L2Cro
         uint32 _gasLimit
     )
         public
+        override
     {
         bytes memory xDomainCalldata = _getXDomainCalldata(
             _target,
@@ -86,6 +88,7 @@ contract OVM_L2CrossDomainMessenger is iOVM_BaseCrossDomainMessenger, iOVM_L2Cro
         uint256 _messageNonce
     )
         public
+        override
     {
         require(
             _verifyXDomainMessage() == true,

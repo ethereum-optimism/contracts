@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 // +build evm
-pragma solidity ^0.7.0;
+pragma solidity >=0.6.0 <0.8.0;
 
 /**
  * @title Ownable
@@ -29,7 +29,7 @@ abstract contract Ownable {
      * Constructor *
      ***************/
 
-    constructor() {
+    constructor() internal {
         owner = msg.sender;
         emit OwnershipTransferred(address(0), owner);
     }
@@ -54,7 +54,7 @@ abstract contract Ownable {
 
     function renounceOwnership()
         public
-        onlyOwner 
+        onlyOwner
     {
         emit OwnershipTransferred(owner, address(0));
         owner = address(0);
