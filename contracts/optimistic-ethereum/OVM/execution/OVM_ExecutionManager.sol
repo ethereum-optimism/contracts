@@ -134,6 +134,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             "Only authenticated addresses in ovmStateManager can call this function"
         );
 
+        // Initialize the execution context.
+        _initContext(_transaction);
+
         // Check whether we need to start a new epoch, do so if necessary.
         _checkNeedsNewEpoch(_transaction.timestamp);
 
@@ -142,9 +145,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
             return;
         }
-
-        // Initialize the execution context.
-        _initContext(_transaction);
 
         // Run the transaction, make sure to meter the gas usage.
         uint256 gasProvided = gasleft();
