@@ -791,7 +791,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         require(
             _transaction.blockNumber        == _txChainElement.blockNumber
             && _transaction.timestamp       == _txChainElement.timestamp
-            && _transaction.entrypoint      == resolve("OVM_DecompressionPrecompileAddress")
+            && _transaction.entrypoint      == 0x4200000000000000000000000000000000000005
             && _transaction.gasLimit        == gasLimit
             && _transaction.l1TxOrigin      == address(0)
             && _transaction.l1QueueOrigin   == Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE
