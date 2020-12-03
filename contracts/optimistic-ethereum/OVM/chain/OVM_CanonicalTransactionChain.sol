@@ -38,10 +38,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * Constants *
      *************/
 
-    // Sequencing constants
-    uint256 constant public TIMESTAMP_TIMEOUT_WINDOW = 10 minutes;
-    uint256 constant public BLOCK_NUMBER_TIMEOUT_WINDOW = 250;
-
     // Tx/gas constants
     uint256 constant public MIN_ROLLUP_TX_GAS = 20000;
     uint256 constant public MAX_ROLLUP_TX_SIZE = 10000;
@@ -60,6 +56,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      *************/
 
     uint256 internal forceInclusionPeriodSeconds;
+    uint256 internal forceInclusionPeriodBlocks;
     uint256 internal lastOVMTimestamp;
     Lib_RingBuffer.RingBuffer internal batches;
     Lib_RingBuffer.RingBuffer internal queue;
@@ -71,11 +68,13 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
     constructor(
         address _libAddressManager,
-        uint256 _forceInclusionPeriodSeconds
+        uint256 _forceInclusionPeriodSeconds,
+        uint256 _forceInclusionPeriodBlocks
     )
         Lib_AddressResolver(_libAddressManager)
     {
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
+        forceInclusionPeriodBlocks = _forceInclusionPeriodBlocks;
     }
 
 
@@ -806,19 +805,19 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         ) {
             if (getTotalElements() > 0) {
                 (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
-                require(_context.blockNumber > lastBlockNumber, "Context block number lower than last submitted.");
-                require(_context.timestamp > lastTimestamp, "Context timestamp lower than last submitted.");
+                require(_context.blockNumber >= lastBlockNumber, "Context block number is lower than last submitted.");
+                require(_context.timestamp >= lastTimestamp, "Context timestamp is lower than last submitted.");
             }
             // todo: make consistent with force inclusion
-            require(_context.timestamp + TIMESTAMP_TIMEOUT_WINDOW > block.timestamp, "Context timestamp too far in the past.");
-            require(_context.blockNumber + BLOCK_NUMBER_TIMEOUT_WINDOW > block.number, "Context block number too far in the past.");
+            require(_context.timestamp + forceInclusionPeriodSeconds >= block.timestamp, "Context timestamp too far in the past.");
+            require(_context.blockNumber + forceInclusionPeriodBlocks >= block.number, "Context block number too far in the past.");
         }
 
         // Checks on on only final context:
         // todo move this out to the end?
         if (_contextIndex == _totalContexts - 1) {
-            require(_context.timestamp < block.timestamp, "Context timestamp is from the future.");
-            require(_context.blockNumber < block.number, "Context block number is from the future.");
+            require(_context.timestamp <= block.timestamp, "Context timestamp is from the future.");
+            require(_context.blockNumber <= block.number, "Context block number is from the future.");
         }
         
     }
