@@ -54,6 +54,14 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
     bytes32 internal transactionHash;
 
 
+    /*************
+     * Constants *
+     *************/
+
+    bytes32 internal constant EMPTY_ACCOUNT_CODE_HASH = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+    bytes32 internal constant EMPTY_ACCOUNT_STORAGE_ROOT = 0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421;
+
+
     /***************
      * Constructor *
      ***************/
@@ -177,8 +185,13 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             "Account state has already been proven"
         );
 
+        address ethContractAddress = _ethContractAddress;
+        if (_account.codeHash == EMPTY_ACCOUNT_CODE_HASH) {
+            ethContractAddress = 0x0000c0De0000C0DE0000c0de0000C0DE0000c0De;
+        }
+
         require(
-            _account.codeHash == Lib_EthUtils.getCodeHash(_ethContractAddress),
+            _account.codeHash == Lib_EthUtils.getCodeHash(ethContractAddress),
             "Invalid code hash provided."
         );
 
@@ -199,7 +212,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
                 balance: _account.balance,
                 storageRoot: _account.storageRoot,
                 codeHash: _account.codeHash,
-                ethAddress: _ethContractAddress,
+                ethAddress: ethContractAddress,
                 isFresh: false
             })
         );
@@ -266,26 +279,35 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             "Contract must be verified before proving a storage slot."
         );
 
-        (
-            bool exists,
-            bytes memory encodedValue
-        ) = Lib_SecureMerkleTrie.get(
-            abi.encodePacked(_key),
-            _storageTrieWitness,
-            ovmStateManager.getAccountStorageRoot(_ovmContractAddress)
-        );
+        bytes32 storageRoot = ovmStateManager.getAccountStorageRoot(_ovmContractAddress);
 
-        if (exists == true) {
-            bytes memory value = Lib_RLPReader.readBytes(encodedValue);
-            require(
-                keccak256(value) == keccak256(abi.encodePacked(_value)),
-                "Provided storage slot value is invalid."
-            );
-        } else {
+        if (storageRoot == EMPTY_ACCOUNT_STORAGE_ROOT) {
             require(
                 _value == bytes32(0),
-                "Provided storage slot value is invalid."
+                "OVM_StateTransitioner: Contract storage is empty, but provided value was non-zero."
             );
+        } else {
+            (
+                bool exists,
+                bytes memory encodedValue
+            ) = Lib_SecureMerkleTrie.get(
+                abi.encodePacked(_key),
+                _storageTrieWitness,
+                storageRoot
+            );
+
+            if (exists == true) {
+                bytes memory value = Lib_RLPReader.readBytes(encodedValue);
+                require(
+                    keccak256(value) == keccak256(abi.encodePacked(_value)),
+                    "OVM_StateTransitioner: Provided value does not match proven value."
+                );
+            } else {
+                require(
+                    _value == bytes32(0),
+                    "OVM_StateTransitioner: Key was proven to be excluded from the trie, but provided value was non-zero."
+                );
+            }
         }
 
         ovmStateManager.putContractStorage(
