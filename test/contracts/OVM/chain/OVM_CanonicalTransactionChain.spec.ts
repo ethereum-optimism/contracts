@@ -79,7 +79,7 @@ interface BatchContext {
 }
 
 interface AppendSequencerBatchParams {
-  shouldStartAtBatch: number // 5 bytes -- starts at batch
+  shouldStartAtElement: number // 5 bytes -- starts at batch
   totalElementsToAppend: number // 3 bytes -- total_elements_to_append
   contexts: BatchContext[] // total_elements[fixed_size[]]
   transactions: string[] // total_size_bytes[],total_size_bytes[]
@@ -87,8 +87,8 @@ interface AppendSequencerBatchParams {
 
 const encodeAppendSequencerBatch = (b: AppendSequencerBatchParams): string => {
   let encoding: string
-  const encodedShouldStartAtBatch = remove0x(
-    BigNumber.from(b.shouldStartAtBatch).toHexString()
+  const encodedShouldStartAtElement = remove0x(
+    BigNumber.from(b.shouldStartAtElement).toHexString()
   ).padStart(10, '0')
   const encodedTotalElementsToAppend = remove0x(
     BigNumber.from(b.totalElementsToAppend).toHexString()
@@ -110,7 +110,7 @@ const encodeAppendSequencerBatch = (b: AppendSequencerBatchParams): string => {
     return acc + encodedTxDataHeader + remove0x(cur)
   }, '')
   return (
-    encodedShouldStartAtBatch +
+    encodedShouldStartAtElement +
     encodedTotalElementsToAppend +
     encodedContexts +
     encodedTransactionData
@@ -560,7 +560,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
       await appendSequencerBatch(
         OVM_CanonicalTransactionChain.connect(sequencer),
         {
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 1,
           contexts: [
             {
@@ -623,7 +623,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
 
         // do two batch appends for no reason
         await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 1,
           contexts: [
             {
@@ -636,7 +636,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
           transactions: ['0x1234'],
         })
         await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-          shouldStartAtBatch: 1,
+          shouldStartAtElement: 1,
           totalElementsToAppend: 1,
           contexts: [
             {
@@ -658,7 +658,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
           )
         }
         const res = await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-          shouldStartAtBatch: 2,
+          shouldStartAtElement: 2,
           totalElementsToAppend: numTxs,
           contexts: [
             {
@@ -687,7 +687,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
               blockNumber: 0,
             },
           ],
-          shouldStartAtBatch: 1234,
+          shouldStartAtElement: 1234,
           totalElementsToAppend: 1,
         })
       ).to.be.revertedWith(
@@ -710,7 +710,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
               blockNumber,
             },
           ],
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 1,
         })
       ).to.be.revertedWith('Not all sequencer transactions were processed.')
@@ -728,7 +728,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
               blockNumber: 0,
             },
           ],
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 1,
         })
       ).to.be.revertedWith('Function can only be called by the Sequencer.')
@@ -739,7 +739,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
         appendSequencerBatch(OVM_CanonicalTransactionChain, {
           transactions: ['0x1234'],
           contexts: [],
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 1,
         })
       ).to.be.revertedWith('Must provide at least one batch context.')
@@ -757,7 +757,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
               blockNumber: 0,
             },
           ],
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 0,
         })
       ).to.be.revertedWith('Must append at least one element.')
@@ -784,7 +784,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                   blockNumber,
                 },
               ],
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: 1,
             })
           ).to.be.revertedWith(
@@ -812,7 +812,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                   blockNumber,
                 },
               ],
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: numEnqueues + 1,
             })
           ).to.be.revertedWith(
@@ -844,7 +844,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                     blockNumber,
                   },
                 ],
-                shouldStartAtBatch: 0,
+                shouldStartAtElement: 0,
                 totalElementsToAppend: 2,
               })
             ).to.be.revertedWith(
@@ -873,7 +873,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                     blockNumber,
                   },
                 ],
-                shouldStartAtBatch: 0,
+                shouldStartAtElement: 0,
                 totalElementsToAppend: 2,
               })
             ).to.be.revertedWith(
@@ -901,7 +901,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                       blockNumber: 0,
                     },
                   ],
-                  shouldStartAtBatch: 0,
+                  shouldStartAtElement: 0,
                   totalElementsToAppend: 1,
                 })
               ).to.be.revertedWith('Sequencer transaction timestamp exceeds that of next queue element.')
@@ -922,7 +922,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                         blockNumber: blockNumber,
                       },
                     ],
-                    shouldStartAtBatch: 0,
+                    shouldStartAtElement: 0,
                     totalElementsToAppend: 1,
                   })
                 ).to.be.revertedWith('Sequencer transaction blockNumber exceeds that of next queue element.')
@@ -953,7 +953,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                     blockNumber,
                   },
                 ],
-                shouldStartAtBatch: 0,
+                shouldStartAtElement: 0,
                 totalElementsToAppend: 1,
               })
             ).to.be.revertedWith('Context timestamp is from the future.')
@@ -974,7 +974,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                     blockNumber,
                   },
                 ],
-                shouldStartAtBatch: 0,
+                shouldStartAtElement: 0,
                 totalElementsToAppend: 1,
               })
             ).to.be.revertedWith('Context block number is from the future.')
@@ -999,7 +999,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                   blockNumber,
                 },
               ],
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: 1,
             })
           ).to.be.revertedWith('Context timestamp too far in the past.')
@@ -1023,7 +1023,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                   blockNumber: 0,
                 },
               ],
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: 1,
             })
           ).to.be.revertedWith('Context timestamp too far in the past.')
@@ -1047,7 +1047,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                   blockNumber,
                 },
               ],
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: 1,
             })
           })
@@ -1064,7 +1064,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                     blockNumber,
                   },
                 ],
-                shouldStartAtBatch: 1,
+                shouldStartAtElement: 1,
                 totalElementsToAppend: 1,
               })
             ).to.be.revertedWith(
@@ -1084,7 +1084,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                     blockNumber: blockNumber - 1,
                   },
                 ],
-                shouldStartAtBatch: 1,
+                shouldStartAtElement: 1,
                 totalElementsToAppend: 1,
               })
             ).to.be.revertedWith(
@@ -1109,7 +1109,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                   blockNumber,
                 },
               ],
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: 2,
             })
           })
@@ -1126,7 +1126,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                     blockNumber,
                   },
                 ],
-                shouldStartAtBatch: 2,
+                shouldStartAtElement: 2,
                 totalElementsToAppend: 1,
               })
             ).to.be.revertedWith(
@@ -1146,7 +1146,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                     blockNumber: blockNumber - 1,
                   },
                 ],
-                shouldStartAtBatch: 2,
+                shouldStartAtElement: 2,
                 totalElementsToAppend: 1,
               })
             ).to.be.revertedWith(
@@ -1180,7 +1180,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                 blockNumber: 0,
               },
             ],
-            shouldStartAtBatch: 0,
+            shouldStartAtElement: 0,
             totalElementsToAppend: 1,
           })
         ).to.be.revertedWith(
@@ -1223,7 +1223,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                 appendSequencerBatch(OVM_CanonicalTransactionChain, {
                   transactions,
                   contexts,
-                  shouldStartAtBatch: 0,
+                  shouldStartAtElement: 0,
                   totalElementsToAppend: size,
                 })
               )
@@ -1274,7 +1274,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                 appendSequencerBatch(OVM_CanonicalTransactionChain, {
                   transactions,
                   contexts,
-                  shouldStartAtBatch: 0,
+                  shouldStartAtElement: 0,
                   totalElementsToAppend: size * 2,
                 })
               )
@@ -1314,7 +1314,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
                 appendSequencerBatch(OVM_CanonicalTransactionChain, {
                   transactions,
                   contexts,
-                  shouldStartAtBatch: 0,
+                  shouldStartAtElement: 0,
                   totalElementsToAppend: size + spacing,
                 })
               )
@@ -1359,7 +1359,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
             {
               transactions,
               contexts,
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: size,
             }
           )

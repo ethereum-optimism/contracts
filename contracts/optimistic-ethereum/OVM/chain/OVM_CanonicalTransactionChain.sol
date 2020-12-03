@@ -317,17 +317,17 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         override
         public
     {
-        uint40 shouldStartAtBatch;
+        uint40 shouldStartAtElement;
         uint24 totalElementsToAppend;
         uint24 numContexts;
         assembly {
-            shouldStartAtBatch    := shr(216, calldataload(4))
+            shouldStartAtElement    := shr(216, calldataload(4))
             totalElementsToAppend := shr(232, calldataload(9))
             numContexts           := shr(232, calldataload(12))
         }
 
         require(
-            shouldStartAtBatch == getTotalElements(),
+            shouldStartAtElement == getTotalElements(),
             "Actual batch start index does not match expected start index."
         );
 
