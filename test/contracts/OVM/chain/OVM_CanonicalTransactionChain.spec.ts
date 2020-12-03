@@ -151,7 +151,7 @@ const encodeBatchContext = (context: BatchContext): string => {
   )
 }
 
-describe.only('OVM_CanonicalTransactionChain', () => {
+describe('OVM_CanonicalTransactionChain', () => {
   let signer: Signer
   let sequencer: Signer
   before(async () => {
