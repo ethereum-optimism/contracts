@@ -14,9 +14,6 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 /* Contract Imports */
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
-/* Logging Imports */
-import { console } from "@nomiclabs/buidler/console.sol";
-
 library Math {
     function min(uint x, uint y) internal pure returns (uint z) {
         if (x < y) {
@@ -38,12 +35,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * Constants *
      *************/
 
-    // Tx/gas constants
+    // L2 tx gas-related
     uint256 constant public MIN_ROLLUP_TX_GAS = 20000;
     uint256 constant public MAX_ROLLUP_TX_SIZE = 10000;
     uint256 constant public L2_GAS_DISCOUNT_DIVISOR = 10;
 
-    // Encoding constants (all in bytes)
+    // Encoding-related (all in bytes)
     uint256 constant internal BATCH_CONTEXT_SIZE = 16;
     uint256 constant internal BATCH_CONTEXT_LENGTH_POS = 12;
     uint256 constant internal BATCH_CONTEXT_START_POS = 15;
