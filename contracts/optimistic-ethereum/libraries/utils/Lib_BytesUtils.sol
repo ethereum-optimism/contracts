@@ -170,6 +170,20 @@ library Lib_BytesUtils {
         return slice(_bytes, _start, _bytes.length - _start);
     }
 
+    function toBytes32PadLeft(
+        bytes memory _bytes
+    )
+        internal
+        pure
+        returns (bytes32)
+    {
+        bytes32 ret;
+        assembly {
+            ret := shr(mul(sub(32, mload(_bytes)), 8), mload(add(_bytes, 32)))
+        }
+        return ret;
+    }
+
     function toBytes32(
         bytes memory _bytes
     )

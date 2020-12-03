@@ -300,7 +300,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             if (exists == true) {
                 bytes memory value = Lib_RLPReader.readBytes(encodedValue);
                 require(
-                    keccak256(abi.encodePacked(Lib_BytesUtils.toBytes32(value))) == keccak256(abi.encodePacked(_value)),
+                    keccak256(abi.encodePacked(Lib_BytesUtils.toBytes32PadLeft(value))) == keccak256(abi.encodePacked(_value)),
                     "OVM_StateTransitioner: Provided value does not match proven value."
                 );
             } else {
