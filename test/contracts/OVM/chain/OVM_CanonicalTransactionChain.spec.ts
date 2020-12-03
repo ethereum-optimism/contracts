@@ -931,63 +931,62 @@ describe('OVM_CanonicalTransactionChain', () => {
                 ).to.be.revertedWith('Sequencer transaction blockNumber exceeds that of next queue element.')
               })
             })  
-          })
-
-          describe('adding multiple sequencer transactions with multiple pending queue elements', () => {
-            const numQueuedTransactions = 10
-            let queueElements = []
-            let validContexts = []
-            beforeEach(async () => {
-              for (let i = 0; i < numQueuedTransactions; i++) {
-                await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
-                queueElements[i] = await OVM_CanonicalTransactionChain.getQueueElement(i)
-                // this is a valid context for this TX
-                validContexts[i] = {
-                  numSequencedTransactions: 1,
-                  numSubsequentQueueTransactions: 1,
-                  timestamp: queueElements[i].timestamp,
-                  blockNumber: queueElements[i].blockNumber,
+            describe('adding multiple sequencer transactions with multiple pending queue elements', () => {
+              const numQueuedTransactions = 10
+              let queueElements = []
+              let validContexts = []
+              beforeEach(async () => {
+                for (let i = 0; i < numQueuedTransactions; i++) {
+                  await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+                  queueElements[i] = await OVM_CanonicalTransactionChain.getQueueElement(i)
+                  // this is a valid context for this TX
+                  validContexts[i] = {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 1,
+                    timestamp: queueElements[i].timestamp,
+                    blockNumber: queueElements[i].blockNumber,
+                  }
                 }
-              }
-            })
-
-            it('does not revert for valid context', async () => {
-              await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-                  transactions: new Array(numQueuedTransactions).fill('0x1234'),
-                  contexts: validContexts,
-                  shouldStartAtElement: 0,
-                  totalElementsToAppend: 2 * numQueuedTransactions,
-                })
-            })
-
-            it('reverts if wrong timestamp in middle', async () => {
-              let invalidTimestampContexts = [ ...validContexts ]
-              // put a bigger timestamp early
-              invalidTimestampContexts[6].timestamp = invalidTimestampContexts[8].timestamp
-
-              await expect(
-                appendSequencerBatch(OVM_CanonicalTransactionChain, {
-                  transactions: new Array(numQueuedTransactions).fill('0x1234'),
-                  contexts: invalidTimestampContexts,
-                  shouldStartAtElement: 0,
-                  totalElementsToAppend: 2 * numQueuedTransactions,
-                })
-              ).to.be.revertedWith('Sequencer transaction timestamp exceeds that of next queue element.')
-            })
-
-            it('reverts if wrong block number in the middle', async () => {
-              let invalidBlockNumberContexts = [ ...validContexts ]
-              // put a bigger block number early
-              invalidBlockNumberContexts[6].blockNumber = invalidBlockNumberContexts[8].blockNumber
-
-              await expect(
-                appendSequencerBatch(OVM_CanonicalTransactionChain, {
-                  transactions: new Array(numQueuedTransactions).fill('0x1234'),
-                  contexts: invalidBlockNumberContexts,
-                  shouldStartAtElement: 0,
-                  totalElementsToAppend: 2 * numQueuedTransactions,
-                })
-              ).to.be.revertedWith('Sequencer transaction blockNumber exceeds that of next queue element.')
+              })
+  
+              it('does not revert for valid context', async () => {
+                await appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                    transactions: new Array(numQueuedTransactions).fill('0x1234'),
+                    contexts: validContexts,
+                    shouldStartAtElement: 0,
+                    totalElementsToAppend: 2 * numQueuedTransactions,
+                  })
+              })
+  
+              it('reverts if wrong timestamp in middle', async () => {
+                let invalidTimestampContexts = [ ...validContexts ]
+                // put a bigger timestamp early
+                invalidTimestampContexts[6].timestamp = invalidTimestampContexts[8].timestamp
+  
+                await expect(
+                  appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                    transactions: new Array(numQueuedTransactions).fill('0x1234'),
+                    contexts: invalidTimestampContexts,
+                    shouldStartAtElement: 0,
+                    totalElementsToAppend: 2 * numQueuedTransactions,
+                  })
+                ).to.be.revertedWith('Sequencer transaction timestamp exceeds that of next queue element.')
+              })
+  
+              it('reverts if wrong block number in the middle', async () => {
+                let invalidBlockNumberContexts = [ ...validContexts ]
+                // put a bigger block number early
+                invalidBlockNumberContexts[6].blockNumber = invalidBlockNumberContexts[8].blockNumber
+  
+                await expect(
+                  appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                    transactions: new Array(numQueuedTransactions).fill('0x1234'),
+                    contexts: invalidBlockNumberContexts,
+                    shouldStartAtElement: 0,
+                    totalElementsToAppend: 2 * numQueuedTransactions,
+                  })
+                ).to.be.revertedWith('Sequencer transaction blockNumber exceeds that of next queue element.')
+              })
             })
           })
         })

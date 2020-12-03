@@ -387,7 +387,11 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         for (uint32 i = 0; i < numContexts; i++) {
             BatchContext memory nextContext = _getBatchContext(i);
-            _validateBatchContext(nextContext, curContext, nextQueueIndex, i, numContexts);
+            if (i == 0) {
+                _validateFirstBatchContext(nextContext);
+            }
+            _validateNextBatchContext(curContext, nextContext, nextQueueIndex);
+
             curContext = nextContext;
 
             for (uint32 j = 0; j < curContext.numSequencedTransactions; j++) {
@@ -409,6 +413,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                 leafIndex++;
             }
         }
+
+        _validateFinalBatchContext(curContext);
 
         require(
             calldataSize == nextTransactionPtr,
@@ -749,69 +755,88 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * Checks that a given batch context is valid.
-     * @param _context Batch context to validate.
-     * @param _nextQueueIndex Index of the next queue element to process.
+     * Checks that the first batch context in a sequencer submission is valid
+     * @param _firstContext The batch context to validate.
      */
-    function _validateBatchContext(
-        BatchContext memory _context,
-        BatchContext memory _prevContext,
-        uint40 _nextQueueIndex,
-        uint32 _contextIndex,
-        uint24 _totalContexts
+    function _validateFirstBatchContext(
+        BatchContext memory _firstContext
     )
         internal
         view
     {
-        // Checks on all contexts:
+        // If there are existing elements, this batch must come later.
+        if (getTotalElements() > 0) {
+            (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
+            require(_firstContext.blockNumber >= lastBlockNumber, "Context block number is lower than last submitted.");
+            require(_firstContext.timestamp >= lastTimestamp, "Context timestamp is lower than last submitted.");
+        }
+        // Sequencer cannot submit contexts which are more than the force inclusion period old.
+        require(_firstContext.timestamp + forceInclusionPeriodSeconds >= block.timestamp, "Context timestamp too far in the past.");
+        require(_firstContext.blockNumber + forceInclusionPeriodBlocks >= block.number, "Context block number too far in the past.");
+    }
+
+    /**
+     * Checks that a given batch context is valid based on its previous context, and the next queue elemtent.
+     * @param _prevContext The previously validated batch context.
+     * @param _nextContext The batch context to validate with this call.
+     * @param _nextQueueIndex Index of the next queue element to process for the _nextContext's subsequentQueueElements.
+     */
+    function _validateNextBatchContext(
+        BatchContext memory _prevContext,
+        BatchContext memory _nextContext,
+        uint40 _nextQueueIndex
+    )
+        internal
+        view
+    {
+        // All sequencer transactions' times must increase from the previous ones.
         require(
-            _context.timestamp >= _prevContext.timestamp,
+            _nextContext.timestamp >= _prevContext.timestamp,
             "Context timestamp values must monotonically increase."
         );
 
         require(
-            _context.blockNumber >= _prevContext.blockNumber,
+            _nextContext.blockNumber >= _prevContext.blockNumber,
             "Context blockNumber values must monotonically increase."
         );
 
-        // Checks if there are some queue elements pending:
+        // If there are some queue elements pending:
         if (getQueueLength() - _nextQueueIndex > 0) {
             Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_nextQueueIndex);
 
+            // If the force inclusion preiod has passed for an enqueued transaction, it MUST be the next chain element.
             require(
                 block.timestamp < nextQueueElement.timestamp + forceInclusionPeriodSeconds,
                 "Previously enqueued batches have expired and must be appended before a new sequencer batch."
             );
 
+            // Just like sequencer transaction times must be increasing relative to each other,
+            // We also require that they be increasing relative to any interspersed queue elements.
             require(
-                _context.timestamp <= nextQueueElement.timestamp,
+                _nextContext.timestamp <= nextQueueElement.timestamp,
                 "Sequencer transaction timestamp exceeds that of next queue element."
             );
 
             require(
-                _context.blockNumber <= nextQueueElement.blockNumber,
+                _nextContext.blockNumber <= nextQueueElement.blockNumber,
                 "Sequencer transaction blockNumber exceeds that of next queue element."
             );
-        }
+        }   
+    }
 
-        // Checks on only first context:
-        if (
-            _contextIndex == 0
-        ) {
-            if (getTotalElements() > 0) {
-                (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
-                require(_context.blockNumber >= lastBlockNumber, "Context block number is lower than last submitted.");
-                require(_context.timestamp >= lastTimestamp, "Context timestamp is lower than last submitted.");
-            }
-            require(_context.timestamp + forceInclusionPeriodSeconds >= block.timestamp, "Context timestamp too far in the past.");
-            require(_context.blockNumber + forceInclusionPeriodBlocks >= block.number, "Context block number too far in the past.");
-        }
-
-        // Checks on on only final context:
-        if (_contextIndex == _totalContexts - 1) {
-            require(_context.timestamp <= block.timestamp, "Context timestamp is from the future.");
-            require(_context.blockNumber <= block.number, "Context block number is from the future.");
-        }        
+    /**
+     * Checks that the final batch context in a sequencer submission is valid.
+     * @param _finalContext The batch context to validate.
+     */
+    function _validateFinalBatchContext(
+        BatchContext memory _finalContext
+    )
+        internal
+        view
+    {
+        // Batches cannot be added from the future, or subsequent enqueue() contexts would violate monotonicity.
+        require(_finalContext.timestamp <= block.timestamp, "Context timestamp is from the future.");
+        require(_finalContext.blockNumber <= block.number, "Context block number is from the future.");
     }
 
     /**
