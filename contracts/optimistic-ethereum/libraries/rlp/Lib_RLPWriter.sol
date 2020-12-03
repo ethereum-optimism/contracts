@@ -89,7 +89,7 @@ library Lib_RLPWriter {
             bytes memory _out
         )
     {
-        _malloc(1);
+        _malloc(0x20);
         bytes memory inputBytes;
         assembly {
             let m := mload(0x40)
@@ -310,16 +310,19 @@ library Lib_RLPWriter {
         return flattened;
     }
 
+    /**
+     * Clears memory wherever the free memory is pointing.
+     * @param _numBytes Number of bytes to clear out (will be rounded up to nearest word).
+     */
     function _malloc(
-        uint _numWords
+        uint _numBytes
     )
-        internal
+        private
         pure
     {
-        uint numBytes = 0x20 * _numWords;
         assembly {
             let free_mem := mload(0x40)
-            for { let offset := 0x00 } lt(offset, numBytes) { offset := add(offset, 0x20) } {
+            for { let offset := 0x00 } lt(offset, _numBytes) { offset := add(offset, 0x20) } {
                 mstore(add(free_mem, offset), 0x00)
             }
         }
