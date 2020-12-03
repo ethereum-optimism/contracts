@@ -933,7 +933,7 @@ describe.only('OVM_CanonicalTransactionChain', () => {
             })  
           })
 
-          describe.only('adding multiple sequencer transactions with multiple pending queue elements', () => {
+          describe('adding multiple sequencer transactions with multiple pending queue elements', () => {
             const numQueuedTransactions = 10
             let queueElements = []
             let validContexts = []
