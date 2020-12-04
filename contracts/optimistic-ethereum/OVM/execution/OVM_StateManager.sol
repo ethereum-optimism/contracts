@@ -8,6 +8,8 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 /* Interface Imports */
 import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
 
+import { console } from "@nomiclabs/buidler/console.sol";
+
 /**
  * @title OVM_StateManager
  */
@@ -315,7 +317,7 @@ contract OVM_StateManager is iOVM_StateManager {
         )
     {
         return _testAndSetItemState(
-            keccak256(abi.encodePacked(_address)),
+            _getAccountItemHash(_address),
             ItemState.ITEM_LOADED
         );
     }
@@ -335,8 +337,10 @@ contract OVM_StateManager is iOVM_StateManager {
             bool _wasAccountAlreadyChanged
         )
     {
+        console.log("Testing if an account was already changed...");
+        console.log(_address);
         return _testAndSetItemState(
-            keccak256(abi.encodePacked(_address)),
+            _getAccountItemHash(_address),
             ItemState.ITEM_CHANGED
         );
     }
@@ -356,7 +360,7 @@ contract OVM_StateManager is iOVM_StateManager {
             bool _wasAccountCommitted
         )
     {
-        bytes32 item = keccak256(abi.encodePacked(_address));
+        bytes32 item = _getAccountItemHash(_address);
         if (itemStates[item] != ItemState.ITEM_CHANGED) {
             return false;
         }
@@ -403,7 +407,7 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
-        bytes32 item = keccak256(abi.encodePacked(_address));
+        bytes32 item = _getAccountItemHash(_address);
         return itemStates[item] == ItemState.ITEM_CHANGED;
     }
 
@@ -417,7 +421,7 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
-        bytes32 item = keccak256(abi.encodePacked(_address));
+        bytes32 item = _getAccountItemHash(_address);
         return itemStates[item] == ItemState.ITEM_COMMITTED;
     }
 
@@ -524,7 +528,7 @@ contract OVM_StateManager is iOVM_StateManager {
         )
     {
         return _testAndSetItemState(
-            keccak256(abi.encodePacked(_contract, _key)),
+            _getContractStorageItemHash(_contract, _key),
             ItemState.ITEM_LOADED
         );
     }
@@ -547,7 +551,7 @@ contract OVM_StateManager is iOVM_StateManager {
         )
     {
         return _testAndSetItemState(
-            keccak256(abi.encodePacked(_contract, _key)),
+            _getContractStorageItemHash(_contract, _key),
             ItemState.ITEM_CHANGED
         );
     }
@@ -569,7 +573,7 @@ contract OVM_StateManager is iOVM_StateManager {
             bool _wasContractStorageCommitted
         )
     {
-        bytes32 item = keccak256(abi.encodePacked(_contract, _key));
+        bytes32 item = _getContractStorageItemHash(_contract, _key);
         if (itemStates[item] != ItemState.ITEM_CHANGED) {
             return false;
         }
@@ -617,7 +621,7 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
-        bytes32 item = keccak256(abi.encodePacked(_contract, _key));
+        bytes32 item = _getContractStorageItemHash(_contract, _key);
         return itemStates[item] == ItemState.ITEM_CHANGED;
     }
 
@@ -632,7 +636,7 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
-        bytes32 item = keccak256(abi.encodePacked(_contract, _key));
+        bytes32 item = _getContractStorageItemHash(_contract, _key);
         return itemStates[item] == ItemState.ITEM_COMMITTED;
     }
 
@@ -640,6 +644,34 @@ contract OVM_StateManager is iOVM_StateManager {
     /**********************
      * Internal Functions *
      **********************/
+
+    function _getAccountItemHash(
+        address _address
+    )
+        internal
+        pure
+        returns (
+            bytes32
+        )
+    {
+        return keccak256(abi.encodePacked(_address));
+    }
+
+    function _getContractStorageItemHash(
+        address _contract,
+        bytes32 _key
+    )
+        internal
+        pure
+        returns (
+            bytes32
+        )
+    {
+        return keccak256(abi.encodePacked(
+            _contract,
+            _key
+        ));
+    }
 
     /**
      * Checks whether an item is in a particular state (ITEM_LOADED or ITEM_CHANGED) and sets the

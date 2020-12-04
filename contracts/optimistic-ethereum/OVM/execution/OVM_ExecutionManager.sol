@@ -1302,11 +1302,11 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // If we hadn't already changed the account, then we'll need to charge some fixed amount of
         // "nuisance gas".
         if (_wasContractStorageAlreadyChanged == false) {
+            _checkAccountChange(_contract);
+
             ovmStateManager.incrementTotalUncommittedContractStorage();
             _useNuisanceGas(NUISANCE_GAS_SSTORE);
         }
-
-        _checkAccountChange(_contract);
     }
 
 
