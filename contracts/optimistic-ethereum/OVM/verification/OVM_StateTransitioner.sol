@@ -348,10 +348,9 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             "All storage must be committed before committing account states."
         );
 
-        require(
-            ovmStateManager.commitAccount(_ovmContractAddress) == true,
-            "Account was not changed or has already been committed."
-        );
+        if (ovmStateManager.commitAccount(_ovmContractAddress) == false) {
+            return;
+        }
 
         Lib_OVMCodec.Account memory account = ovmStateManager.getAccount(_ovmContractAddress);
 
@@ -381,10 +380,9 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         onlyDuringPhase(TransitionPhase.POST_EXECUTION)
         contributesToFraudProof(preStateRoot, transactionHash)
     {
-        require(
-            ovmStateManager.commitContractStorage(_ovmContractAddress, _key) == true,
-            "Storage slot was not changed or has already been committed."
-        );
+        if (ovmStateManager.commitContractStorage(_ovmContractAddress, _key) == false) {
+            return;
+        }
 
         Lib_OVMCodec.Account memory account = ovmStateManager.getAccount(_ovmContractAddress);
         bytes32 value = ovmStateManager.getContractStorage(_ovmContractAddress, _key);
@@ -399,6 +397,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         );
 
         ovmStateManager.putAccount(_ovmContractAddress, account);
+        ovmStateManager.testAndSetAccountChanged(_ovmContractAddress);
     }
 
 
