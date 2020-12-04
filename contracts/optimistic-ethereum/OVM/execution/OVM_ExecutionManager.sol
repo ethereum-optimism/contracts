@@ -1305,6 +1305,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             ovmStateManager.incrementTotalUncommittedContractStorage();
             _useNuisanceGas(NUISANCE_GAS_SSTORE);
         }
+
+        _checkAccountChange(_contract);
     }
 
 

@@ -397,7 +397,6 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         );
 
         ovmStateManager.putAccount(_ovmContractAddress, account);
-        ovmStateManager.testAndSetAccountChanged(_ovmContractAddress);
     }
 
 
