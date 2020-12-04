@@ -477,6 +477,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address(proxyEOA),
             keccak256(Lib_EthUtils.getCode(address(proxyEOA)))
         );
+
+        _setAccountNonce(eoa, 0);
     }
 
 

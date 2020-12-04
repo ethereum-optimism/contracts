@@ -8,8 +8,6 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 /* Interface Imports */
 import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
 
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /**
  * @title OVM_StateManager
  */
@@ -337,8 +335,6 @@ contract OVM_StateManager is iOVM_StateManager {
             bool _wasAccountAlreadyChanged
         )
     {
-        console.log("Testing if an account was already changed...");
-        console.log(_address);
         return _testAndSetItemState(
             _getAccountItemHash(_address),
             ItemState.ITEM_CHANGED
