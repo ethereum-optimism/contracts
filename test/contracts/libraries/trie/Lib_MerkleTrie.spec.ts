@@ -1,6 +1,7 @@
 import { expect } from '../../../setup'
 
 /* External Imports */
+import * as rlp from 'rlp'
 import { ethers } from '@nomiclabs/buidler'
 import { Contract } from 'ethers'
 
@@ -112,6 +113,43 @@ describe('Lib_MerkleTrie', () => {
               await Lib_MerkleTrie.get(test.key, test.proof, test.root)
             ).to.deep.equal([true, test.val])
           })
+
+          if (i === 32) { // TODO: run for multiple times for all tests
+            it(`should revert when calling get on an incorrect key`, async () => {
+              const test = await generator.makeInclusionProofTest(0)
+              const test2 = await generator.makeInclusionProofTest(16)
+              await expect (
+                Lib_MerkleTrie.get(test2.key, test.proof, test.root)
+              ).to.be.revertedWith("Invalid large internal hash")
+            })
+
+            it(`should revert when calling get on an incorrect proof`, async () => {
+              const test = await generator.makeInclusionProofTest(0)
+              console.log("testkey", 0, test.key)
+              console.log("testkey root", test.root)
+              let decodedProof = rlp.decode(test.proof)
+              console.log("rlp decoded proof[0]", decodedProof[0])
+              const len = decodedProof[0].write('abcd', 8); // change the 1st element (root) of the proof
+              console.log("subbedin", decodedProof[0])
+              const badProof = rlp.encode(decodedProof as rlp.
+                Input)
+              await expect (
+                Lib_MerkleTrie.get(test.key, badProof, test.root)
+              ).to.be.revertedWith("Invalid root hash")
+            })
+
+            it.only(`should revert when calling get on an incorrect key`, async () => {
+              const test = await generator.makeInclusionProofTest(0)
+              console.log("orig key", test.key, test.key.length)
+              let newKey = test.key.slice(0, test.key.length - 8)
+              newKey = newKey.concat('88888888');
+              console.log("new key", newKey, newKey.length)
+              await expect (
+                Lib_MerkleTrie.get(newKey, test.proof, test.root)
+              ).to.be.revertedWith("Something?")
+            })
+          }
+
         }
       })
     }
