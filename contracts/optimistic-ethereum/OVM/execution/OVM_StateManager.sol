@@ -392,7 +392,35 @@ contract OVM_StateManager is iOVM_StateManager {
     {
         return totalUncommittedAccounts;
     }
-    
+
+    function wasAccountChanged(
+        address _address
+    )
+        override
+        public
+        view
+        returns (
+            bool
+        )
+    {
+        bytes32 item = keccak256(abi.encodePacked(_address));
+        return itemStates[item] == ItemState.ITEM_CHANGED;
+    }
+
+    function wasAccountCommitted(
+        address _address
+    )
+        override
+        public
+        view
+        returns (
+            bool
+        )
+    {
+        bytes32 item = keccak256(abi.encodePacked(_address));
+        return itemStates[item] == ItemState.ITEM_COMMITTED;
+    }
+
 
     /************************************
      * Public Functions: Storage Access *
@@ -576,6 +604,36 @@ contract OVM_StateManager is iOVM_StateManager {
         )
     {
         return totalUncommittedContractStorage;
+    }
+
+    function wasContractStorageChanged(
+        address _contract,
+        bytes32 _key
+    )
+        override
+        public
+        view
+        returns (
+            bool
+        )
+    {
+        bytes32 item = keccak256(abi.encodePacked(_contract, _key));
+        return itemStates[item] == ItemState.ITEM_CHANGED;
+    }
+
+    function wasContractStorageCommitted(
+        address _contract,
+        bytes32 _key
+    )
+        override
+        public
+        view
+        returns (
+            bool
+        )
+    {
+        bytes32 item = keccak256(abi.encodePacked(_contract, _key));
+        return itemStates[item] == ItemState.ITEM_COMMITTED;
     }
 
 

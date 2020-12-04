@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_EthUtils } from "../../libraries/utils/Lib_EthUtils.sol";
+import { Lib_Bytes32Utils } from "../../libraries/utils/Lib_Bytes32Utils.sol";
 import { Lib_BytesUtils } from "../../libraries/utils/Lib_BytesUtils.sol";
 import { Lib_SecureMerkleTrie } from "../../libraries/trie/Lib_SecureMerkleTrie.sol";
 import { Lib_RLPWriter } from "../../libraries/rlp/Lib_RLPWriter.sol";
@@ -420,7 +421,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         account.storageRoot = Lib_SecureMerkleTrie.update(
             abi.encodePacked(_key),
             Lib_RLPWriter.writeBytes(
-                abi.encodePacked(value)
+                Lib_Bytes32Utils.removeLeadingZeros(value)
             ),
             _storageTrieWitness,
             account.storageRoot
