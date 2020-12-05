@@ -362,6 +362,10 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             _stateTrieWitness,
             postStateRoot
         );
+
+        emit AccountCommitted(
+            _ovmContractAddress
+        );
     }
 
     /**
@@ -397,6 +401,11 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         );
 
         ovmStateManager.putAccount(_ovmContractAddress, account);
+
+        emit ContractStorageCommitted(
+            _ovmContractAddress,
+            _key
+        );
     }
 
 

@@ -10,6 +10,20 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
  */
 interface iOVM_StateTransitioner {
 
+    /**********
+     * Events *
+     **********/
+    
+    event AccountCommitted(
+        address _address
+    );
+
+    event ContractStorageCommitted(
+        address _address,
+        bytes32 _key
+    );
+
+
     /**********************************
      * Public Functions: State Access *
      **********************************/
