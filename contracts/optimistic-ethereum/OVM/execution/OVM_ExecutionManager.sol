@@ -16,8 +16,6 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
 
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /**
  * @title OVM_ExecutionManager
  */
@@ -310,11 +308,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
-        console.log("OVM_ExecutionManager: Reverting intentionally (contract reverted).");
-        console.log("Current address:");
-        console.log(ovmADDRESS());
-        console.log("Revert data:");
-        console.logBytes(_data);
         _revertWithFlag(RevertFlag.INTENTIONAL_REVERT, _data);
     }
 
@@ -763,15 +756,11 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // and the OVM_FraudVerifier will populate the code hash of this address with a special
         // value that represents "known to be an empty account."
         if (_hasEmptyAccount(_address) == false) {
-            console.log("OVM_ExecutionManager: Reverting because CREATE would lead to a collision:");
-            console.log(_address);
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
 
         // Check the creation bytecode against the OVM_SafetyChecker.
         if (ovmSafetyChecker.isBytecodeSafe(_bytecode) == false) {
-            console.log("OVM_ExecutionManager: Reverting because CREATE bytecode is unsafe:");
-            console.log(_address);
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
@@ -789,11 +778,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // left over since contract calls can only be passed 63/64ths of total gas,  so we need to
         // explicitly handle this case here.
         if (ethAddress == address(0)) {
-            console.log("OVM_ExecutionManager: Reverting because CREATE failed.");
-            console.log("OVM address:");
-            console.log(_address);
-            console.log("EVM address:");
-            console.log(ethAddress);
             _revertWithFlag(RevertFlag.CREATE_EXCEPTION);
         }
 
@@ -801,13 +785,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // we're out of creation code again, we can just revert normally while passing the flag
         // through the revert data.
         if (messageRecord.revertFlag != RevertFlag.DID_NOT_REVERT) {
-            console.log("OVM_ExecutionManager: Reverting with a special error flag, probably an invalid state access.");
-            console.log("OVM address:");
-            console.log(_address);
-            console.log("EVM address:");
-            console.log(ethAddress);
-            console.log("Flag:");
-            console.log(uint8(messageRecord.revertFlag));
             _revertWithFlag(messageRecord.revertFlag);
         }
 
@@ -815,11 +792,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // arbitrary deployment code, so there's no easy way to analyze this beforehand.
         bytes memory deployedCode = Lib_EthUtils.getCode(ethAddress);
         if (ovmSafetyChecker.isBytecodeSafe(deployedCode) == false) {
-            console.log("OVM_ExecutionManager: Reverting because deployed code was unsafe.");
-            console.log("OVM address:");
-            console.log(_address);
-            console.log("EVM address:");
-            console.log(ethAddress);
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
@@ -996,9 +968,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             // parent EVM message. This behavior is necessary because INVALID_STATE_ACCESS must
             // halt any further transaction execution that could impact the execution result.
             if (flag == RevertFlag.INVALID_STATE_ACCESS) {
-                console.log("OVM_ExecutionManager: Reverting to pass up an invalid state access flag.");
-                console.log("Target EVM address:");
-                console.log(_target);
                 _revertWithFlag(flag);
             }
 
@@ -1213,17 +1182,11 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // See `_checkContractStorageLoad` for more information.
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
-            console.log("OVM_ExecutionManager: Reverting because the user didn't send enough gas to check for invalid state access.");
-            console.log("Target OVM address:");
-            console.log(_address);
             _revertWithFlag(RevertFlag.OUT_OF_GAS);
         }
 
         // See `_checkContractStorageLoad` for more information.
         if (ovmStateManager.hasAccount(_address) == false) {
-            console.log("OVM_ExecutionManager: Reverting because an account state wasn't found; invalid state access.");
-            console.log("Target OVM address:");
-            console.log(_address);
             _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
         }
 
@@ -1287,11 +1250,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // allows us to also charge for the full message nuisance gas, because you deserve that for
         // trying to break the contract in this way.
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
-            console.log("OVM_ExecutionManager: Reverting because the user didn't send enough gas to check for invalid state access.");
-            console.log("Target OVM address:");
-            console.log(_contract);
-            console.log("Target storage slot:");
-            console.logBytes32(_key);
             _revertWithFlag(RevertFlag.OUT_OF_GAS);
         }
 
@@ -1299,11 +1257,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // been provided to the OVM_StateManager. We'll immediately abort if this is the case.
         // We know that we have enough gas to do this check because of the above test.
         if (ovmStateManager.hasContractStorage(_contract, _key) == false) {
-            console.log("OVM_ExecutionManager: Reverting because a storage slot state wasn't found; invalid state access.");
-            console.log("Target OVM address:");
-            console.log(_contract);
-            console.log("Target storage slot:");
-            console.logBytes32(_key);
             _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
         }
 
@@ -1334,21 +1287,11 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // See `_checkContractStorageLoad` for more information.
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
-            console.log("OVM_ExecutionManager: Reverting because the user didn't send enough gas to check for invalid state access.");
-            console.log("Target OVM address:");
-            console.log(_contract);
-            console.log("Target storage slot:");
-            console.logBytes32(_key);
             _revertWithFlag(RevertFlag.OUT_OF_GAS);
         }
 
         // See `_checkContractStorageLoad` for more information.
         if (ovmStateManager.hasContractStorage(_contract, _key) == false) {
-            console.log("OVM_ExecutionManager: Reverting because a storage slot state wasn't found; invalid state access.");
-            console.log("Target OVM address:");
-            console.log(_contract);
-            console.log("Target storage slot:");
-            console.logBytes32(_key);
             _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
         }
 
@@ -1361,6 +1304,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // If we hadn't already changed the account, then we'll need to charge some fixed amount of
         // "nuisance gas".
         if (_wasContractStorageAlreadyChanged == false) {
+            // Changing a storage slot means that we're also going to have to change the
+            // corresponding account, so do an account change check.
             _checkAccountChange(_contract);
 
             ovmStateManager.incrementTotalUncommittedContractStorage();
@@ -1540,11 +1485,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Essentially the same as a standard OUT_OF_GAS, except we also retain a record of the gas
         // refund to be given at the end of the transaction.
         if (messageRecord.nuisanceGasLeft < _amount) {
-            console.log("OVM_ExecutionManager: Reverting the transaction ran out of nuisance gas.");
-            console.log("Remaining nuisance gas:");
-            console.log(messageRecord.nuisanceGasLeft);
-            console.log("Amount to be charged:");
-            console.log(_amount);
             _revertWithFlag(RevertFlag.EXCEEDS_NUISANCE_GAS);
         }
 
