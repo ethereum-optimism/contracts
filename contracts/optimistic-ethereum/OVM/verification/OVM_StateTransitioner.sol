@@ -189,6 +189,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             "Account state has already been proven."
         );
 
+        // Function will fail if the proof is invalid.
         (
             bool exists,
             bytes memory encodedAccount
@@ -199,14 +200,19 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         );
 
         if (exists == true) {
+            // Account exists, this was an inclusion proof.
             Lib_OVMCodec.EVMAccount memory account = Lib_OVMCodec.decodeEVMAccount(
                 encodedAccount
             );
 
             address ethContractAddress = _ethContractAddress;
             if (account.codeHash == EMPTY_ACCOUNT_CODE_HASH) {
+                // Use a known empty contract to prevent an attack in which a user provides a
+                // contract address here and then later deploys code to it.
                 ethContractAddress = 0x0000c0De0000C0DE0000c0de0000C0DE0000c0De;
             } else {
+                // Otherwise, make sure that the code at the provided eth address matches the hash
+                // of the code stored on L2.
                 require(
                     Lib_EthUtils.getCodeHash(ethContractAddress) == account.codeHash,
                     "OVM_StateTransitioner: Provided L1 contract code hash does not match L2 contract code hash."
@@ -225,6 +231,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
                 })
             );
         } else {
+            // Account does not exist, this was an exclusion proof.
             ovmStateManager.putEmptyAccount(_ovmContractAddress);
         }
     }
@@ -260,6 +267,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         bytes32 value;
 
         if (storageRoot == EMPTY_ACCOUNT_STORAGE_ROOT) {
+            // Storage trie was empty, so the user is always allowed to insert zero-byte values.
             value = bytes32(0);
         } else {
             (
@@ -272,10 +280,13 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             );
 
             if (exists == true) {
+                // Inclusion proof.
+                // Stored values are RLP encoded, with leading zeros removed.
                 value = Lib_BytesUtils.toBytes32PadLeft(
                     Lib_RLPReader.readBytes(encodedValue)
                 );
             } else {
+                // Exclusion proof, can only be zero bytes.
                 value = bytes32(0);
             }
         }
@@ -364,6 +375,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             postStateRoot
         );
 
+        // Emit an event to help clients figure out the proof ordering.
         emit AccountCommitted(
             _ovmContractAddress
         );
@@ -404,6 +416,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
 
         ovmStateManager.putAccount(_ovmContractAddress, account);
 
+        // Emit an event to help clients figure out the proof ordering.
         emit ContractStorageCommitted(
             _ovmContractAddress,
             _key
