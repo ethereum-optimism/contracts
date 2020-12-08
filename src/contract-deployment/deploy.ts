@@ -39,7 +39,12 @@ export const deploy = async (
       continue
     }
 
-    if (!shouldDeploy(config.deploymentTarget, contractDeployParameters.deploymentTarget)) {
+    if (
+      !shouldDeploy(
+        config.deploymentTarget,
+        contractDeployParameters.deploymentTarget
+      )
+    ) {
       continue
     }
 

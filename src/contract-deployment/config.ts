@@ -8,7 +8,7 @@ import { DeploymentTarget, DeployTarget } from './helpers'
 
 export interface RollupDeployConfig {
   deploymentSigner: Signer
-  deploymentTarget: DeploymentTarget,
+  deploymentTarget: DeploymentTarget
   ovmGasMeteringConfig: {
     minTransactionGasLimit: number
     maxTransactionGasLimit: number
@@ -37,7 +37,7 @@ export interface RollupDeployConfig {
 
 export interface ContractDeployParameters {
   factory: ContractFactory
-  deploymentTarget: DeploymentTarget,
+  deploymentTarget: DeploymentTarget
   params?: any[]
   afterDeploy?: (contracts?: { [name: string]: Contract }) => Promise<void>
 }

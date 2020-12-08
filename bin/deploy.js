@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const contracts = require('../build/src/contract-deployment/deploy');
-const DeployTarget = require('../build/src/helpers')
+const {DeployTarget} = require('../build/src/contract-deployment/helpers')
 const { providers, Wallet, utils } = require('ethers');
 const { LedgerSigner } = require('@ethersproject/hardware-wallets');
 const { JsonRpcProvider } = providers;
@@ -25,7 +25,6 @@ const USE_LEDGER = env.USE_LEDGER || false;
 const HD_PATH = env.HD_PATH || utils.defaultPath;
 const L2_CROSS_DOMAIN_MESSENGER_ADDRESS =
   env.L2_CROSS_DOMAIN_MESSENGER_ADDRESS || '0x4200000000000000000000000000000000000007';
-
 
 
 (async () => {
