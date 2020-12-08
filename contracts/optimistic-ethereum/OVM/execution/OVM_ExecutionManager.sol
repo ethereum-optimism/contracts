@@ -1187,6 +1187,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
+        if (_getContractStorage(_contract, _key) == _value) {
+            return;
+        }
+
         _checkContractStorageChange(_contract, _key);
         ovmStateManager.putContractStorage(_contract, _key, _value);
     }
