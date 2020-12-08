@@ -158,14 +158,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Initialize the execution context.
         _initContext(_transaction);
 
-        // Check whether we need to start a new epoch, do so if necessary.
-        _checkNeedsNewEpoch(_transaction.timestamp);
+        // // Check whether we need to start a new epoch, do so if necessary.
+        // _checkNeedsNewEpoch(_transaction.timestamp);
 
-        // Make sure the transaction's gas limit is valid. We don't revert here because we reserve
-        // reverts for INVALID_STATE_ACCESS.
-        if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
-            return;
-        }
+        // // Make sure the transaction's gas limit is valid. We don't revert here because we reserve
+        // // reverts for INVALID_STATE_ACCESS.
+        // if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
+        //     return;
+        // }
 
         // Run the transaction, make sure to meter the gas usage.
         uint256 gasProvided = gasleft();
@@ -176,8 +176,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         );
         uint256 gasUsed = gasProvided - gasleft();
 
-        // Update the cumulative gas based on the amount of gas used.
-        _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);
+        // // Update the cumulative gas based on the amount of gas used.
+        // _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);
 
         // Wipe the execution context.
         _resetContext();
@@ -499,7 +499,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             keccak256(Lib_EthUtils.getCode(address(proxyEOA)))
         );
 
-        // TODO: We should be setting the nonce to zero here.
+        _setAccountNonce(eoa, 0);
     }
 
 
