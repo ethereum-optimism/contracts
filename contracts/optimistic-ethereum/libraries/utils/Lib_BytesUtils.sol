@@ -178,8 +178,9 @@ library Lib_BytesUtils {
         returns (bytes32)
     {
         bytes32 ret;
+        uint256 len = _bytes.length <= 32 ? _bytes.length : 32;
         assembly {
-            ret := shr(mul(sub(32, mload(_bytes)), 8), mload(add(_bytes, 32)))
+            ret := shr(mul(sub(32, len), 8), mload(add(_bytes, 32)))
         }
         return ret;
     }

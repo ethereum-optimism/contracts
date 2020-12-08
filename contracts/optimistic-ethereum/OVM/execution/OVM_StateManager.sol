@@ -316,7 +316,7 @@ contract OVM_StateManager is iOVM_StateManager {
         )
     {
         return _testAndSetItemState(
-            _getAccountItemHash(_address),
+            _getItemHash(_address),
             ItemState.ITEM_LOADED
         );
     }
@@ -337,7 +337,7 @@ contract OVM_StateManager is iOVM_StateManager {
         )
     {
         return _testAndSetItemState(
-            _getAccountItemHash(_address),
+            _getItemHash(_address),
             ItemState.ITEM_CHANGED
         );
     }
@@ -357,7 +357,7 @@ contract OVM_StateManager is iOVM_StateManager {
             bool _wasAccountCommitted
         )
     {
-        bytes32 item = _getAccountItemHash(_address);
+        bytes32 item = _getItemHash(_address);
         if (itemStates[item] != ItemState.ITEM_CHANGED) {
             return false;
         }
@@ -394,6 +394,11 @@ contract OVM_StateManager is iOVM_StateManager {
         return totalUncommittedAccounts;
     }
 
+    /**
+     * Checks whether a given account was changed during execution.
+     * @param _address Address to check.
+     * @return Whether or not the account was changed.
+     */
     function wasAccountChanged(
         address _address
     )
@@ -404,10 +409,15 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
-        bytes32 item = _getAccountItemHash(_address);
-        return itemStates[item] == ItemState.ITEM_CHANGED;
+        bytes32 item = _getItemHash(_address);
+        return itemStates[item] >= ItemState.ITEM_CHANGED;
     }
 
+    /**
+     * Checks whether a given account was committed after execution.
+     * @param _address Address to check.
+     * @return Whether or not the account was committed.
+     */
     function wasAccountCommitted(
         address _address
     )
@@ -418,8 +428,8 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
-        bytes32 item = _getAccountItemHash(_address);
-        return itemStates[item] == ItemState.ITEM_COMMITTED;
+        bytes32 item = _getItemHash(_address);
+        return itemStates[item] >= ItemState.ITEM_COMMITTED;
     }
 
 
@@ -525,7 +535,7 @@ contract OVM_StateManager is iOVM_StateManager {
         )
     {
         return _testAndSetItemState(
-            _getContractStorageItemHash(_contract, _key),
+            _getItemHash(_contract, _key),
             ItemState.ITEM_LOADED
         );
     }
@@ -548,7 +558,7 @@ contract OVM_StateManager is iOVM_StateManager {
         )
     {
         return _testAndSetItemState(
-            _getContractStorageItemHash(_contract, _key),
+            _getItemHash(_contract, _key),
             ItemState.ITEM_CHANGED
         );
     }
@@ -570,7 +580,7 @@ contract OVM_StateManager is iOVM_StateManager {
             bool _wasContractStorageCommitted
         )
     {
-        bytes32 item = _getContractStorageItemHash(_contract, _key);
+        bytes32 item = _getItemHash(_contract, _key);
         if (itemStates[item] != ItemState.ITEM_CHANGED) {
             return false;
         }
@@ -607,6 +617,12 @@ contract OVM_StateManager is iOVM_StateManager {
         return totalUncommittedContractStorage;
     }
 
+    /**
+     * Checks whether a given storage slot was changed during execution.
+     * @param _contract Address to check.
+     * @param _key Key of the storage slot to check.
+     * @return Whether or not the storage slot was changed.
+     */
     function wasContractStorageChanged(
         address _contract,
         bytes32 _key
@@ -618,10 +634,16 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
-        bytes32 item = _getContractStorageItemHash(_contract, _key);
-        return itemStates[item] == ItemState.ITEM_CHANGED;
+        bytes32 item = _getItemHash(_contract, _key);
+        return itemStates[item] >= ItemState.ITEM_CHANGED;
     }
 
+    /**
+     * Checks whether a given storage slot was committed after execution.
+     * @param _contract Address to check.
+     * @param _key Key of the storage slot to check.
+     * @return Whether or not the storage slot was committed.
+     */
     function wasContractStorageCommitted(
         address _contract,
         bytes32 _key
@@ -633,8 +655,8 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
-        bytes32 item = _getContractStorageItemHash(_contract, _key);
-        return itemStates[item] == ItemState.ITEM_COMMITTED;
+        bytes32 item = _getItemHash(_contract, _key);
+        return itemStates[item] >= ItemState.ITEM_COMMITTED;
     }
 
 
@@ -642,7 +664,12 @@ contract OVM_StateManager is iOVM_StateManager {
      * Internal Functions *
      **********************/
 
-    function _getAccountItemHash(
+    /**
+     * Generates a unique hash for an address.
+     * @param _address Address to generate a hash for.
+     * @return Unique hash for the given address.
+     */
+    function _getItemHash(
         address _address
     )
         internal
@@ -654,7 +681,13 @@ contract OVM_StateManager is iOVM_StateManager {
         return keccak256(abi.encodePacked(_address));
     }
 
-    function _getContractStorageItemHash(
+    /**
+     * Generates a unique hash for an address/key pair.
+     * @param _contract Address to generate a hash for.
+     * @param _key Key to generate a hash for.
+     * @return Unique hash for the given pair.
+     */
+    function _getItemHash(
         address _contract,
         bytes32 _key
     )

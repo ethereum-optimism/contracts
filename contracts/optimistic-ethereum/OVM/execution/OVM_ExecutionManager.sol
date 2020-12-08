@@ -499,7 +499,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             keccak256(Lib_EthUtils.getCode(address(proxyEOA)))
         );
 
-        _setAccountNonce(eoa, 0);
+        // TODO: Set account nonce to zero here (changing in a different PR for auditor convenience).
     }
 
 
@@ -1187,6 +1187,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
+        // We don't set storage if the value didn't change.
         if (_getContractStorage(_contract, _key) == _value) {
             return;
         }

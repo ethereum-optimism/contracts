@@ -189,7 +189,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             "Account state has already been proven."
         );
 
-        // Function will fail if the proof is invalid.
+        // Function will fail if the proof is not a valid inclusion or exclusion proof.
         (
             bool exists,
             bytes memory encodedAccount
@@ -209,7 +209,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             if (account.codeHash == EMPTY_ACCOUNT_CODE_HASH) {
                 // Use a known empty contract to prevent an attack in which a user provides a
                 // contract address here and then later deploys code to it.
-                ethContractAddress = 0x0000c0De0000C0DE0000c0de0000C0DE0000c0De;
+                ethContractAddress = 0x0000000000000000000000000000000000000000;
             } else {
                 // Otherwise, make sure that the code at the provided eth address matches the hash
                 // of the code stored on L2.
@@ -270,6 +270,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
             // Storage trie was empty, so the user is always allowed to insert zero-byte values.
             value = bytes32(0);
         } else {
+            // Function will fail if the proof is not a valid inclusion or exclusion proof.
             (
                 bool exists,
                 bytes memory encodedValue
