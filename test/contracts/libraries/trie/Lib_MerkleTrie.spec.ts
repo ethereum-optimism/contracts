@@ -6,7 +6,7 @@ import { ethers } from '@nomiclabs/buidler'
 import { Contract } from 'ethers'
 
 /* Internal Imports */
-import { TrieTestGenerator } from '../../../helpers'
+import { toHexString, TrieTestGenerator } from '../../../helpers'
 
 const NODE_COUNTS = [1, 2, 128]
 
@@ -108,50 +108,61 @@ describe('Lib_MerkleTrie', () => {
         ) {
           it(`should correctly get the value of node #${i}`, async () => {
             const test = await generator.makeInclusionProofTest(i)
-
             expect(
               await Lib_MerkleTrie.get(test.key, test.proof, test.root)
             ).to.deep.equal([true, test.val])
           })
-
-          if (i === 32) { // TODO: run for multiple times for all tests
-            it(`should revert when calling get on an incorrect key`, async () => {
-              const test = await generator.makeInclusionProofTest(0)
-              const test2 = await generator.makeInclusionProofTest(16)
+          if (i > 3) {
+            it(`should revert when the proof node does not pass the root check`, async () => {
+              const test = await generator.makeInclusionProofTest(i-1)
+              const test2 = await generator.makeInclusionProofTest(i-2)
               await expect (
                 Lib_MerkleTrie.get(test2.key, test.proof, test.root)
               ).to.be.revertedWith("Invalid large internal hash")
             })
-
-            it(`should revert when calling get on an incorrect proof`, async () => {
+            it(`should revert when the first proof element is not the root node`, async () => {
               const test = await generator.makeInclusionProofTest(0)
-              console.log("testkey", 0, test.key)
-              console.log("testkey root", test.root)
               let decodedProof = rlp.decode(test.proof)
-              console.log("rlp decoded proof[0]", decodedProof[0])
-              const len = decodedProof[0].write('abcd', 8); // change the 1st element (root) of the proof
-              console.log("subbedin", decodedProof[0])
-              const badProof = rlp.encode(decodedProof as rlp.
-                Input)
+              decodedProof[0].write('abcd', 8) // change the 1st element (root) of the proof
+              const badProof = rlp.encode(decodedProof as rlp.Input)
               await expect (
                 Lib_MerkleTrie.get(test.key, badProof, test.root)
               ).to.be.revertedWith("Invalid root hash")
             })
-
-            it.only(`should revert when calling get on an incorrect key`, async () => {
-              const test = await generator.makeInclusionProofTest(0)
-              console.log("orig key", test.key, test.key.length)
+            it(`should be false when calling get on an incorrect key`, async () => {
+              const test = await generator.makeInclusionProofTest(i-1)
               let newKey = test.key.slice(0, test.key.length - 8)
-              newKey = newKey.concat('88888888');
-              console.log("new key", newKey, newKey.length)
-              await expect (
-                Lib_MerkleTrie.get(newKey, test.proof, test.root)
-              ).to.be.revertedWith("Something?")
+              newKey = newKey.concat('88888888')
+              expect (
+                await Lib_MerkleTrie.get(newKey, test.proof, test.root)
+              ).to.deep.equal([false, '0x'])
             })
           }
-
         }
       })
     }
+  })
+
+  describe(`inside a trie with one node`, () => {
+    let generator: TrieTestGenerator
+    const nodeCount = 1
+    before(async () => {
+      generator = await TrieTestGenerator.fromRandom({
+        seed: `seed.get.${nodeCount}`,
+        nodeCount,
+        secure: false,
+      })
+    })
+
+    it(`should revert on an incorrect proof node prefix`, async () => {
+      const test = await generator.makeInclusionProofTest(0)
+      let decodedProof = rlp.decode(test.proof)
+      decodedProof[0].write('a', 3) // change the prefix
+      test.root = ethers.utils.keccak256(toHexString(decodedProof[0]));
+      const badProof = rlp.encode(decodedProof as rlp.Input)
+      await expect (
+        Lib_MerkleTrie.get(test.key, badProof, test.root)
+      ).to.be.revertedWith("Received a node with an unknown prefix")
+    })
   })
 })
