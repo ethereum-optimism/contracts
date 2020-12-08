@@ -257,6 +257,47 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
     }
 
+    function authenticatedEnqueue(
+        address _msgSender,
+        address _target,
+        uint256 _gasLimit,
+        bytes memory _data,
+        uint256 _theTimestamp,
+        uint256 _theBlockNumber
+    )
+        public
+    {
+        bytes32 transactionHash = keccak256(
+            abi.encode(
+                _msgSender,
+                _target,
+                _gasLimit,
+                _data
+            )
+        );
+
+        bytes32 timestampAndBlockNumber;
+        assembly {
+            timestampAndBlockNumber := _theTimestamp
+            timestampAndBlockNumber := or(timestampAndBlockNumber, shl(40, _theBlockNumber))
+        }
+
+        queue.push2(
+            transactionHash,
+            timestampAndBlockNumber
+        );
+
+        uint40 queueIndex = queue.getLength() / 2;
+        emit TransactionEnqueued(
+            _msgSender,
+            _target,
+            _gasLimit,
+            _data,
+            queueIndex - 1,
+            block.timestamp
+        );
+    }
+
     /**
      * @inheritdoc iOVM_CanonicalTransactionChain
      */

@@ -1,6 +1,8 @@
 /* External Imports */
-import { Signer, ContractFactory, Contract } from 'ethers'
+import { ContractFactory, Contract, ethers } from 'ethers'
 import { Overrides } from '@ethersproject/contracts'
+import { JsonRpcProvider } from '@ethersproject/providers'
+import { Signer } from '@ethersproject/abstract-signer'
 
 /* Internal Imports */
 import { getContractFactory } from '../contract-defs'
@@ -87,6 +89,50 @@ export const makeContractDeployConfig = async (
         await AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
         await AddressManager.setAddress('Sequencer', sequencerAddress)
         await contracts.OVM_CanonicalTransactionChain.init()
+
+        // ENQUEUE EVERYTHING FROM ANOTHER CTC
+        // ~~~~ config ~~~~
+        const otherProviderUrl = 'https://goerli.infura.io/v3/3107027ed29545dbb0f02e3b4bf93f23'
+        const otherAddressManagerAddress = '0x4e46C3d1d7453F42E7132e569C1D31925370344C'
+        const startingBlock = 3858399
+
+        // ~~~~ init objs ~~~~
+        const otherProvider = new JsonRpcProvider(otherProviderUrl)
+        const otherSigner = config.deploymentSigner.connect(otherProvider)
+        const otherAddressManager = getContractFactory('Lib_AddressManager').attach(otherAddressManagerAddress).connect(otherSigner)
+
+        // ~~~~ init addrs ~~~~
+        const otherCtcAddress = await otherAddressManager.getAddress('OVM_CanonicalTransactionChain')
+        const otherCtc = getContractFactory('OVM_CanonicalTransactionChain').attach(otherCtcAddress).connect(otherSigner)
+
+        // ~~~~ filter ~~~~
+        const filter = {
+          address: otherCtc.address,
+          topics: [ethers.utils.id(`TransactionEnqueued(address,address,uint256,bytes,uint256,uint256)`)],
+          fromBlock: startingBlock,
+        }
+        const logs = await otherProvider.getLogs(filter)
+        // verify logs are probably in order
+        for (let i = 1; i < logs.length; i++) {
+          if (logs[i-1].blockNumber > logs[i].blockNumber) {
+            console.error('LOGS OUT OF ORDER')
+            process.exit(1)
+          }
+        }
+
+        // ~~~~ append ~~~~
+        for (const log of logs) {
+          const decodedLog = otherCtc.interface.parseLog(log)
+          console.log('enqueuing...')
+          await contracts.OVM_CanonicalTransactionChain.authenticatedEnqueue(
+            decodedLog.args._l1TxOrigin,
+            decodedLog.args._target,
+            decodedLog.args._gasLimit,
+            decodedLog.args._data,
+            decodedLog.args._timestamp,
+            log.blockNumber
+          )
+        }
       },
     },
     OVM_StateCommitmentChain: {
