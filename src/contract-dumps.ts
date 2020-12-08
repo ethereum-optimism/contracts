@@ -5,7 +5,7 @@ import * as Ganache from 'ganache-core'
 import { keccak256 } from 'ethers/lib/utils'
 
 /* Internal Imports */
-import { deploy, RollupDeployConfig } from './contract-deployment'
+import { deploy, RollupDeployConfig, DeployTarget } from './contract-deployment'
 import { fromHexString, toHexString, remove0x } from './utils'
 import { getContractDefinition } from './contract-defs'
 
@@ -110,6 +110,7 @@ export const makeStateDump = async (): Promise<any> => {
 
   const config: RollupDeployConfig = {
     deploymentSigner: signer,
+    deploymentTarget: DeployTarget.L2,
     ovmGasMeteringConfig: {
       minTransactionGasLimit: 0,
       maxTransactionGasLimit: 1_000_000_000,

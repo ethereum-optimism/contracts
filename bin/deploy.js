@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const contracts = require('../build/src/contract-deployment/deploy');
+const DeployTarget = require('../build/src/helpers')
 const { providers, Wallet, utils } = require('ethers');
 const { LedgerSigner } = require('@ethersproject/hardware-wallets');
 const { JsonRpcProvider } = providers;
@@ -54,6 +55,7 @@ const L2_CROSS_DOMAIN_MESSENGER_ADDRESS =
 
   const result = await contracts.deploy({
     deploymentSigner: signer,
+    deployTarget: DeployTarget.L1,
     transactionChainConfig: {
       forceInclusionPeriodSeconds: FORCE_INCLUSION_PERIOD_SECONDS,
       sequencer: SEQUENCER_ADDRESS,

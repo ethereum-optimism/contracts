@@ -4,6 +4,7 @@ import { Signer, Contract, ContractFactory } from 'ethers'
 /* Internal Imports */
 import { RollupDeployConfig, makeContractDeployConfig } from './config'
 import { getContractFactory } from '../contract-defs'
+import { shouldDeploy } from './helpers'
 
 export interface DeployResult {
   AddressManager: Contract
@@ -35,6 +36,10 @@ export const deploy = async (
     contractDeployConfig
   )) {
     if (config.dependencies && !config.dependencies.includes(name)) {
+      continue
+    }
+
+    if (!shouldDeploy(config.deploymentTarget, contractDeployParameters.deploymentTarget)) {
       continue
     }
 

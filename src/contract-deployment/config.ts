@@ -4,9 +4,11 @@ import { Overrides } from '@ethersproject/contracts'
 
 /* Internal Imports */
 import { getContractFactory } from '../contract-defs'
+import { DeploymentTarget, DeployTarget } from './helpers'
 
 export interface RollupDeployConfig {
   deploymentSigner: Signer
+  deploymentTarget: DeploymentTarget,
   ovmGasMeteringConfig: {
     minTransactionGasLimit: number
     maxTransactionGasLimit: number
@@ -35,6 +37,7 @@ export interface RollupDeployConfig {
 
 export interface ContractDeployParameters {
   factory: ContractFactory
+  deploymentTarget: DeploymentTarget,
   params?: any[]
   afterDeploy?: (contracts?: { [name: string]: Contract }) => Promise<void>
 }
@@ -51,10 +54,12 @@ export const makeContractDeployConfig = async (
     OVM_L2CrossDomainMessenger: {
       factory: getContractFactory('OVM_L2CrossDomainMessenger'),
       params: [AddressManager.address],
+      deploymentTarget: DeployTarget.L2,
     },
     OVM_L1CrossDomainMessenger: {
       factory: getContractFactory('OVM_L1CrossDomainMessenger'),
       params: [],
+      deploymentTarget: DeployTarget.L1,
     },
     Proxy__OVM_L1CrossDomainMessenger: {
       factory: getContractFactory('Lib_ResolvedDelegateProxy'),
@@ -71,6 +76,7 @@ export const makeContractDeployConfig = async (
           config.ovmGlobalContext.L2CrossDomainMessengerAddress
         )
       },
+      deploymentTarget: DeployTarget.L1,
     },
     OVM_CanonicalTransactionChain: {
       factory: getContractFactory('OVM_CanonicalTransactionChain'),
@@ -88,6 +94,7 @@ export const makeContractDeployConfig = async (
         await AddressManager.setAddress('Sequencer', sequencerAddress)
         await contracts.OVM_CanonicalTransactionChain.init()
       },
+      deploymentTarget: DeployTarget.L1L2,
     },
     OVM_StateCommitmentChain: {
       factory: getContractFactory('OVM_StateCommitmentChain'),
@@ -99,22 +106,27 @@ export const makeContractDeployConfig = async (
       afterDeploy: async (contracts): Promise<void> => {
         await contracts.OVM_StateCommitmentChain.init()
       },
+      deploymentTarget: DeployTarget.L1L2,
     },
     OVM_DeployerWhitelist: {
       factory: getContractFactory('OVM_DeployerWhitelist'),
       params: [],
+      deploymentTarget: DeployTarget.L2,
     },
     OVM_L1MessageSender: {
       factory: getContractFactory('OVM_L1MessageSender'),
       params: [],
+      deploymentTarget: DeployTarget.L2,
     },
     OVM_L2ToL1MessagePasser: {
       factory: getContractFactory('OVM_L2ToL1MessagePasser'),
       params: [],
+      deploymentTarget: DeployTarget.L2,
     },
     OVM_SafetyChecker: {
       factory: getContractFactory('OVM_SafetyChecker'),
       params: [],
+      deploymentTarget: DeployTarget.L1L2,
     },
     OVM_ExecutionManager: {
       factory: getContractFactory('OVM_ExecutionManager'),
@@ -123,6 +135,7 @@ export const makeContractDeployConfig = async (
         config.ovmGasMeteringConfig,
         config.ovmGlobalContext,
       ],
+      deploymentTarget: DeployTarget.L1L2,
     },
     OVM_StateManager: {
       factory: getContractFactory('OVM_StateManager'),
@@ -132,31 +145,40 @@ export const makeContractDeployConfig = async (
           contracts.OVM_ExecutionManager.address
         )
       },
+      deploymentTarget: DeployTarget.L1L2,
     },
     OVM_StateManagerFactory: {
       factory: getContractFactory('OVM_StateManagerFactory'),
+      deploymentTarget: DeployTarget.L1L2,
     },
     OVM_FraudVerifier: {
       factory: getContractFactory('OVM_FraudVerifier'),
       params: [AddressManager.address],
+      deploymentTarget: DeployTarget.L1L2,
     },
     OVM_StateTransitionerFactory: {
       factory: getContractFactory('OVM_StateTransitionerFactory'),
+      deploymentTarget: DeployTarget.L1L2,
     },
     OVM_ECDSAContractAccount: {
       factory: getContractFactory('OVM_ECDSAContractAccount'),
+      deploymentTarget: DeployTarget.L2,
     },
     OVM_SequencerEntrypoint: {
       factory: getContractFactory('OVM_SequencerEntrypoint'),
+      deploymentTarget: DeployTarget.L1L2,
     },
     OVM_ProxySequencerEntrypoint: {
       factory: getContractFactory('OVM_ProxySequencerEntrypoint'),
+      deploymentTarget: DeployTarget.L2,
     },
     mockOVM_ECDSAContractAccount: {
       factory: getContractFactory('mockOVM_ECDSAContractAccount'),
+      deploymentTarget: DeployTarget.L2,
     },
     OVM_BondManager: {
       factory: getContractFactory('mockOVM_BondManager'),
+      deploymentTarget: DeployTarget.L1L2,
     },
   }
 }
