@@ -26,7 +26,7 @@ const getXDomainCalldata = (
   ).encodeFunctionData('relayMessage', [target, sender, message, messageNonce])
 }
 
-describe.only('OVM_L2CrossDomainMessenger', () => {
+describe('OVM_L2CrossDomainMessenger', () => {
   let signer: Signer
   before(async () => {
     ;[signer] = await ethers.getSigners()

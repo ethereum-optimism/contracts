@@ -48,11 +48,10 @@ contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger, Reentran
             messageNonce
         );
 
-        _sendXDomainMessage(xDomainCalldata, _gasLimit);
-
         messageNonce += 1;
         sentMessages[keccak256(xDomainCalldata)] = true;
 
+        _sendXDomainMessage(xDomainCalldata, _gasLimit);
         emit SentMessage(xDomainCalldata);
     }
 
