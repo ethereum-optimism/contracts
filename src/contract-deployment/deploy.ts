@@ -16,15 +16,18 @@ export interface DeployResult {
 export const deploy = async (
   config: RollupDeployConfig
 ): Promise<DeployResult> => {
+  console.log('Beginning deploy')
   const AddressManager: Contract = await getContractFactory(
     'Lib_AddressManager',
     config.deploymentSigner
   ).deploy()
+  await AddressManager.deployTransaction.wait()
 
   const contractDeployConfig = await makeContractDeployConfig(
     config,
     AddressManager
   )
+  console.log('Deployed AddressManager')
 
   const failedDeployments: string[] = []
   const contracts: {
@@ -39,14 +42,18 @@ export const deploy = async (
     }
 
     try {
+      process.stdout.write(`Deploying ${name}...`)
       contracts[name] = await contractDeployParameters.factory
         .connect(config.deploymentSigner)
         .deploy(
           ...(contractDeployParameters.params || []),
-          config.deployOverrides || {}
+          config.deployOverrides
         )
-      await AddressManager.setAddress(name, contracts[name].address)
+      await contracts[name].deployTransaction.wait()
+      await (await AddressManager.setAddress(name, contracts[name].address)).wait()
+      console.log('deployed.')
     } catch (err) {
+      console.log('error.')
       failedDeployments.push(name)
     }
   }

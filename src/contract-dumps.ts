@@ -148,6 +148,7 @@ export const makeStateDump = async (): Promise<any> => {
       'OVM_StateManager',
       'mockOVM_ECDSAContractAccount',
     ],
+    deployOverrides: {}
   }
 
   const precompiles = {
