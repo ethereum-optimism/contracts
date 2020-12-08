@@ -105,23 +105,23 @@ export const makeContractDeployConfig = async (
         const otherCtcAddress = await otherAddressManager.getAddress('OVM_CanonicalTransactionChain')
         const otherCtc = getContractFactory('OVM_CanonicalTransactionChain').attach(otherCtcAddress).connect(otherSigner)
 
-        // ~~~~ filter ~~~~
-        const filter = {
+        // ~~~~ queueFilter ~~~~
+        const queueFilter = {
           address: otherCtc.address,
           topics: [ethers.utils.id(`TransactionEnqueued(address,address,uint256,bytes,uint256,uint256)`)],
           fromBlock: startingBlock,
         }
-        const logs = await otherProvider.getLogs(filter)
-        // verify logs are probably in order
-        for (let i = 1; i < logs.length; i++) {
-          if (logs[i-1].blockNumber > logs[i].blockNumber) {
-            console.error('LOGS OUT OF ORDER')
+        const queueLogs = await otherProvider.getLogs(queueFilter)
+        // verify queueLogs are probably in order
+        for (let i = 1; i < queueLogs.length; i++) {
+          if (queueLogs[i-1].blockNumber > queueLogs[i].blockNumber) {
+            console.error('queueLogs OUT OF ORDER')
             process.exit(1)
           }
         }
 
-        // ~~~~ append ~~~~
-        for (const log of logs) {
+        // ~~~~ enqueue ~~~~
+        for (const log of queueLogs) {
           const decodedLog = otherCtc.interface.parseLog(log)
           console.log('enqueuing...')
           await contracts.OVM_CanonicalTransactionChain.authenticatedEnqueue(
@@ -132,6 +132,23 @@ export const makeContractDeployConfig = async (
             decodedLog.args._timestamp,
             log.blockNumber
           )
+        }
+
+        // ~~~~ append ~~~~
+        const seqFilter = {
+          address: otherCtc.address,
+          topics: [ethers.utils.id(`SequencerBatchAppended(uint256,uint256,uint256)`)],
+          fromBlock: startingBlock,
+        }
+        const seqLogs = await otherProvider.getLogs(seqFilter)
+        console.log('SEQUENCER LOGS:', seqLogs.length)
+        for (const log of seqLogs) {
+          console.log('appending...')
+          const tx = await otherProvider.getTransaction(log.transactionHash)
+          await config.deploymentSigner.sendTransaction({
+            to: contracts.OVM_CanonicalTransactionChain.address,
+            data: tx.data
+          })
         }
       },
     },
