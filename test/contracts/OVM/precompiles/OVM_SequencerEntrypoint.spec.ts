@@ -133,11 +133,11 @@ describe('OVM_SequencerEntrypoint', () => {
       })
     }
 
-    it('should submit ETHSignedTypedData if TransactionType is 2', async () => {
+    it('should submit ETHSignedTypedData if TransactionType is 1', async () => {
       const calldata = await encodeSequencerCalldata(
         wallet,
         DEFAULT_EIP155_TX,
-        2
+        1
       )
       await Helper_PrecompileCaller.callPrecompile(
         OVM_SequencerEntrypoint.address,
@@ -162,18 +162,8 @@ describe('OVM_SequencerEntrypoint', () => {
     })
 
     // TODO: These tests should pass when smock is updated to >=0.1.0
-    it.skip('should revert if TransactionType is >2', async () => {
-      const calldata = '0x03'
-      await expect(
-        Helper_PrecompileCaller.callPrecompile(
-          OVM_SequencerEntrypoint.address,
-          calldata
-        )
-      ).to.be.reverted
-    })
-
-    it.skip('should revert if TransactionType is 1', async () => {
-      const calldata = '0x01'
+    it.skip('should revert if TransactionType is >1', async () => {
+      const calldata = '0x02'
       await expect(
         Helper_PrecompileCaller.callPrecompile(
           OVM_SequencerEntrypoint.address,

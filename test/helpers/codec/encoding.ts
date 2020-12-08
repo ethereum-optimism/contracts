@@ -135,7 +135,7 @@ export const signTransaction = async (
   transaction: EIP155Transaction,
   transactionType: number
 ): Promise<SignatureParameters> => {
-  return transactionType === 2
+  return transactionType === 1
     ? signEthSignMessage(wallet, transaction) //ETH Signed tx
     : signNativeTransaction(wallet, transaction) //Create EOA tx or EIP155 tx
 }
@@ -147,10 +147,5 @@ export const encodeSequencerCalldata = async (
 ) => {
   const sig = await signTransaction(wallet, transaction, transactionType)
   const encodedTransaction = encodeCompactTransaction(transaction)
-  const dataPrefix = `0x0${transactionType}${sig.r}${sig.s}${sig.v}`
-  const calldata =
-    transactionType === 1
-      ? `${dataPrefix}${remove0x(sig.messageHash)}` // Create EOA tx
-      : `${dataPrefix}${encodedTransaction}` // EIP155 tx or ETH Signed Tx
-  return calldata
+  return `0x0${transactionType}${sig.r}${sig.s}${sig.v}${encodedTransaction}`
 }

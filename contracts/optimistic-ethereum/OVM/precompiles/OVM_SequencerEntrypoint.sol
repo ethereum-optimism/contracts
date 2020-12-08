@@ -106,11 +106,11 @@ contract OVM_SequencerEntrypoint {
     {
         if (_transactionType == 0) {
             return TransactionType.NATIVE_ETH_TRANSACTION;
-        } if (_transactionType == 2) {
+        } if (_transactionType == 1) {
             return TransactionType.ETH_SIGNED_MESSAGE;
         } else {
             Lib_SafeExecutionManagerWrapper.safeREVERT(
-                "Transaction type must be 0 or 2"
+                "Transaction type must be 0 or 1"
             );
         }
     }
