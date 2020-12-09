@@ -31,7 +31,7 @@ library Lib_OVMCodec {
     /*********
      * Enums *
      *********/
-    
+
     enum EOASignatureType {
         EIP155_TRANSACTON,
         ETH_SIGNED_MESSAGE
@@ -48,7 +48,7 @@ library Lib_OVMCodec {
      ***********/
 
     struct Account {
-        uint256 nonce;
+        uint64 nonce;
         uint256 balance;
         bytes32 storageRoot;
         bytes32 codeHash;
@@ -57,7 +57,7 @@ library Lib_OVMCodec {
     }
 
     struct EVMAccount {
-        uint256 nonce;
+        uint64 nonce;
         uint256 balance;
         bytes32 storageRoot;
         bytes32 codeHash;
@@ -101,7 +101,7 @@ library Lib_OVMCodec {
     }
 
     struct EIP155Transaction {
-        uint256 nonce;
+        uint64 nonce;
         uint256 gasPrice;
         uint256 gasLimit;
         address to;
@@ -132,7 +132,7 @@ library Lib_OVMCodec {
     {
         if (_isEthSignedMessage) {
             (
-                uint _nonce,
+                uint64 _nonce,
                 uint _gasLimit,
                 uint _gasPrice,
                 uint _chainId,
@@ -140,7 +140,7 @@ library Lib_OVMCodec {
                 bytes memory _data
             ) = abi.decode(
                 _transaction,
-                (uint, uint, uint, uint, address ,bytes)
+                (uint64, uint, uint, uint, address, bytes)
             );
             return EIP155Transaction({
                 nonce: _nonce,
@@ -155,7 +155,7 @@ library Lib_OVMCodec {
             Lib_RLPReader.RLPItem[] memory decoded = Lib_RLPReader.readList(_transaction);
 
             return EIP155Transaction({
-                nonce: Lib_RLPReader.readUint256(decoded[0]),
+                nonce: Lib_RLPReader.readUint64(decoded[0]),
                 gasPrice: Lib_RLPReader.readUint256(decoded[1]),
                 gasLimit: Lib_RLPReader.readUint256(decoded[2]),
                 to: Lib_RLPReader.readAddress(decoded[3]),
@@ -178,7 +178,7 @@ library Lib_OVMCodec {
         return EIP155Transaction({
             gasLimit: Lib_BytesUtils.toUint24(_transaction, 0),
             gasPrice: uint256(Lib_BytesUtils.toUint24(_transaction, 3)) * 1000000,
-            nonce: Lib_BytesUtils.toUint24(_transaction, 6),
+            nonce: uint64(Lib_BytesUtils.toUint24(_transaction, 6)),
             to: Lib_BytesUtils.toAddress(_transaction, 9),
             data: Lib_BytesUtils.slice(_transaction, 29),
             chainId: 420,
@@ -340,7 +340,7 @@ library Lib_OVMCodec {
         Lib_RLPReader.RLPItem[] memory accountState = Lib_RLPReader.readList(_encoded);
 
         return EVMAccount({
-            nonce: Lib_RLPReader.readUint256(accountState[0]),
+            nonce: Lib_RLPReader.readUint64(accountState[0]),
             balance: Lib_RLPReader.readUint256(accountState[1]),
             storageRoot: Lib_RLPReader.readBytes32(accountState[2]),
             codeHash: Lib_RLPReader.readBytes32(accountState[3])

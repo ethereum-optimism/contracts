@@ -16,7 +16,7 @@ contract OVM_StateManager is iOVM_StateManager {
     /**********************
      * Contract Constants *
      **********************/
-    
+
     bytes32 constant internal EMPTY_ACCOUNT_CODE_HASH = 0x00004B1DC0DE000000004B1DC0DE000000004B1DC0DE000000004B1DC0DE0000;
     bytes32 constant internal STORAGE_XOR_VALUE =       0xFEEDFACECAFEBEEFFEEDFACECAFEBEEFFEEDFACECAFEBEEFFEEDFACECAFEBEEF;
 
@@ -199,7 +199,7 @@ contract OVM_StateManager is iOVM_StateManager {
      */
     function setAccountNonce(
         address _address,
-        uint256 _nonce
+        uint64 _nonce
     )
         override
         public
@@ -220,7 +220,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         view
         returns (
-            uint256 _nonce
+            uint64 _nonce
         )
     {
         return accounts[_address].nonce;
@@ -392,7 +392,7 @@ contract OVM_StateManager is iOVM_StateManager {
     {
         return totalUncommittedAccounts;
     }
-    
+
 
     /************************************
      * Public Functions: Storage Access *

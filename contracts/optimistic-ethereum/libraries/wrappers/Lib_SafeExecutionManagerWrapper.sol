@@ -185,7 +185,7 @@ library Lib_SafeExecutionManagerWrapper {
     function safeGETNONCE()
         internal
         returns (
-            uint256 _nonce
+            uint64 _nonce
         )
     {
         bytes memory returndata = _safeExecutionManagerInteraction(
@@ -194,7 +194,7 @@ library Lib_SafeExecutionManagerWrapper {
             )
         );
 
-        return abi.decode(returndata, (uint256));
+        return abi.decode(returndata, (uint64));
     }
 
     /**
@@ -202,13 +202,13 @@ library Lib_SafeExecutionManagerWrapper {
      * @param _nonce New account nonce.
      */
     function safeSETNONCE(
-        uint256 _nonce
+        uint64 _nonce
     )
         internal
     {
         _safeExecutionManagerInteraction(
             abi.encodeWithSignature(
-                "ovmSETNONCE(uint256)",
+                "ovmSETNONCE(uint64)",
                 _nonce
             )
         );

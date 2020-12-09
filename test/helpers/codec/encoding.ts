@@ -68,7 +68,7 @@ export const serializeEthSignTransaction = (
   transaction: EIP155Transaction
 ): string => {
   return ethers.utils.defaultAbiCoder.encode(
-    ['uint256', 'uint256', 'uint256', 'uint256', 'address', 'bytes'],
+    ['uint64', 'uint256', 'uint256', 'uint256', 'address', 'bytes'],
     [
       transaction.nonce,
       transaction.gasLimit,

@@ -143,7 +143,7 @@ library Lib_EthUtils {
      */
     function getAddressForCREATE(
         address _creator,
-        uint256 _nonce
+        uint64 _nonce
     )
         internal
         pure

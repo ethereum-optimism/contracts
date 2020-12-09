@@ -415,7 +415,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
         returns (
-            uint256 _nonce
+            uint64 _nonce
         )
     {
         return _getAccountNonce(ovmADDRESS());
@@ -426,7 +426,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @param _nonce New nonce for the current contract.
      */
     function ovmSETNONCE(
-        uint256 _nonce
+        uint64 _nonce
     )
         override
         public
@@ -990,8 +990,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 _revertWithFlag(flag);
             }
 
-            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, and STATIC_VIOLATION aren't dependent on the 
-            // input state, so we can just handle them like standard reverts. Our only change here 
+            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, and STATIC_VIOLATION aren't dependent on the
+            // input state, so we can just handle them like standard reverts. Our only change here
             // is to record the gas refund reported by the call (enforced by safety checking).
             if (
                 flag == RevertFlag.INTENTIONAL_REVERT
@@ -1072,7 +1072,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      */
     function _setAccountNonce(
         address _address,
-        uint256 _nonce
+        uint64 _nonce
     )
         internal
     {
@@ -1090,7 +1090,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
         returns (
-            uint256 _nonce
+            uint64 _nonce
         )
     {
         _checkAccountLoad(_address);
