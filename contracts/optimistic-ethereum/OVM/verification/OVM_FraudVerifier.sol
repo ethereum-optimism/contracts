@@ -193,7 +193,7 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
         _cancelStateTransition(_postStateRootBatchHeader, _preStateRoot);
 
         // TEMPORARY: Remove the transitioner; for minnet.
-        transitioners[keccak256(abi.encodePacked(_preStateRoot, _txHash))] = 0x0000000000000000000000000000000000000000;
+        transitioners[keccak256(abi.encodePacked(_preStateRoot, _txHash))] = iOVM_StateTransitioner(0x0000000000000000000000000000000000000000);
     }
 
 
