@@ -326,6 +326,8 @@ library Lib_MerkleTrie {
                         currentKeyIncrement = sharedNibbleLength;
                         continue;
                     }
+                } else {
+                    revert("Received a node with an unknown prefix");
                 }
             } else {
                 revert("Received an unparseable node.");

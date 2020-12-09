@@ -161,9 +161,9 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
             "State transition process must be completed prior to finalization."
         );
 
-        require(
-            _postStateRootProof.index == _preStateRootProof.index + 1,
-            "Invalid post-state root index."
+        require (
+            _postStateRootBatchHeader.prevTotalElements + _postStateRootProof.index == _preStateRootBatchHeader.prevTotalElements + _preStateRootProof.index + 1,
+            "Post-state root global index must equal to the pre state root global index plus one."
         );
 
         require(
@@ -191,6 +191,7 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
         );
         
         _cancelStateTransition(_postStateRootBatchHeader, _preStateRoot);
+    }
 
         // TEMPORARY: Remove the transitioner; for minnet.
         transitioners[keccak256(abi.encodePacked(_preStateRoot, _txHash))] = 0x0000000000000000000000000000000000000000;
