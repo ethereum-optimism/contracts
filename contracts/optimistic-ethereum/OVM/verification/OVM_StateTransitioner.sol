@@ -50,7 +50,6 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
     bytes32 internal preStateRoot;
     bytes32 internal postStateRoot;
     TransitionPhase public phase;
-    uint256 internal stateTransitionIndex;
     bytes32 internal transactionHash;
 
 
@@ -60,19 +59,16 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
 
     /**
      * @param _libAddressManager Address of the Address Manager.
-     * @param _stateTransitionIndex Index of the state transition being verified.
      * @param _preStateRoot State root before the transition was executed.
      * @param _transactionHash Hash of the executed transaction.
      */
     constructor(
         address _libAddressManager,
-        uint256 _stateTransitionIndex,
         bytes32 _preStateRoot,
         bytes32 _transactionHash
     )
         Lib_AddressResolver(_libAddressManager)
     {
-        stateTransitionIndex = _stateTransitionIndex;
         preStateRoot = _preStateRoot;
         postStateRoot = _preStateRoot;
         transactionHash = _transactionHash;
@@ -148,7 +144,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
     {
         return phase == TransitionPhase.COMPLETE;
     }
-    
+
 
     /***********************************
      * Public Functions: Pre-Execution *
