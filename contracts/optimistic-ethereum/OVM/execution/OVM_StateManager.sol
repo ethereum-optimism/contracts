@@ -17,8 +17,9 @@ contract OVM_StateManager is iOVM_StateManager {
      * Contract Constants *
      **********************/
     
-    bytes32 constant internal EMPTY_ACCOUNT_CODE_HASH = 0x00004B1DC0DE000000004B1DC0DE000000004B1DC0DE000000004B1DC0DE0000;
-    bytes32 constant internal STORAGE_XOR_VALUE =       0xFEEDFACECAFEBEEFFEEDFACECAFEBEEFFEEDFACECAFEBEEFFEEDFACECAFEBEEF;
+    bytes32 constant internal EMPTY_ACCOUNT_STORAGE_ROOT = 0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421;
+    bytes32 constant internal EMPTY_ACCOUNT_CODE_HASH =    0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+    bytes32 constant internal STORAGE_XOR_VALUE =          0xFEEDFACECAFEBEEFFEEDFACECAFEBEEFFEEDFACECAFEBEEFFEEDFACECAFEBEEF;
 
 
     /*******************************************
@@ -137,7 +138,9 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         authenticated
     {
-        accounts[_address].codeHash = EMPTY_ACCOUNT_CODE_HASH;
+        Lib_OVMCodec.Account storage account = accounts[_address];
+        account.storageRoot = EMPTY_ACCOUNT_STORAGE_ROOT;
+        account.codeHash = EMPTY_ACCOUNT_CODE_HASH;
     }
 
     /**
@@ -189,7 +192,10 @@ contract OVM_StateManager is iOVM_StateManager {
             bool _exists
         )
     {
-        return accounts[_address].codeHash == EMPTY_ACCOUNT_CODE_HASH;
+        return (
+            accounts[_address].codeHash == EMPTY_ACCOUNT_CODE_HASH
+            && accounts[_address].nonce == 0
+        );
     }
 
     /**
@@ -275,8 +281,8 @@ contract OVM_StateManager is iOVM_StateManager {
     {
         Lib_OVMCodec.Account storage account = accounts[_address];
         account.nonce = 1;
-        account.storageRoot = 0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421;
-        account.codeHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+        account.storageRoot = EMPTY_ACCOUNT_STORAGE_ROOT;
+        account.codeHash = EMPTY_ACCOUNT_CODE_HASH;
         account.isFresh = true;
     }
 
