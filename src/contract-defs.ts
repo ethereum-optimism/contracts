@@ -5,7 +5,7 @@ import { Interface } from 'ethers/lib/utils'
 export const getContractDefinition = (name: string, ovm?: boolean): any => {
   return require(path.join(
     __dirname,
-    `../artifacts/${ovm ? 'ovm' : 'evm'}`,
+    `../artifacts${ovm ? '/ovm' : ''}`,
     `${name}.json`
   ))
 }

@@ -142,7 +142,7 @@ internalTask(TASK_BUILD_ARTIFACTS, async ({ force }, { config, run }) => {
       if (fileName.endsWith('.ovm')) {
         await saveArtifact(config.paths.artifacts + '/ovm', artifact)
       } else {
-        await saveArtifact(config.paths.artifacts + '/evm', artifact)
+        await saveArtifact(config.paths.artifacts, artifact)
       }
     }
   }
