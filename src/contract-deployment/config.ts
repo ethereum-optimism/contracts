@@ -29,7 +29,7 @@ export interface RollupDeployConfig {
     owner: string | Signer
     allowArbitraryContractDeployment: boolean
   }
-  deployOverrides?: Overrides
+  deployOverrides: Overrides
   dependencies?: string[]
 }
 
@@ -65,11 +65,12 @@ export const makeContractDeployConfig = async (
         )
           .connect(config.deploymentSigner)
           .attach(contracts.Proxy__OVM_L1CrossDomainMessenger.address)
-        await xDomainMessenger.initialize(AddressManager.address)
-        await AddressManager.setAddress(
+        await (await xDomainMessenger.initialize(AddressManager.address, config.deployOverrides)).wait()
+        await (await AddressManager.setAddress(
           'OVM_L2CrossDomainMessenger',
-          config.ovmGlobalContext.L2CrossDomainMessengerAddress
-        )
+          config.ovmGlobalContext.L2CrossDomainMessengerAddress,
+          config.deployOverrides
+        )).wait()
       },
     },
     OVM_CanonicalTransactionChain: {
@@ -86,11 +87,12 @@ export const makeContractDeployConfig = async (
             : await sequencer.getAddress()
         await AddressManager.setAddress(
           'OVM_DecompressionPrecompileAddress',
-          '0x4200000000000000000000000000000000000005'
+          '0x4200000000000000000000000000000000000005',
+          config.deployOverrides
         )
-        await AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
-        await AddressManager.setAddress('Sequencer', sequencerAddress)
-        await contracts.OVM_CanonicalTransactionChain.init()
+        await AddressManager.setAddress('OVM_Sequencer', sequencerAddress, config.deployOverrides)
+        await AddressManager.setAddress('Sequencer', sequencerAddress, config.deployOverrides)
+        await contracts.OVM_CanonicalTransactionChain.init(config.deployOverrides)
       },
     },
     OVM_StateCommitmentChain: {
@@ -102,6 +104,8 @@ export const makeContractDeployConfig = async (
       ],
       afterDeploy: async (contracts): Promise<void> => {
         await contracts.OVM_StateCommitmentChain.init()
+        // Set the bond manager address to the mock BondManager
+        await AddressManager.setAddress('OVM_BondManager', '0xD5b07A758d38Ec2eDbFbf5fB98f5467122ec9663', config.deployOverrides)
       },
     },
     OVM_DeployerWhitelist: {
@@ -133,7 +137,8 @@ export const makeContractDeployConfig = async (
       params: [await config.deploymentSigner.getAddress()],
       afterDeploy: async (contracts): Promise<void> => {
         await contracts.OVM_StateManager.setExecutionManager(
-          contracts.OVM_ExecutionManager.address
+          contracts.OVM_ExecutionManager.address,
+          config.deployOverrides
         )
       },
     },
