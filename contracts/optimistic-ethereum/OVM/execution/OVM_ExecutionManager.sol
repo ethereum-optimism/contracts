@@ -1026,14 +1026,13 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 _revertWithFlag(flag);
             }
 
-            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, and STATIC_VIOLATION aren't dependent on the
-            // input state, so we can just handle them like standard reverts. Our only change here
+            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_WHITELISTED aren't 
+            // dependent on the input state, so we can just handle them like standard reverts. Our only change here
             // is to record the gas refund reported by the call (enforced by safety checking).
             if (
                 flag == RevertFlag.INTENTIONAL_REVERT
                 || flag == RevertFlag.UNSAFE_BYTECODE
                 || flag == RevertFlag.STATIC_VIOLATION
-                // todo: is this supposed to be here?  if so, add to comment above
                 || flag == RevertFlag.CREATOR_NOT_WHITELISTED
             ) {
                 transactionRecord.ovmGasRefund = ovmGasRefund;
