@@ -85,14 +85,14 @@ export const makeContractDeployConfig = async (
           typeof sequencer === 'string'
             ? sequencer
             : await sequencer.getAddress()
-        await AddressManager.setAddress(
+        await (await AddressManager.setAddress(
           'OVM_DecompressionPrecompileAddress',
           '0x4200000000000000000000000000000000000005',
           config.deployOverrides
-        )
-        await AddressManager.setAddress('OVM_Sequencer', sequencerAddress, config.deployOverrides)
-        await AddressManager.setAddress('Sequencer', sequencerAddress, config.deployOverrides)
-        await contracts.OVM_CanonicalTransactionChain.init(config.deployOverrides)
+        )).wait()
+        await (await AddressManager.setAddress('OVM_Sequencer', sequencerAddress, config.deployOverrides)).wait()
+        await (await AddressManager.setAddress('Sequencer', sequencerAddress, config.deployOverrides)).wait()
+        await (await contracts.OVM_CanonicalTransactionChain.init(config.deployOverrides)).wait()
       },
     },
     OVM_StateCommitmentChain: {
@@ -103,9 +103,7 @@ export const makeContractDeployConfig = async (
         config.stateChainConfig.sequencerPublishWindowSeconds,
       ],
       afterDeploy: async (contracts): Promise<void> => {
-        await contracts.OVM_StateCommitmentChain.init()
-        // Set the bond manager address to the mock BondManager
-        await AddressManager.setAddress('OVM_BondManager', '0xD5b07A758d38Ec2eDbFbf5fB98f5467122ec9663', config.deployOverrides)
+        await (await contracts.OVM_StateCommitmentChain.init()).wait()
       },
     },
     OVM_DeployerWhitelist: {
@@ -136,10 +134,10 @@ export const makeContractDeployConfig = async (
       factory: getContractFactory('OVM_StateManager'),
       params: [await config.deploymentSigner.getAddress()],
       afterDeploy: async (contracts): Promise<void> => {
-        await contracts.OVM_StateManager.setExecutionManager(
+        await (await contracts.OVM_StateManager.setExecutionManager(
           contracts.OVM_ExecutionManager.address,
           config.deployOverrides
-        )
+        )).wait()
       },
     },
     OVM_StateManagerFactory: {
