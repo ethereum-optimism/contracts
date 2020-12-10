@@ -17,8 +17,6 @@ import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.s
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
 import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol";
 
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /**
  * @title OVM_ExecutionManager
  */
@@ -539,8 +537,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes memory _returndata
         )
     {
-        console.log("in ovmcall, to address:");
-        console.logAddress(_address);
         // CALL updates the CALLER and ADDRESS.
         MessageContext memory nextMessageContext = messageContext;
         nextMessageContext.ovmCALLER = nextMessageContext.ovmADDRESS;
@@ -647,8 +643,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes32 _value
         )
     {
-        console.log("in ovmSLOAD for key:");
-        console.logBytes32(_key);
         // We always SLOAD from the storage of ADDRESS.
         address contractAddress = ovmADDRESS();
 
@@ -877,9 +871,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         );
         bool isAllowed = abi.decode(data, (bool));
 
-        console.log("foudn deployer is allowed?");
-        console.logBool(isAllowed);
-
         if (!isAllowed || !success) {
             _revertWithFlag(RevertFlag.CREATOR_NOT_WHITELISTED);
         }   
@@ -1018,8 +1009,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // this value in the case of a revert.
         uint256 nuisanceGasLeft = messageRecord.nuisanceGasLeft;
 
-        console.log("handleExtenralinteraction go tsuccess:");
-        console.logBool(success);
         // Reverts at this point are completely OK, but we need to make a few updates based on the
         // information passed through the revert.
         if (success == false) {
@@ -1248,8 +1237,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
-        console.log("checkAccountLoad at:");
-        console.logAddress(_address);
         // See `_checkContractStorageLoad` for more information.
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
             _revertWithFlag(RevertFlag.OUT_OF_GAS);
