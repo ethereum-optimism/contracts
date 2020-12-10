@@ -134,7 +134,6 @@ contract Helper_TestRunner {
         }
 
         if (success == false || (success == true && returndata.length == 1)) {
-            console.log("teststep returned false");
             assembly {
                 if eq(extcodesize(address()), 0) {
                     return(0, 1)
