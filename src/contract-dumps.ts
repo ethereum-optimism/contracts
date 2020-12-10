@@ -220,7 +220,7 @@ export const makeStateDump = async (): Promise<any> => {
     code: '0x00',
     codeHash: keccak256('0x00'),
     storage: {},
-    abi: []
+    abi: [],
   }
 
   return dump
