@@ -63,6 +63,18 @@ contract TestLib_RLPReader {
         return Lib_RLPReader.readBytes32(_in);
     }
 
+    function readUint64(
+        bytes memory _in
+    )
+        public
+        pure
+        returns (
+            uint64
+        )
+    {
+        return Lib_RLPReader.readUint64(_in);
+    }
+
     function readUint256(
         bytes memory _in
     )

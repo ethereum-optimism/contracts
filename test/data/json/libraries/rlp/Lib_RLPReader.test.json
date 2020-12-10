@@ -162,6 +162,72 @@
                 ]
             }
         },
+        "readUint64": {
+            "zero": {
+                "in": [
+                    "0x80"
+                ],
+                "out": [
+                    0
+                ]
+            },
+            "smallint": {
+                "in": [
+                    "0x01"
+                ],
+                "out": [
+                    1
+                ]
+            },
+            "smallint2": {
+                "in": [
+                    "0x10"
+                ],
+                "out": [
+                    16
+                ]
+            },
+            "smallint3": {
+                "in": [
+                    "0x4f"
+                ],
+                "out": [
+                    79
+                ]
+            },
+            "smallint4": {
+                "in": [
+                    "0x7f"
+                ],
+                "out": [
+                    127
+                ]
+            },
+            "mediumint1": {
+                "in": [
+                    "0x8180"
+                ],
+                "out": [
+                    128
+                ]
+            },
+            "mediumint2": {
+                "in": [
+                    "0x8203e8"
+                ],
+                "out": [
+                    1000
+                ]
+            },
+            "mediumint3": {
+                "in": [
+                    "0x830186a0"
+                ],
+                "out": [
+                    100000
+                ]
+            }
+        },
         "readList": {
             "emptylist": {
                 "in": [
