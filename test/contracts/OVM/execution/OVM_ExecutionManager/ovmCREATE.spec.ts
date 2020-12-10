@@ -1,4 +1,6 @@
 /* Internal Imports */
+import { padStart } from 'lodash'
+import { prependListener } from 'process'
 import {
   ExecutionManagerTestRunner,
   TestDefinition,
@@ -21,6 +23,9 @@ const CREATED_CONTRACT_BY_2_2 = '0x15ac629e1a3866b17179ee4ae86de5cbda744335'
 const NESTED_CREATED_CONTRACT = '0xcb964b3f4162a0d4f5c997b40e19da5a546bc36f'
 const DUMMY_REVERT_DATA =
   '0xdeadbeef1e5420deadbeef1e5420deadbeef1e5420deadbeef1e5420deadbeef1e5420'
+
+const NON_WHITELISTED_DEPLOYER = '0x1234123412341234123412341234123412341234'
+const NON_WHITELISTED_DEPLOYER_KEY = '0x0000000000000000000000001234123412341234123412341234123412341234'
 
 const test_ovmCREATE: TestDefinition = {
   name: 'Basic tests for ovmCREATE',
@@ -82,7 +87,6 @@ const test_ovmCREATE: TestDefinition = {
   parameters: [
     {
       name: 'ovmCREATE, ovmEXTCODESIZE(CREATED)',
-      focus: true,
       steps: [
         {
           functionName: 'ovmCREATE',
@@ -657,6 +661,74 @@ const test_ovmCREATE: TestDefinition = {
       ],
     },
   ],
+  subTests: [
+    {
+      name: "Deployer whitelist tests",
+      preState: {
+        StateManager: {
+          accounts: {
+            [NON_WHITELISTED_DEPLOYER]: {
+              codeHash: NON_NULL_BYTES32,
+              ethAddress: '$OVM_CALL_HELPER',
+            },
+          },
+          contractStorage: {
+            ['0x4200000000000000000000000000000000000002']: {
+              // initialized: true
+              '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR('0x' + '00'.repeat(31) + '01'),
+              // allowArbitraryDeployment: false
+              '0x0000000000000000000000000000000000000000000000000000000000000012': getStorageXOR(NULL_BYTES32),
+              // deployer is whitelisted: false
+              [NON_WHITELISTED_DEPLOYER_KEY]: getStorageXOR(NULL_BYTES32),
+            }
+          },
+          verifiedContractStorage: {
+            ['0x4200000000000000000000000000000000000002']: {
+              // initialized: true
+              '0x0000000000000000000000000000000000000000000000000000000000000010': 1,
+              // allowArbitraryDeployment: false
+              '0x0000000000000000000000000000000000000000000000000000000000000012': 1,
+              // deployer is whitelisted: false
+              [NON_WHITELISTED_DEPLOYER_KEY]: 1
+            }
+          }
+        }
+      },
+      parameters: [
+        {
+          name: 'ovmCREATE => deployer not whitelisted',
+          focus: true,
+          steps: [
+            {
+              functionName: 'ovmCALL',
+              functionParams: {
+                gasLimit: OVM_TX_GAS_LIMIT / 2,
+                target: NON_WHITELISTED_DEPLOYER,
+                subSteps: [
+                  {
+                    functionName: 'ovmCREATE',
+                    functionParams: {
+                      subSteps: [],
+                    },
+                    expectedReturnStatus: false,
+                    expectedReturnValue: {
+                      flag: REVERT_FLAGS.CREATOR_NOT_WHITELISTED,
+                      onlyValidateFlag: true
+                    },
+                  },
+                ],
+              },
+              expectedReturnStatus: true,
+              expectedReturnValue: {
+                ovmSuccess: false,
+                returnData: '0x',
+              },
+            },
+          ],
+        },
+      ]
+    }
+  ]
 }
 
 const runner = new ExecutionManagerTestRunner()
