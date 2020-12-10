@@ -1015,6 +1015,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // this value in the case of a revert.
         uint256 nuisanceGasLeft = messageRecord.nuisanceGasLeft;
 
+        console.log("handleExtenralinteraction go tsuccess:");
+        console.logBool(success);
         // Reverts at this point are completely OK, but we need to make a few updates based on the
         // information passed through the revert.
         if (success == false) {
@@ -1039,6 +1041,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 flag == RevertFlag.INTENTIONAL_REVERT
                 || flag == RevertFlag.UNSAFE_BYTECODE
                 || flag == RevertFlag.STATIC_VIOLATION
+                // todo: is this supposed to be here?  if so, add to comment above
+                || flag == RevertFlag.CREATOR_NOT_WHITELISTED
             ) {
                 transactionRecord.ovmGasRefund = ovmGasRefund;
             }

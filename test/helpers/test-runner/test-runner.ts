@@ -59,6 +59,7 @@ export class ExecutionManagerTestRunner {
     OVM_DeployerWhitelist: undefined
   }
 
+  // Default pre-state with contract deployer whitelist NOT initialized.
   private defaultPreState = {
     StateManager: {
       owner: '$OVM_EXECUTION_MANAGER',
@@ -335,7 +336,17 @@ export class ExecutionManagerTestRunner {
       functionData: this.encodeFunctionData(step),
       expectedReturnStatus: this.getReturnStatus(step),
       expectedReturnData: this.encodeExpectedReturnData(step),
+      onlyValidateFlag: this.shouldStepOnlyValidateFlag(step)
     }
+  }
+
+  private shouldStepOnlyValidateFlag(step: TestStep): boolean {
+    if (!!(step as any).expectedReturnValue) {
+       if (!!((step as any).expectedReturnValue as any).onlyValidateFlag) {
+         return true
+       }
+    }
+    return false
   }
 
   private getReturnStatus(step: TestStep): boolean {
@@ -347,7 +358,9 @@ export class ExecutionManagerTestRunner {
       if (
         isRevertFlagError(step.expectedReturnValue) &&
         (step.expectedReturnValue.flag === REVERT_FLAGS.INVALID_STATE_ACCESS ||
-          step.expectedReturnValue.flag === REVERT_FLAGS.STATIC_VIOLATION)
+          step.expectedReturnValue.flag === REVERT_FLAGS.STATIC_VIOLATION ||
+          step.expectedReturnValue.flag === REVERT_FLAGS.CREATOR_NOT_WHITELISTED
+          )
       ) {
         return step.expectedReturnStatus
       } else {
