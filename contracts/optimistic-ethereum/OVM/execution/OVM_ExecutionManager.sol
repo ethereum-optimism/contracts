@@ -503,6 +503,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         );
 
         // TODO: Set account nonce to zero here (changing in a different PR for auditor convenience).
+        _setAccountNonce(eoa, 0);
     }
 
 
