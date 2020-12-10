@@ -26,6 +26,11 @@ const DUMMY_REVERT_DATA =
 
 const NON_WHITELISTED_DEPLOYER = '0x1234123412341234123412341234123412341234'
 const NON_WHITELISTED_DEPLOYER_KEY = '0x0000000000000000000000001234123412341234123412341234123412341234'
+const CREATED_BY_NON_WHITELISTED_DEPLOYER = '0x794e4aa3be128b0fc01ba12543b70bf9d77072fc'
+
+const WHITELISTED_DEPLOYER = '0x3456345634563456345634563456345634563456'
+const WHITELISTED_DEPLOYER_KEY = '0x0000000000000000000000003456345634563456345634563456345634563456'
+const CREATED_BY_WHITELISTED_DEPLOYER = '0x9f397a91ccb7cc924d1585f1053bc697d30f343f'
 
 const test_ovmCREATE: TestDefinition = {
   name: 'Basic tests for ovmCREATE',
@@ -671,33 +676,63 @@ const test_ovmCREATE: TestDefinition = {
               codeHash: NON_NULL_BYTES32,
               ethAddress: '$OVM_CALL_HELPER',
             },
+            [WHITELISTED_DEPLOYER]: {
+              codeHash: NON_NULL_BYTES32,
+              ethAddress: '$OVM_CALL_HELPER',
+            },
+            [CREATED_BY_WHITELISTED_DEPLOYER]: {
+              codeHash: VERIFIED_EMPTY_CONTRACT_HASH,
+              ethAddress: '0x' + '00'.repeat(20),
+            },
           },
           contractStorage: {
             ['0x4200000000000000000000000000000000000002']: {
-              // initialized: true
+              // initialized? true
               '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR('0x' + '00'.repeat(31) + '01'),
-              // allowArbitraryDeployment: false
+              // allowArbitraryDeployment? false
               '0x0000000000000000000000000000000000000000000000000000000000000012': getStorageXOR(NULL_BYTES32),
-              // deployer is whitelisted: false
+              // non-whitelisted deployer is whitelisted? false
               [NON_WHITELISTED_DEPLOYER_KEY]: getStorageXOR(NULL_BYTES32),
+              // whitelisted deployer is whitelisted? true
+              [WHITELISTED_DEPLOYER_KEY]: getStorageXOR('0x' + '00'.repeat(31) + '01'),
             }
           },
           verifiedContractStorage: {
             ['0x4200000000000000000000000000000000000002']: {
-              // initialized: true
               '0x0000000000000000000000000000000000000000000000000000000000000010': 1,
-              // allowArbitraryDeployment: false
               '0x0000000000000000000000000000000000000000000000000000000000000012': 1,
-              // deployer is whitelisted: false
-              [NON_WHITELISTED_DEPLOYER_KEY]: 1
+              [NON_WHITELISTED_DEPLOYER_KEY]: 1,
+              [WHITELISTED_DEPLOYER_KEY]: 1,
             }
           }
         }
       },
       parameters: [
         {
-          name: 'ovmCREATE => deployer not whitelisted',
-          focus: true,
+          name: 'ovmCREATE by WHITELISTED_DEPLOYER',
+          steps: [
+            {
+              functionName: 'ovmCALL',
+              functionParams: {
+                gasLimit: OVM_TX_GAS_LIMIT / 2,
+                target: WHITELISTED_DEPLOYER,
+                subSteps: [
+                  {
+                    functionName: 'ovmCREATE',
+                    functionParams: {
+                      bytecode: DUMMY_BYTECODE,
+                    },
+                    expectedReturnStatus: true,
+                    expectedReturnValue: CREATED_BY_WHITELISTED_DEPLOYER
+                  },
+                ],
+              },
+              expectedReturnStatus: true,
+            },
+          ],
+        },
+        {
+          name: 'ovmCREATE by NON_WHITELISTED_DEPLOYER',
           steps: [
             {
               functionName: 'ovmCALL',
@@ -726,6 +761,108 @@ const test_ovmCREATE: TestDefinition = {
             },
           ],
         },
+        {
+          name: 'ovmCREATE2 by NON_WHITELISTED_DEPLOYER',
+          steps: [
+            {
+              functionName: 'ovmCALL',
+              functionParams: {
+                gasLimit: OVM_TX_GAS_LIMIT / 2,
+                target: NON_WHITELISTED_DEPLOYER,
+                subSteps: [
+                  {
+                    functionName: 'ovmCREATE2',
+                    functionParams: {
+                      salt: NULL_BYTES32,
+                      bytecode: '0x',
+                    },
+                    expectedReturnStatus: false,
+                    expectedReturnValue: {
+                      flag: REVERT_FLAGS.CREATOR_NOT_WHITELISTED,
+                      onlyValidateFlag: true
+                    },
+                  },
+                ],
+              },
+              expectedReturnStatus: true,
+              expectedReturnValue: {
+                ovmSuccess: false,
+                returnData: '0x',
+              },
+            },
+          ],
+        },
+      ]
+    },
+    {
+      name: "Deployer whitelist tests",
+      preState: {
+        StateManager: {
+          accounts: {
+            [NON_WHITELISTED_DEPLOYER]: {
+              codeHash: NON_NULL_BYTES32,
+              ethAddress: '$OVM_CALL_HELPER',
+            },
+            [WHITELISTED_DEPLOYER]: {
+              codeHash: NON_NULL_BYTES32,
+              ethAddress: '$OVM_CALL_HELPER',
+            },
+            [CREATED_BY_NON_WHITELISTED_DEPLOYER]: {
+              codeHash: VERIFIED_EMPTY_CONTRACT_HASH,
+              ethAddress: '0x' + '00'.repeat(20),
+            },
+          },
+          contractStorage: {
+            ['0x4200000000000000000000000000000000000002']: {
+              // initialized? true
+              '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR('0x' + '00'.repeat(31) + '01'),
+              // allowArbitraryDeployment? true
+              '0x0000000000000000000000000000000000000000000000000000000000000012': getStorageXOR('0x' + '00'.repeat(31) + '01'),
+              // non-whitelisted deployer is whitelisted? false
+              [NON_WHITELISTED_DEPLOYER_KEY]: getStorageXOR(NULL_BYTES32),
+              // whitelisted deployer is whitelisted? true
+              [WHITELISTED_DEPLOYER_KEY]: getStorageXOR('0x' + '00'.repeat(31) + '01'),
+            }
+          },
+          verifiedContractStorage: {
+            ['0x4200000000000000000000000000000000000002']: {
+              '0x0000000000000000000000000000000000000000000000000000000000000010': 1,
+              '0x0000000000000000000000000000000000000000000000000000000000000012': 1,
+              [NON_WHITELISTED_DEPLOYER_KEY]: 1,
+              [WHITELISTED_DEPLOYER_KEY]: 1,
+            }
+          }
+        }
+      },
+      subTests: [
+        {
+          name: "when arbitrary contract deployment is enabled",
+          parameters: [
+            {
+            name: 'ovmCREATE by NON_WHITELISTED_DEPLOYER',
+              steps: [
+                {
+                  functionName: 'ovmCALL',
+                  functionParams: {
+                    gasLimit: OVM_TX_GAS_LIMIT / 2,
+                    target: NON_WHITELISTED_DEPLOYER,
+                    subSteps: [
+                      {
+                        functionName: 'ovmCREATE',
+                        functionParams: {
+                          subSteps: [],
+                        },
+                        expectedReturnStatus: true,
+                        expectedReturnValue: CREATED_BY_NON_WHITELISTED_DEPLOYER
+                      },
+                    ],
+                  },
+                  expectedReturnStatus: true,
+                },
+              ],
+            },
+          ]
+        }
       ]
     }
   ]

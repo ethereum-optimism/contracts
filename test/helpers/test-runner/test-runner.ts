@@ -87,8 +87,6 @@ export class ExecutionManagerTestRunner {
       cloneDeep(this.defaultPreState),
       cloneDeep(test.preState)
     ),
-    console.log('test.prestate is:')
-    console.log(test.preState)
     test.postState = test.postState || {}
 
     describe(`OVM_ExecutionManager Test: ${test.name}`, () => {
@@ -418,6 +416,16 @@ export class ExecutionManagerTestRunner {
             return this.parseTestStep(subStep)
           }) || []
         ).data,
+      ]
+    } else if (isTestStep_CREATE2(step)) {
+      functionParams = [
+        this.contracts.Factory__Helper_TestRunner_CREATE.getDeployTransaction(
+          step.functionParams.bytecode || '0x',
+          step.functionParams.subSteps?.map((subStep) => {
+            return this.parseTestStep(subStep)
+          }) || []
+        ).data,
+        step.functionParams.salt
       ]
     } else if (isTestStep_REVERT(step)) {
       functionParams = [step.revertData || '0x']

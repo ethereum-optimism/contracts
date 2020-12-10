@@ -877,6 +877,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         );
         bool isAllowed = abi.decode(data, (bool));
 
+        console.log("foudn deployer is allowed?");
+        console.logBool(isAllowed);
+
         if (!isAllowed || !success) {
             _revertWithFlag(RevertFlag.CREATOR_NOT_WHITELISTED);
         }   
@@ -1245,6 +1248,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
+        console.log("checkAccountLoad at:");
+        console.logAddress(_address);
         // See `_checkContractStorageLoad` for more information.
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
             _revertWithFlag(RevertFlag.OUT_OF_GAS);
