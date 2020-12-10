@@ -126,16 +126,15 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
             "Pre-state root global index must equal to the transaction root global index."
         );
 
-        deployTransitioner(_preStateRoot, _txHash, _preStateRootProof.index);
+        deployTransitioner(_preStateRoot, _txHash);
     }
 
     // NB: Stack too deep :/
-    function deployTransitioner(bytes32 _preStateRoot, bytes32 _txHash, uint256 _stateTransitionIndex) private {
+    function deployTransitioner(bytes32 _preStateRoot, bytes32 _txHash) private {
         transitioners[keccak256(abi.encodePacked(_preStateRoot, _txHash))] = iOVM_StateTransitionerFactory(
             resolve("OVM_StateTransitionerFactory")
         ).create(
             address(libAddressManager),
-            _stateTransitionIndex,
             _preStateRoot,
             _txHash
         );

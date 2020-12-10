@@ -84,7 +84,6 @@ describe('OVM_StateTransitioner', () => {
   beforeEach(async () => {
     OVM_StateTransitioner = await Factory__OVM_StateTransitioner.deploy(
       AddressManager.address,
-      0,
       NULL_BYTES32,
       NULL_BYTES32
     )
@@ -163,7 +162,6 @@ describe('OVM_StateTransitioner', () => {
 
           OVM_StateTransitioner = await Factory__OVM_StateTransitioner.deploy(
             AddressManager.address,
-            0,
             test.accountTrieRoot,
             NULL_BYTES32
           )
