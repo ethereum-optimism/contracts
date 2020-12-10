@@ -68,7 +68,9 @@ internalTask(TASK_COMPILE_RUN_COMPILER).setAction(
     }
 
     // Build both inputs separately.
+    console.log('Compiling ovm contracts...')
     const ovmOutput = await ovmCompiler.compile(ovmInput)
+    console.log('Compiling evm contracts...')
     const evmOutput = await evmCompiler.compile(evmInput)
 
     // Filter out any "No input sources specified" errors, but only if one of the two compilations
@@ -100,6 +102,18 @@ internalTask(TASK_COMPILE_RUN_COMPILER).setAction(
     }
 
     return output
+  }
+)
+
+internalTask(
+  TASK_COMPILE_GET_COMPILER_INPUT,
+  async (_, { config, run }, runSuper) => {
+    const input = await runSuper()
+
+    // For smock.
+    input.settings.outputSelection['*']['*'].push('storageLayout')
+
+    return input
   }
 )
 
@@ -138,6 +152,9 @@ internalTask(TASK_BUILD_ARTIFACTS, async ({ force }, { config, run }) => {
         contractOutput
       )
       numberOfContracts += 1
+
+      // For smock.
+      ;(artifact as any).storageLayout = (contractOutput as any).storageLayout
 
       if (fileName.endsWith('.ovm')) {
         await saveArtifact(config.paths.artifacts + '/ovm', artifact)
