@@ -10,6 +10,7 @@ usePlugin('@nomiclabs/buidler-waffle')
 usePlugin('buidler-typechain')
 
 import '@eth-optimism/smock/build/src/buidler-plugins/compiler-storage-layout'
+import './plugins/buidler/ovm-compiler'
 
 const config: BuidlerConfig = {
   networks: {
