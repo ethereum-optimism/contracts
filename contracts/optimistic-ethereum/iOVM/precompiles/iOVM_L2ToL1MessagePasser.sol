@@ -11,7 +11,7 @@ interface iOVM_L2ToL1MessagePasser {
      **********/
 
     event L2ToL1Message(
-       uint _nonce,
+       uint256 _nonce,
        address _sender,
        bytes _data
     );
@@ -20,6 +20,6 @@ interface iOVM_L2ToL1MessagePasser {
     /********************
      * Public Functions *
      ********************/
-    
+
     function passMessageToL1(bytes calldata _message) external;
 }
