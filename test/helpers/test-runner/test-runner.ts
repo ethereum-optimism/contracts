@@ -35,7 +35,11 @@ import {
   OVM_TX_GAS_LIMIT,
   RUN_OVM_TEST_GAS,
   NON_NULL_BYTES32,
+  NULL_BYTES32,
 } from '../constants'
+import {
+  getStorageXOR
+} from '../'
 
 export class ExecutionManagerTestRunner {
   private snapshot: string
@@ -45,16 +49,45 @@ export class ExecutionManagerTestRunner {
     OVM_ExecutionManager: ModifiableContract
     Helper_TestRunner: Contract
     Factory__Helper_TestRunner_CREATE: ContractFactory
+    OVM_DeployerWhitelist: Contract
   } = {
     OVM_SafetyChecker: undefined,
     OVM_StateManager: undefined,
     OVM_ExecutionManager: undefined,
     Helper_TestRunner: undefined,
     Factory__Helper_TestRunner_CREATE: undefined,
+    OVM_DeployerWhitelist: undefined
+  }
+
+  private defaultPreState = {
+    StateManager: {
+      owner: '$OVM_EXECUTION_MANAGER',
+      accounts: {
+        ['0x4200000000000000000000000000000000000002']: {
+          codeHash: NON_NULL_BYTES32,
+          ethAddress: '$OVM_DEPLOYER_WHITELIST',
+        },
+      },
+      contractStorage: {
+        ['0x4200000000000000000000000000000000000002']: {
+          '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR(NULL_BYTES32)
+        }
+      },
+      verifiedContractStorage: {
+        ['0x4200000000000000000000000000000000000002']: {
+          '0x0000000000000000000000000000000000000000000000000000000000000010': true
+        }
+      },
+    }
   }
 
   public run(test: TestDefinition) {
-    test.preState = test.preState || {}
+    test.preState = merge(
+      cloneDeep(this.defaultPreState),
+      cloneDeep(test.preState)
+    ),
+    console.log('test.prestate is:')
+    console.log(test.preState)
     test.postState = test.postState || {}
 
     describe(`OVM_ExecutionManager Test: ${test.name}`, () => {
@@ -158,12 +191,18 @@ export class ExecutionManagerTestRunner {
     MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(true)
 
     this.contracts.OVM_SafetyChecker = MockSafetyChecker
-
+    
     await AddressManager.setAddress(
       'OVM_SafetyChecker',
       this.contracts.OVM_SafetyChecker.address
     )
-
+    
+    const DeployerWhitelist = await (
+      await ethers.getContractFactory('OVM_DeployerWhitelist')
+    ).deploy()
+    
+    this.contracts.OVM_DeployerWhitelist = DeployerWhitelist
+      
     this.contracts.OVM_ExecutionManager = await (
       await smoddit('OVM_ExecutionManager')
     ).deploy(
@@ -211,6 +250,8 @@ export class ExecutionManagerTestRunner {
         return this.contracts.OVM_SafetyChecker.address
       } else if (kv === '$OVM_CALL_HELPER') {
         return this.contracts.Helper_TestRunner.address
+      } else if (kv == '$OVM_DEPLOYER_WHITELIST') {
+        return this.contracts.OVM_DeployerWhitelist.address
       } else if (kv.startsWith('$DUMMY_OVM_ADDRESS_')) {
         return ExecutionManagerTestRunner.getDummyAddress(kv)
       } else {

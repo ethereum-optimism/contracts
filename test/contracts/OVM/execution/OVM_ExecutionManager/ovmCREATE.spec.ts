@@ -82,6 +82,7 @@ const test_ovmCREATE: TestDefinition = {
   parameters: [
     {
       name: 'ovmCREATE, ovmEXTCODESIZE(CREATED)',
+      focus: true,
       steps: [
         {
           functionName: 'ovmCREATE',
