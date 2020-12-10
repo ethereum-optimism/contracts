@@ -15,6 +15,9 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
+import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol";
+
+import { console } from "@nomiclabs/buidler/console.sol";
 
 /**
  * @title OVM_ExecutionManager
@@ -356,6 +359,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Creator is always the current ADDRESS.
         address creator = ovmADDRESS();
 
+        // Check that the deployer is whitelisted, or
+        // that arbitrary contract deployment has been enabled.
+        _checkDeployerAllowed(creator);
+
         // Generate the correct CREATE address.
         address contractAddress = Lib_EthUtils.getAddressForCREATE(
             creator,
@@ -388,6 +395,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // Creator is always the current ADDRESS.
         address creator = ovmADDRESS();
+
+        // Check that the deployer is whitelisted, or
+        // that arbitrary contract deployment has been enabled.
+        _checkDeployerAllowed(creator);
 
         // Generate the correct CREATE2 address.
         address contractAddress = Lib_EthUtils.getAddressForCREATE2(
@@ -528,6 +539,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes memory _returndata
         )
     {
+        console.log("in ovmcall, to address:");
+        console.logAddress(_address);
         // CALL updates the CALLER and ADDRESS.
         MessageContext memory nextMessageContext = messageContext;
         nextMessageContext.ovmCALLER = nextMessageContext.ovmADDRESS;
@@ -634,6 +647,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes32 _value
         )
     {
+        console.log("in ovmSLOAD for key:");
+        console.logBytes32(_key);
         // We always SLOAD from the storage of ADDRESS.
         address contractAddress = ovmADDRESS();
 
@@ -840,7 +855,32 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         return gasMeterConfig.maxTransactionGasLimit;
     }
 
+    /********************************************
+     * Public Functions: Deployment Witelisting *
+     ********************************************/
 
+    /**
+     * Checks whether the given address is on the whitelst to ovmCREATE/ovmCREATE2, and reverts if not.
+     * @param _deployerAddress Address attempting to deploy a contract.
+     */
+    function _checkDeployerAllowed(
+        address _deployerAddress
+    )
+        internal
+    {
+        // From an OVM semanitcs perspectibe, this will appear the identical to
+        //  the deployer ovmCALLing the whitelist.  This is fine--in a sense, we are forcing them to.
+        (bool success, bytes memory data) = ovmCALL(
+            gasleft(),
+            0x4200000000000000000000000000000000000002,
+            abi.encodeWithSignature("isDeployerAllowed(address)", _deployerAddress)
+        );
+        bool isAllowed = abi.decode(data, (bool));
+
+        if (!isAllowed || !success) {
+            _revertWithFlag(RevertFlag.CREATOR_NOT_WHITELISTED);
+        }   
+    }
 
     /********************************************
      * Internal Functions: Contract Interaction *

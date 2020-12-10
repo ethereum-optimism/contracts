@@ -7,6 +7,7 @@ import { Lib_Bytes32Utils } from "../../libraries/utils/Lib_Bytes32Utils.sol";
 /* Interface Imports */
 import { iOVM_DeployerWhitelist } from "../../iOVM/precompiles/iOVM_DeployerWhitelist.sol";
 import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManager.sol";
+import { console } from "@nomiclabs/buidler/console.sol";
 
 /**
  * @title OVM_DeployerWhitelist
@@ -177,6 +178,9 @@ contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
         bool initialized = Lib_Bytes32Utils.toBool(
             ovmExecutionManager.ovmSLOAD(KEY_INITIALIZED)
         );
+
+        console.log("initialized is: ");
+        console.logBool(initialized);
 
         if (initialized == false) {
             return true;
