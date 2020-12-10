@@ -309,7 +309,7 @@ library Lib_RLPReader {
         return uint64(uint256(readBytes32(_in)));
     }
 
-        /**
+    /**
      * Reads an RLP uint64 value into a uint64.
      * @param _in RLP uint64 value.
      * @return Decoded uint64.
