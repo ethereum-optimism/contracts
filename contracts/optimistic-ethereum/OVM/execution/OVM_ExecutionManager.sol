@@ -1191,7 +1191,11 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
-        // We don't set storage if the value didn't change.
+        // We don't set storage if the value didn't change. Although this acts as a convenient
+        // optimization, it's also necessary to avoid the case in which a contract with no storage
+        // attempts to store the value "0" at any key. Putting this value (and therefore requiring
+        // that the value be committed into the storage trie after execution) would incorrectly
+        // modify the storage root.
         if (_getContractStorage(_contract, _key) == _value) {
             return;
         }
@@ -1255,11 +1259,13 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bool _wasAccountAlreadyChanged
         ) = ovmStateManager.testAndSetAccountChanged(_address);
 
-        // If we hadn't already changed the account, then we'll need to charge a constant
-        // "nuisance gas" that covers the cost of updating the account state.
+        // If we hadn't already loaded the account, then we'll need to charge "nuisance gas" based
+        // on the size of the contract code.
         if (_wasAccountAlreadyChanged == false) {
             ovmStateManager.incrementTotalUncommittedAccounts();
-            _useNuisanceGas(MIN_NUISANCE_GAS_PER_CONTRACT);
+            _useNuisanceGas(
+                (Lib_EthUtils.getCodeSize(_getAccountEthAddress(_address)) * NUISANCE_GAS_PER_CONTRACT_BYTE) + MIN_NUISANCE_GAS_PER_CONTRACT
+            );
         }
     }
 
