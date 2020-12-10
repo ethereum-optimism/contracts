@@ -22,8 +22,6 @@ contract Helper_TestRunner {
     )
         public
     {
-        console.log("onlyValidateFlag is:");
-        console.logBool(_step.onlyValidateFlag);
         bytes32 namehash = keccak256(abi.encodePacked(_step.functionName));
         if (namehash == keccak256("evmRETURN")) {
             bytes memory returndata = _step.functionData;
