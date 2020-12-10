@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
+/* Logging */
+import { console } from "@nomiclabs/buidler/console.sol";
+
+/* Library Imports */
+import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
+
 /* Interface Imports */
 import { iOVM_StateTransitioner } from "../../iOVM/verification/iOVM_StateTransitioner.sol";
 import { iOVM_StateTransitionerFactory } from "../../iOVM/verification/iOVM_StateTransitionerFactory.sol";
+import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.sol";
 
 /* Contract Imports */
 import { OVM_StateTransitioner } from "./OVM_StateTransitioner.sol";
@@ -11,7 +18,10 @@ import { OVM_StateTransitioner } from "./OVM_StateTransitioner.sol";
 /**
  * @title OVM_StateTransitionerFactory
  */
-contract OVM_StateTransitionerFactory is iOVM_StateTransitionerFactory {
+contract OVM_StateTransitionerFactory is iOVM_StateTransitionerFactory, Lib_AddressResolver {
+
+    constructor( address _libAddressManager)
+        Lib_AddressResolver(_libAddressManager){}
 
     /***************************************
      * Public Functions: Contract Creation *
@@ -37,6 +47,10 @@ contract OVM_StateTransitionerFactory is iOVM_StateTransitionerFactory {
             iOVM_StateTransitioner _ovmStateTransitioner
         )
     {
+        require(
+            msg.sender == resolve("OVM_FraudVerifier"),
+            "StateTransitionerFactory: caller is not the OVM_FraudVerifier"
+        );
         return new OVM_StateTransitioner(
             _libAddressManager,
             _stateTransitionIndex,
