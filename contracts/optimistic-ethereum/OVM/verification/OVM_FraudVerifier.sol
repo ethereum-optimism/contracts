@@ -221,6 +221,11 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
      * Private Functions: Verification *
      ************************************/
 
+    /**
+     * Deploys a transitioner.
+     * @param _preStateRoot State root before the fraudulent transaction.
+     * @param _txHash The transaction for the state root.
+     */
     // NB: Stack too deep :/
     function _deployTransitioner(
         bytes32 _preStateRoot,
@@ -237,6 +242,11 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
         );
     }
 
+    /**
+     * Cancels a state transition.
+     * @param _postStateRootBatchHeader Batch header for the provided post-state root.
+     * @param _preStateRoot State root before the fraudulent transaction.
+     */
     // NB: Stack too deep :/
     function _cancelStateTransition(
         Lib_OVMCodec.ChainBatchHeader memory _postStateRootBatchHeader,
