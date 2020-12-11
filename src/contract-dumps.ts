@@ -133,6 +133,9 @@ export const makeStateDump = async (): Promise<any> => {
       owner: signer,
       allowArbitraryContractDeployment: true,
     },
+    ethConfig: {
+      initialAmount: 0
+    },
     dependencies: [
       'Lib_AddressManager',
       'OVM_DeployerWhitelist',
@@ -146,6 +149,7 @@ export const makeStateDump = async (): Promise<any> => {
       'OVM_SafetyChecker',
       'OVM_ExecutionManager',
       'OVM_StateManager',
+      'OVM_ETH',
       'mockOVM_ECDSAContractAccount',
     ],
   }
@@ -157,10 +161,12 @@ export const makeStateDump = async (): Promise<any> => {
     OVM_ECDSAContractAccount: '0x4200000000000000000000000000000000000003',
     OVM_ProxySequencerEntrypoint: '0x4200000000000000000000000000000000000004',
     OVM_SequencerEntrypoint: '0x4200000000000000000000000000000000000005',
-    //L2 ETH at 0x4200000000000000000000000000000000000006
+    OVM_ETH: '0x4200000000000000000000000000000000000006',
     OVM_L2CrossDomainMessenger: '0x4200000000000000000000000000000000000007',
     Lib_AddressManager: '0x4200000000000000000000000000000000000008',
   }
+
+  const ovmCompiled = ['OVM_L2ToL1MessagePasser', 'OVM_L2CrossDomainMessenger', 'Lib_AddressManager', 'OVM_ETH']
 
   const deploymentResult = await deploy(config)
   deploymentResult.contracts['Lib_AddressManager'] =
@@ -182,11 +188,15 @@ export const makeStateDump = async (): Promise<any> => {
   for (let i = 0; i < Object.keys(deploymentResult.contracts).length; i++) {
     const name = Object.keys(deploymentResult.contracts)[i]
     const contract = deploymentResult.contracts[name]
-
-    const codeBuf = await pStateManager.getContractCode(
-      fromHexString(contract.address)
-    )
-    const code = toHexString(codeBuf)
+    let code
+    if (ovmCompiled.includes(name)) {
+      code = getContractDefinition(name, true).deployedBytecode
+    } else {
+      const codeBuf = await pStateManager.getContractCode(
+        fromHexString(contract.address)
+      )
+      code = toHexString(codeBuf)
+    }
 
     const deadAddress =
       precompiles[name] ||
