@@ -31,7 +31,7 @@ library Lib_OVMCodec {
     /*********
      * Enums *
      *********/
-    
+
     enum EOASignatureType {
         EIP155_TRANSACTON,
         ETH_SIGNED_MESSAGE
@@ -313,7 +313,7 @@ library Lib_OVMCodec {
         bytes[] memory raw = new bytes[](4);
 
         // Unfortunately we can't create this array outright because
-        // RLPWriter.encodeList will reject fixed-size arrays. Assigning
+        // Lib_RLPWriter.writeList will reject fixed-size arrays. Assigning
         // index-by-index circumvents this issue.
         raw[0] = Lib_RLPWriter.writeUint(_account.nonce);
         raw[1] = Lib_RLPWriter.writeUint(_account.balance);
