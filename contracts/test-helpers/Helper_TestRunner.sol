@@ -81,9 +81,6 @@ contract Helper_TestRunner {
                 console.logBytes(returndata);
                 console.log("");
 
-                console.log("and expected return status is:");
-                console.logBool(_step.expectedReturnStatus);
-
                 _failStep();
             } else {
                 (

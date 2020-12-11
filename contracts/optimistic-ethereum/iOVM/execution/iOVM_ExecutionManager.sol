@@ -20,7 +20,7 @@ interface iOVM_ExecutionManager {
         CREATE_COLLISION,
         STATIC_VIOLATION,
         CREATE_EXCEPTION,
-        CREATOR_NOT_WHITELISTED
+        CREATOR_NOT_ALLOWED
     }
 
     enum GasMetadataKey {

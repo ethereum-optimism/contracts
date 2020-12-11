@@ -745,7 +745,7 @@ const test_ovmCREATE: TestDefinition = {
                     },
                     expectedReturnStatus: false,
                     expectedReturnValue: {
-                      flag: REVERT_FLAGS.CREATOR_NOT_WHITELISTED,
+                      flag: REVERT_FLAGS.CREATOR_NOT_ALLOWED,
                       onlyValidateFlag: true
                     },
                   },
@@ -776,7 +776,7 @@ const test_ovmCREATE: TestDefinition = {
                     },
                     expectedReturnStatus: false,
                     expectedReturnValue: {
-                      flag: REVERT_FLAGS.CREATOR_NOT_WHITELISTED,
+                      flag: REVERT_FLAGS.CREATOR_NOT_ALLOWED,
                       onlyValidateFlag: true
                     },
                   },
