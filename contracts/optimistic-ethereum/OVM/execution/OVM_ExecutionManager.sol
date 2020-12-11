@@ -872,7 +872,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         bool isAllowed = abi.decode(data, (bool));
 
         if (!isAllowed || !success) {
-            _revertWithFlag(RevertFlag.CREATOR_NOT_WHITELISTED);
+            _revertWithFlag(RevertFlag.CREATOR_NOT_ALLOWED);
         }   
     }
 
@@ -1026,14 +1026,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 _revertWithFlag(flag);
             }
 
-            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_WHITELISTED aren't 
+            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_ALLOWED aren't 
             // dependent on the input state, so we can just handle them like standard reverts. Our only change here
             // is to record the gas refund reported by the call (enforced by safety checking).
             if (
                 flag == RevertFlag.INTENTIONAL_REVERT
                 || flag == RevertFlag.UNSAFE_BYTECODE
                 || flag == RevertFlag.STATIC_VIOLATION
-                || flag == RevertFlag.CREATOR_NOT_WHITELISTED
+                || flag == RevertFlag.CREATOR_NOT_ALLOWED
             ) {
                 transactionRecord.ovmGasRefund = ovmGasRefund;
             }

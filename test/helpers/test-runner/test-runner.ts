@@ -357,7 +357,7 @@ export class ExecutionManagerTestRunner {
         isRevertFlagError(step.expectedReturnValue) &&
         (step.expectedReturnValue.flag === REVERT_FLAGS.INVALID_STATE_ACCESS ||
           step.expectedReturnValue.flag === REVERT_FLAGS.STATIC_VIOLATION ||
-          step.expectedReturnValue.flag === REVERT_FLAGS.CREATOR_NOT_WHITELISTED
+          step.expectedReturnValue.flag === REVERT_FLAGS.CREATOR_NOT_ALLOWED
           )
       ) {
         return step.expectedReturnStatus
