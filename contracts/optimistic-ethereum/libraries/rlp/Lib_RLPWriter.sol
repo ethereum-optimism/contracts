@@ -297,22 +297,4 @@ library Lib_RLPWriter {
 
         return flattened;
     }
-
-    /**
-     * Clears memory wherever the free memory is pointing.
-     * @param _numBytes Number of bytes to clear out (will be rounded up to nearest word).
-     */
-    function _malloc(
-        uint _numBytes
-    )
-        private
-        pure
-    {
-        assembly {
-            let free_mem := mload(0x40)
-            for { let offset := 0x00 } lt(offset, _numBytes) { offset := add(offset, 0x20) } {
-                mstore(add(free_mem, offset), 0x00)
-            }
-        }
-    }
 }
