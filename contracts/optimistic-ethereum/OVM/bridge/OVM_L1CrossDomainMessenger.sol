@@ -4,8 +4,6 @@ pragma experimental ABIEncoderV2;
 
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
-import { Lib_AddressManager } from "../../libraries/resolver/Lib_AddressManager.sol";
 import { Lib_SecureMerkleTrie } from "../../libraries/trie/Lib_SecureMerkleTrie.sol";
 
 /* Interface Imports */
@@ -15,11 +13,13 @@ import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitment
 
 /* Contract Imports */
 import { OVM_BaseCrossDomainMessenger } from "./OVM_BaseCrossDomainMessenger.sol";
+import { OVM_AddressManager } from "../resolver/OVM_AddressManager.sol";
+import { OVM_AddressResolver } from "../resolver/OVM_AddressResolver.sol";
 
 /**
  * @title OVM_L1CrossDomainMessenger
  */
-contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCrossDomainMessenger, Lib_AddressResolver {
+contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCrossDomainMessenger, OVM_AddressResolver {
 
     /***************
      * Constructor *
@@ -29,19 +29,19 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
      * Pass a default zero address to the address resolver. This will be updated when initialized.
      */
     constructor()
-        Lib_AddressResolver(address(0))
+        OVM_AddressResolver(address(0))
     {}
 
     /**
-     * @param _libAddressManager Address of the Address Manager.
+     * @param _ovmAddressManager Address of the Address Manager.
      */
     function initialize(
-        address _libAddressManager
+        address _ovmAddressManager
     )
         public
     {
-        require(address(libAddressManager) == address(0), "L1CrossDomainMessenger already intialized.");
-        libAddressManager = Lib_AddressManager(_libAddressManager);
+        require(address(ovmAddressManager) == address(0), "L1CrossDomainMessenger already intialized.");
+        ovmAddressManager = OVM_AddressManager(_ovmAddressManager);
     }
 
 

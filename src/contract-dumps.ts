@@ -137,7 +137,7 @@ export const makeStateDump = async (): Promise<any> => {
       initialAmount: 0,
     },
     dependencies: [
-      'Lib_AddressManager',
+      'OVM_AddressManager',
       'OVM_DeployerWhitelist',
       'OVM_L1MessageSender',
       'OVM_L2ToL1MessagePasser',
@@ -163,18 +163,18 @@ export const makeStateDump = async (): Promise<any> => {
     OVM_SequencerEntrypoint: '0x4200000000000000000000000000000000000005',
     OVM_ETH: '0x4200000000000000000000000000000000000006',
     OVM_L2CrossDomainMessenger: '0x4200000000000000000000000000000000000007',
-    Lib_AddressManager: '0x4200000000000000000000000000000000000008',
+    OVM_AddressManager: '0x4200000000000000000000000000000000000008',
   }
 
   const ovmCompiled = [
     'OVM_L2ToL1MessagePasser',
     'OVM_L2CrossDomainMessenger',
-    'Lib_AddressManager',
+    'OVM_AddressManager',
     'OVM_ETH',
   ]
 
   const deploymentResult = await deploy(config)
-  deploymentResult.contracts['Lib_AddressManager'] =
+  deploymentResult.contracts['OVM_AddressManager'] =
     deploymentResult.AddressManager
 
   if (deploymentResult.failedDeployments.length > 0) {

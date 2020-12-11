@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
 import { Lib_RingBuffer, iRingBufferOverwriter } from "../../libraries/utils/Lib_RingBuffer.sol";
 
@@ -15,10 +14,13 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 import { iOVM_BondManager } from "../../iOVM/verification/iOVM_BondManager.sol";
 import '@openzeppelin/contracts/math/SafeMath.sol';
 
+/* Contract Imports */
+import { OVM_AddressResolver } from "../resolver/OVM_AddressResolver.sol";
+
 /**
  * @title OVM_StateCommitmentChain
  */
-contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverwriter, Lib_AddressResolver {
+contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverwriter, OVM_AddressResolver {
     using Lib_RingBuffer for Lib_RingBuffer.RingBuffer;
 
 
@@ -44,13 +46,13 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
      ***************/
 
     /**
-     * @param _libAddressManager Address of the Address Manager.
+     * @param _ovmAddressManager Address of the Address Manager.
      */
     constructor(
-        address _libAddressManager,
+        address _ovmAddressManager,
         uint256 _fraudProofWindow,
         uint256 _sequencerPublishWindow
-    ) Lib_AddressResolver(_libAddressManager) {
+    ) OVM_AddressResolver(_ovmAddressManager) {
         FRAUD_PROOF_WINDOW = _fraudProofWindow;
         SEQUENCER_PUBLISH_WINDOW = _sequencerPublishWindow;
     }

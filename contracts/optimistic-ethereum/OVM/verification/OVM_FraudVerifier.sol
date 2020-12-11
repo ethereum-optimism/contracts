@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 
 /* Interface Imports */
 import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.sol";
@@ -18,8 +17,9 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 
 /* Contract Imports */
 import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
+import { OVM_AddressResolver } from "../resolver/OVM_AddressResolver.sol";
 
-contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_FraudVerifier {
+contract OVM_FraudVerifier is OVM_AddressResolver, OVM_FraudContributor, iOVM_FraudVerifier {
 
     /*******************************************
      * Contract Variables: Internal Accounting *
@@ -33,12 +33,12 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
      ***************/
 
     /**
-     * @param _libAddressManager Address of the Address Manager.
+     * @param _ovmAddressManager Address of the Address Manager.
      */
     constructor(
-        address _libAddressManager
+        address _ovmAddressManager
     )
-        Lib_AddressResolver(_libAddressManager)
+        OVM_AddressResolver(_ovmAddressManager)
     {}
 
 
@@ -134,7 +134,7 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
         transitioners[keccak256(abi.encodePacked(_preStateRoot, _txHash))] = iOVM_StateTransitionerFactory(
             resolve("OVM_StateTransitionerFactory")
         ).create(
-            address(libAddressManager),
+            address(ovmAddressManager),
             _preStateRoot,
             _txHash
         );

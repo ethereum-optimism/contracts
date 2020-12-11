@@ -147,7 +147,7 @@ export class ExecutionManagerTestRunner {
     }
 
     const AddressManager = await (
-      await ethers.getContractFactory('Lib_AddressManager')
+      await ethers.getContractFactory('OVM_AddressManager')
     ).deploy()
 
     const SafetyChecker = await (

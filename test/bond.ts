@@ -34,7 +34,7 @@ describe('BondManager', () => {
   beforeEach(async () => {
     // deploy the address manager
     manager = await (
-      await deployer.getContractFactory('Lib_AddressManager')
+      await deployer.getContractFactory('OVM_AddressManager')
     ).deploy()
 
     // deploy the state manager and mock it for the state transitioner

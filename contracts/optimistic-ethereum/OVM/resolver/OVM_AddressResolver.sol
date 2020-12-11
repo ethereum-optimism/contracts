@@ -3,18 +3,18 @@
 pragma solidity >0.6.0 <0.8.0;
 
 /* Library Imports */
-import { Lib_AddressManager } from "./Lib_AddressManager.sol";
+import { OVM_AddressManager } from "./OVM_AddressManager.sol";
 
 /**
- * @title Lib_AddressResolver
+ * @title OVM_AddressResolver
  */
-contract Lib_AddressResolver {
+contract OVM_AddressResolver {
 
     /*******************************************
      * Contract Variables: Contract References *
      *******************************************/
 
-    Lib_AddressManager internal libAddressManager;
+    OVM_AddressManager internal ovmAddressManager;
 
 
     /***************
@@ -22,12 +22,12 @@ contract Lib_AddressResolver {
      ***************/
 
     /**
-     * @param _libAddressManager Address of the Lib_AddressManager.
+     * @param _ovmAddressManager Address of the OVM_AddressManager.
      */
     constructor(
-        address _libAddressManager
+        address _ovmAddressManager
     ) public {
-        libAddressManager = Lib_AddressManager(_libAddressManager);
+        ovmAddressManager = OVM_AddressManager(_ovmAddressManager);
     }
 
 
@@ -44,6 +44,6 @@ contract Lib_AddressResolver {
             address _contract
         )
     {
-        return libAddressManager.getAddress(_name);
+        return ovmAddressManager.getAddress(_name);
     }
 }

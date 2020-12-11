@@ -60,7 +60,7 @@ export const makeContractDeployConfig = async (
       params: [],
     },
     Proxy__OVM_L1CrossDomainMessenger: {
-      factory: getContractFactory('Lib_ResolvedDelegateProxy'),
+      factory: getContractFactory('OVM_ResolvedDelegateProxy'),
       params: [AddressManager.address, 'OVM_L1CrossDomainMessenger'],
       afterDeploy: async (contracts): Promise<void> => {
         const xDomainMessenger = getContractFactory(

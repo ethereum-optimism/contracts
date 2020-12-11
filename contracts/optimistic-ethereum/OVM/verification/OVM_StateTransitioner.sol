@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_EthUtils } from "../../libraries/utils/Lib_EthUtils.sol";
 import { Lib_SecureMerkleTrie } from "../../libraries/trie/Lib_SecureMerkleTrie.sol";
 import { Lib_RLPWriter } from "../../libraries/rlp/Lib_RLPWriter.sol";
@@ -19,11 +18,12 @@ import { iOVM_StateManagerFactory } from "../../iOVM/execution/iOVM_StateManager
 
 /* Contract Imports */
 import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
+import { OVM_AddressResolver } from "../resolver/OVM_AddressResolver.sol";
 
 /**
  * @title OVM_StateTransitioner
  */
-contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOVM_StateTransitioner {
+contract OVM_StateTransitioner is OVM_AddressResolver, OVM_FraudContributor, iOVM_StateTransitioner {
 
     /*******************
      * Data Structures *
@@ -58,16 +58,16 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
      ***************/
 
     /**
-     * @param _libAddressManager Address of the Address Manager.
+     * @param _ovmAddressManager Address of the Address Manager.
      * @param _preStateRoot State root before the transition was executed.
      * @param _transactionHash Hash of the executed transaction.
      */
     constructor(
-        address _libAddressManager,
+        address _ovmAddressManager,
         bytes32 _preStateRoot,
         bytes32 _transactionHash
     )
-        Lib_AddressResolver(_libAddressManager)
+        OVM_AddressResolver(_ovmAddressManager)
     {
         preStateRoot = _preStateRoot;
         postStateRoot = _preStateRoot;

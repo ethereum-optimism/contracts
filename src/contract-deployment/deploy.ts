@@ -17,7 +17,7 @@ export const deploy = async (
   config: RollupDeployConfig
 ): Promise<DeployResult> => {
   const AddressManager: Contract = await getContractFactory(
-    'Lib_AddressManager',
+    'OVM_AddressManager',
     config.deploymentSigner
   ).deploy()
 

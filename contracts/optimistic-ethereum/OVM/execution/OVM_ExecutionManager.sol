@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_EthUtils } from "../../libraries/utils/Lib_EthUtils.sol";
 
 /* Interface Imports */
@@ -15,11 +14,12 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
+import { OVM_AddressResolver } from "../resolver/OVM_AddressResolver.sol";
 
 /**
  * @title OVM_ExecutionManager
  */
-contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
+contract OVM_ExecutionManager is iOVM_ExecutionManager, OVM_AddressResolver {
 
     /********************************
      * External Contract References *
@@ -65,7 +65,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         GasMeterConfig memory _gasMeterConfig,
         GlobalContext memory _globalContext
     )
-        Lib_AddressResolver(_libAddressManager)
+        OVM_AddressResolver(_libAddressManager)
     {
         ovmSafetyChecker = iOVM_SafetyChecker(resolve("OVM_SafetyChecker"));
         gasMeterConfig = _gasMeterConfig;

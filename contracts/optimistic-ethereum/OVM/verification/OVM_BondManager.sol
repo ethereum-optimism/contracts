@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
-/* Library Imports */
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
-
 /* Interface Imports */
 import { iOVM_BondManager, Errors, ERC20 } from "../../iOVM/verification/iOVM_BondManager.sol";
 import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.sol";
 
+/* Contract Imports */
+import { OVM_AddressResolver } from "../resolver/OVM_AddressResolver.sol";
+
+
 /**
  * @title OVM_BondManager
  */
-contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
+contract OVM_BondManager is iOVM_BondManager, OVM_AddressResolver {
 
     /****************************
      * Constants and Parameters *
@@ -53,8 +54,8 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
 
     /// Initializes with a ERC20 token to be used for the fidelity bonds
     /// and with the Address Manager
-    constructor(ERC20 _token, address _libAddressManager)
-        Lib_AddressResolver(_libAddressManager)
+    constructor(ERC20 _token, address _ovmAddressManager)
+        OVM_AddressResolver(_ovmAddressManager)
     {
         token = _token;
     }
@@ -99,14 +100,14 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
             bond.earliestTimestamp = timestamp;
         }
 
-        // if the fraud proof's dispute period does not intersect with the 
+        // if the fraud proof's dispute period does not intersect with the
         // withdrawal's timestamp, then the user should not be slashed
         // e.g if a user at day 10 submits a withdrawal, and a fraud proof
         // from day 1 gets published, the user won't be slashed since day 8 (1d + 7d)
         // is before the user started their withdrawal. on the contrary, if the user
         // had started their withdrawal at, say, day 6, they would be slashed
         if (
-            bond.withdrawalTimestamp != 0 && 
+            bond.withdrawalTimestamp != 0 &&
             uint256(bond.withdrawalTimestamp) > timestamp + disputePeriodSeconds &&
             bond.state == State.WITHDRAWING
         ) {
@@ -144,15 +145,15 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         Bond storage bond = bonds[msg.sender];
 
         require(
-            block.timestamp >= uint256(bond.withdrawalTimestamp) + disputePeriodSeconds, 
+            block.timestamp >= uint256(bond.withdrawalTimestamp) + disputePeriodSeconds,
             Errors.TOO_EARLY
         );
         require(bond.state == State.WITHDRAWING, Errors.SLASHED);
-        
+
         // refunds!
         bond.state = State.NOT_COLLATERALIZED;
         bond.withdrawalTimestamp = 0;
-        
+
         require(
             token.transfer(msg.sender, requiredCollateral),
             Errors.ERC20_ERR

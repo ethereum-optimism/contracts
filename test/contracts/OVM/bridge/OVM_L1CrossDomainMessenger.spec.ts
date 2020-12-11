@@ -43,7 +43,7 @@ const deployProxyXDomainMessenger = async (
     l1XDomainMessenger.address
   )
   const proxy = await (
-    await ethers.getContractFactory('Lib_ResolvedDelegateProxy')
+    await ethers.getContractFactory('OVM_ResolvedDelegateProxy')
   ).deploy(addressManager.address, 'OVM_L1CrossDomainMessenger')
   return l1XDomainMessenger.attach(proxy.address)
 }

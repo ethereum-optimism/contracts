@@ -2,12 +2,12 @@
 pragma solidity ^0.7.0;
 
 /* Library Imports */
-import { Lib_AddressManager } from "./Lib_AddressManager.sol";
+import { OVM_AddressManager } from "./OVM_AddressManager.sol";
 
 /**
- * @title Lib_ResolvedDelegateProxy
+ * @title OVM_ResolvedDelegateProxy
  */
-contract Lib_ResolvedDelegateProxy {
+contract OVM_ResolvedDelegateProxy {
 
     /*************
      * Variables *
@@ -18,7 +18,7 @@ contract Lib_ResolvedDelegateProxy {
     // storage slot `0` & `1`, they are stored at `hash(${FIELD_NAME} + address(this))`
     // See: https://solidity.readthedocs.io/en/v0.7.0/internals/layout_in_storage.html
     mapping(address=>string) private implementationName;
-    mapping(address=>Lib_AddressManager) private addressManager;
+    mapping(address=>OVM_AddressManager) private addressManager;
 
 
     /***************
@@ -26,15 +26,15 @@ contract Lib_ResolvedDelegateProxy {
      ***************/
 
     /**
-     * @param _libAddressManager Address of the Lib_AddressManager.
+     * @param _ovmAddressManager Address of the OVM_AddressManager.
      * @param _implementationName implementationName of the contract to proxy to.
      */
     constructor(
-        address _libAddressManager,
+        address _ovmAddressManager,
         string memory _implementationName
     )
     {
-        addressManager[address(this)] = Lib_AddressManager(_libAddressManager);
+        addressManager[address(this)] = OVM_AddressManager(_ovmAddressManager);
         implementationName[address(this)] = _implementationName;
     }
 

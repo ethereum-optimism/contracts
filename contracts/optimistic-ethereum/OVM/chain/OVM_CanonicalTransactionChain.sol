@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
 import { Lib_RingBuffer, iRingBufferOverwriter } from "../../libraries/utils/Lib_RingBuffer.sol";
 
@@ -13,7 +12,7 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 
 /* Contract Imports */
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
-
+import { OVM_AddressResolver } from "../resolver/OVM_AddressResolver.sol";
 
 library Math {
     function min(uint x, uint y) internal pure returns (uint z) {
@@ -28,7 +27,7 @@ library Math {
 /**
  * @title OVM_CanonicalTransactionChain
  */
-contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_AddressResolver {
+contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_AddressResolver {
     using Lib_RingBuffer for Lib_RingBuffer.RingBuffer;
 
 
@@ -63,10 +62,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      ***************/
 
     constructor(
-        address _libAddressManager,
+        address _ovmAddressManager,
         uint256 _forceInclusionPeriodSeconds
     )
-        Lib_AddressResolver(_libAddressManager)
+        OVM_AddressResolver(_ovmAddressManager)
     {
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
     }

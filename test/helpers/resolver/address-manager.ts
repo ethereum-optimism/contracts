@@ -16,5 +16,5 @@ export const setProxyTarget = async (
 }
 
 export const makeAddressManager = async (): Promise<Contract> => {
-  return (await ethers.getContractFactory('Lib_AddressManager')).deploy()
+  return (await ethers.getContractFactory('OVM_AddressManager')).deploy()
 }

@@ -3,9 +3,6 @@
 pragma solidity >0.6.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
-/* Library Imports */
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
-
 /* Interface Imports */
 import { iOVM_L2CrossDomainMessenger } from "../../iOVM/bridge/iOVM_L2CrossDomainMessenger.sol";
 import { iOVM_L1MessageSender } from "../../iOVM/precompiles/iOVM_L1MessageSender.sol";
@@ -13,25 +10,26 @@ import { iOVM_L2ToL1MessagePasser } from "../../iOVM/precompiles/iOVM_L2ToL1Mess
 
 /* Contract Imports */
 import { OVM_BaseCrossDomainMessenger } from "./OVM_BaseCrossDomainMessenger.sol";
+import { OVM_AddressResolver } from "../resolver/OVM_AddressResolver.sol";
 
 /**
  * @title OVM_L2CrossDomainMessenger
  * @dev L2 CONTRACT (COMPILED)
  */
-contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCrossDomainMessenger, Lib_AddressResolver {
+contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCrossDomainMessenger, OVM_AddressResolver {
 
     /***************
      * Constructor *
      ***************/
-    
+
     /**
-     * @param _libAddressManager Address of the Address Manager.
+     * @param _ovmAddressManager Address of the Address Manager.
      */
     constructor(
-        address _libAddressManager
+        address _ovmAddressManager
     )
         public
-        Lib_AddressResolver(_libAddressManager)
+        OVM_AddressResolver(_ovmAddressManager)
     {}
 
 

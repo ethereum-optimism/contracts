@@ -3,12 +3,12 @@
 pragma solidity >0.6.0 <0.8.0;
 
 /* Contract Imports */
-import { Ownable } from "./Lib_Ownable.sol";
+import { Ownable } from "./OVM_Ownable.sol";
 
 /**
- * @title Lib_AddressManager
+ * @title OVM_AddressManager
  */
-contract Lib_AddressManager is Ownable {
+contract OVM_AddressManager is Ownable {
 
     /*******************************************
      * Contract Variables: Internal Accounting *
