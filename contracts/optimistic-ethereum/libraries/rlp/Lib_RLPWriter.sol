@@ -89,16 +89,7 @@ library Lib_RLPWriter {
             bytes memory _out
         )
     {
-        _malloc(0x20);
-        bytes memory inputBytes;
-        assembly {
-            let m := mload(0x40)
-            mstore(add(m, 20), xor(0x140000000000000000000000000000000000000000, _in))
-            mstore(0x40, add(m, 52))
-            inputBytes := m
-        }
-
-        return writeBytes(inputBytes);
+        return writeBytes(abi.encodePacked(_in));
     }
 
     /**
@@ -205,7 +196,7 @@ library Lib_RLPWriter {
      * @return _binary RLP encoded bytes.
      */
     function _toBinary(
-        uint _x
+        uint256 _x
     )
         private
         pure
@@ -213,12 +204,9 @@ library Lib_RLPWriter {
             bytes memory _binary
         )
     {
-        bytes memory b = new bytes(32);
-        assembly {
-            mstore(add(b, 32), _x)
-        }
+        bytes memory b = abi.encodePacked(_x);
 
-        uint i = 0;
+        uint256 i = 0;
         for (; i < 32; i++) {
             if (b[i] != 0) {
                 break;
@@ -226,7 +214,7 @@ library Lib_RLPWriter {
         }
 
         bytes memory res = new bytes(32 - i);
-        for (uint j = 0; j < res.length; j++) {
+        for (uint256 j = 0; j < res.length; j++) {
             res[j] = b[i++];
         }
 
