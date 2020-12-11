@@ -819,7 +819,7 @@ library Lib_MerkleTrie {
 
     /**
      * @notice Creates an empty branch node.
-     * @return _node Empty branch node as a TrieNode struct.
+     * @return _node Empty branch node as a TrieNode stuct.
      */
     function _makeEmptyBranchNode()
         private

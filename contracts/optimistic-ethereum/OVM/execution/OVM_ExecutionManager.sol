@@ -498,7 +498,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address(proxyEOA),
             keccak256(Lib_EthUtils.getCode(address(proxyEOA)))
         );
-
+        
         _setAccountNonce(eoa, 0);
     }
 
@@ -914,7 +914,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes memory _returndata
         )
     {
-        // EVM precompiles have the same address on L1 and L2 --> no trie lookup needed.
+        // EVM precompiles have the same address on L1 and L2 --> no trie lookup neededgit s.
         address codeContractAddress =
             uint(_contract) < 100
             ? _contract
@@ -1552,7 +1552,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * Validates the gas limit for a given transaction.
      * @param _gasLimit Gas limit provided by the transaction.
-     * @param _queueOrigin Queue from which the transaction originated.
+     * @param _queueOrigin Queue from which the transaction orginated.
      * @return _valid Whether or not the gas limit is valid.
      */
     function _isValidGasLimit(
@@ -1569,7 +1569,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             return false;
         }
 
-        // Always have to be above the minimum gas limit.
+        // Always have to be above the minumum gas limit.
         if (_gasLimit < gasMeterConfig.minTransactionGasLimit) {
             return false;
         }
