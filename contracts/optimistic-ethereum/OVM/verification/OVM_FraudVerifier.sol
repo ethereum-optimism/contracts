@@ -222,7 +222,12 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
      ************************************/
 
     // NB: Stack too deep :/
-    function _deployTransitioner(bytes32 _preStateRoot, bytes32 _txHash) private {
+    function _deployTransitioner(
+        bytes32 _preStateRoot,
+        bytes32 _txHash
+    )
+        private
+    {
         transitioners[keccak256(abi.encodePacked(_preStateRoot, _txHash))] = iOVM_StateTransitionerFactory(
             resolve("OVM_StateTransitionerFactory")
         ).create(
@@ -236,7 +241,9 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
     function _cancelStateTransition(
         Lib_OVMCodec.ChainBatchHeader memory _postStateRootBatchHeader,
         bytes32 _preStateRoot
-    ) private {
+    )
+        private
+    {
         iOVM_StateCommitmentChain ovmStateCommitmentChain = iOVM_StateCommitmentChain(resolve("OVM_StateCommitmentChain"));
         iOVM_BondManager ovmBondManager = iOVM_BondManager(resolve("OVM_BondManager"));
         // delete the state batch
