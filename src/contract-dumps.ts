@@ -134,7 +134,7 @@ export const makeStateDump = async (): Promise<any> => {
       allowArbitraryContractDeployment: true,
     },
     ethConfig: {
-      initialAmount: 0
+      initialAmount: 0,
     },
     dependencies: [
       'Lib_AddressManager',
@@ -166,7 +166,12 @@ export const makeStateDump = async (): Promise<any> => {
     Lib_AddressManager: '0x4200000000000000000000000000000000000008',
   }
 
-  const ovmCompiled = ['OVM_L2ToL1MessagePasser', 'OVM_L2CrossDomainMessenger', 'Lib_AddressManager', 'OVM_ETH']
+  const ovmCompiled = [
+    'OVM_L2ToL1MessagePasser',
+    'OVM_L2CrossDomainMessenger',
+    'Lib_AddressManager',
+    'OVM_ETH',
+  ]
 
   const deploymentResult = await deploy(config)
   deploymentResult.contracts['Lib_AddressManager'] =
