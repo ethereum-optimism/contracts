@@ -18,9 +18,6 @@ library Lib_OVMCodec {
 
     bytes constant internal RLP_NULL_BYTES = hex'80';
     bytes constant internal NULL_BYTES = bytes('');
-    bytes32 constant internal NULL_BYTES32 = bytes32('');
-    bytes32 constant internal KECCAK256_RLP_NULL_BYTES = keccak256(RLP_NULL_BYTES);
-    bytes32 constant internal KECCAK256_NULL_BYTES = keccak256(NULL_BYTES);
 
     // Ring buffer IDs
     bytes32 constant internal RING_BUFFER_SCC_BATCHES = keccak256("RING_BUFFER_SCC_BATCHES");
@@ -313,7 +310,7 @@ library Lib_OVMCodec {
         bytes[] memory raw = new bytes[](4);
 
         // Unfortunately we can't create this array outright because
-        // RLPWriter.encodeList will reject fixed-size arrays. Assigning
+        // Lib_RLPWriter.writeList will reject fixed-size arrays. Assigning
         // index-by-index circumvents this issue.
         raw[0] = Lib_RLPWriter.writeUint256(_account.nonce);
         raw[1] = Lib_RLPWriter.writeUint256(_account.balance);
