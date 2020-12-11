@@ -195,13 +195,16 @@ export const makeStateDump = async (): Promise<any> => {
     const contract = deploymentResult.contracts[name]
     let code
     if (ovmCompiled.includes(name)) {
-      const ovmDeployedBytecode = getContractDefinition(name, true).deployedBytecode
+      const ovmDeployedBytecode = getContractDefinition(name, true)
+        .deployedBytecode
       // TODO remove: deployedBytecode is missing the find and replace in solidity
-      code = ovmDeployedBytecode.split(
-        '336000905af158601d01573d60011458600c01573d6000803e3d621234565260ea61109c52'
-      ).join(
-        '336000905af158600e01573d6000803e3d6000fd5b3d6001141558600a015760016000f35b'
-      )
+      code = ovmDeployedBytecode
+        .split(
+          '336000905af158601d01573d60011458600c01573d6000803e3d621234565260ea61109c52'
+        )
+        .join(
+          '336000905af158600e01573d6000803e3d6000fd5b3d6001141558600a015760016000f35b'
+        )
     } else {
       const codeBuf = await pStateManager.getContractCode(
         fromHexString(contract.address)
