@@ -50,9 +50,9 @@ library Lib_ECDSAUtils {
         pure
         returns (bytes32) {
         if (_isEthSignedMessage) {
-            return getEthSignedMessageHash(_message);
+            return _getEthSignedMessageHash(_message);
         }
-        return getNativeMessageHash(_message);
+        return _getNativeMessageHash(_message);
     }
 
 
@@ -65,7 +65,7 @@ library Lib_ECDSAUtils {
      * @param _message Message to hash.
      * @return _messageHash Native message hash.
      */
-    function getNativeMessageHash(
+    function _getNativeMessageHash(
         bytes memory _message
     )
         private
@@ -82,7 +82,7 @@ library Lib_ECDSAUtils {
      * @param _message Message to hash.
      * @return _messageHash Prefixed message hash.
      */
-    function getEthSignedMessageHash(
+    function _getEthSignedMessageHash(
         bytes memory _message
     )
         private
