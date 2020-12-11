@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >0.5.0 <0.8.0;
+pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -31,8 +31,8 @@ interface iOVM_StateManager {
      * Public Functions: Setup *
      ***************************/
 
-    function owner() external view returns (address _owner); 
-    function ovmExecutionManager() external view returns (address _ovmExecutionManager); 
+    function owner() external view returns (address _owner);
+    function ovmExecutionManager() external view returns (address _ovmExecutionManager);
     function setExecutionManager(address _ovmExecutionManager) external;
 
 
@@ -57,7 +57,7 @@ interface iOVM_StateManager {
     function incrementTotalUncommittedAccounts() external;
     function getTotalUncommittedAccounts() external view returns (uint256 _total);
 
-    
+
     /************************************
      * Public Functions: Storage Access *
      ************************************/

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >0.5.0 <0.8.0;
+pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -16,7 +16,7 @@ interface iOVM_L1CrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
     /*******************
      * Data Structures *
      *******************/
-    
+
     struct L2MessageInclusionProof {
         bytes32 stateRoot;
         Lib_OVMCodec.ChainBatchHeader stateRootBatchHeader;
@@ -27,9 +27,9 @@ interface iOVM_L1CrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
 
 
     /********************
-     * Public Functions * 
+     * Public Functions *
      ********************/
-    
+
     /**
      * Relays a cross domain message to a contract.
      * @param _target Target contract address.

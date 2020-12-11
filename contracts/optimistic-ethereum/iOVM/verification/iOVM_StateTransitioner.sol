@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >0.5.0 <0.8.0;
+pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -18,7 +18,7 @@ interface iOVM_StateTransitioner {
     function getPostStateRoot() external view returns (bytes32 _postStateRoot);
     function isComplete() external view returns (bool _complete);
 
-    
+
     /***********************************
      * Public Functions: Pre-Execution *
      ***********************************/

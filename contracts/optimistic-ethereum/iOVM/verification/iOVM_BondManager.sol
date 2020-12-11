@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >0.5.0 <0.8.0;
+pragma solidity ^0.7.0;
 
 interface ERC20 {
     function transfer(address, uint256) external returns (bool);
@@ -64,7 +64,7 @@ interface iOVM_BondManager {
         bool canClaim;
         // Total number of `recordGasSpent` calls made
         uint256 total;
-        // The gas spent by each user to provide witness data. The sum of all 
+        // The gas spent by each user to provide witness data. The sum of all
         // values inside this map MUST be equal to the value of `total`
         mapping(address => uint256) gasSpent;
     }
@@ -73,7 +73,7 @@ interface iOVM_BondManager {
     /********************
      * Public Functions *
      ********************/
-    
+
     function recordGasSpent(
         bytes32 _preStateRoot,
         bytes32 _txHash,
