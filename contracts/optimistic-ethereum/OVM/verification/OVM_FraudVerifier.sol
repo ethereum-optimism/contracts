@@ -91,9 +91,9 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
     )
         override
         public
-        contributesToFraudProof(_preStateRoot, Lib_OVMCodec.hashTransaction(_transaction))
+        contributesToFraudProof(_preStateRoot, Lib_OVMCodec.hashOVMTransaction(_transaction))
     {
-        bytes32 _txHash = Lib_OVMCodec.hashTransaction(_transaction);
+        bytes32 _txHash = Lib_OVMCodec.hashOVMTransaction(_transaction);
 
         if (_hasStateTransitioner(_preStateRoot, _txHash)) {
             return;

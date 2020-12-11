@@ -182,7 +182,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
             "State batches can only be deleted within the fraud proof window."
         );
 
-        _deleteBatch(_batchHeader);
+        _deleteAllBatchesStartingAt(_batchHeader);(_batchHeader);
     }
 
     /**
@@ -428,7 +428,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
      * Removes a batch from the chain.
      * @param _batchHeader Header of the batch to remove.
      */
-    function _deleteBatch(
+    function _deleteAllBatchesStartingAt(
         Lib_OVMCodec.ChainBatchHeader memory _batchHeader
     )
         internal

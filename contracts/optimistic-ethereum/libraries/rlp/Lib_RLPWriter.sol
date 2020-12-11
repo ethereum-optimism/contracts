@@ -106,7 +106,7 @@ library Lib_RLPWriter {
      * @param _in The uint to encode.
      * @return _out The RLP encoded uint in bytes.
      */
-    function writeUint(
+    function writeUint256(
         uint _in
     )
         internal
@@ -132,7 +132,7 @@ library Lib_RLPWriter {
             bytes memory _out
         )
     {
-        return writeUint(uint(_in));
+        return writeUint256(uint(_in));
     }
 
     /**

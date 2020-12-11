@@ -23,7 +23,7 @@ contract TestLib_OVMCodec {
         return Lib_OVMCodec.decodeEIP155Transaction(_transaction, _isEthSignedMessage);
     }
 
-    function encodeTransaction(
+    function encodeOVMTransaction(
         Lib_OVMCodec.Transaction memory _transaction
     )
         public
@@ -32,10 +32,10 @@ contract TestLib_OVMCodec {
             bytes memory _encoded
         )
     {
-        return Lib_OVMCodec.encodeTransaction(_transaction);
+        return Lib_OVMCodec.encodeOVMTransaction(_transaction);
     }
 
-    function hashTransaction(
+    function hashOVMTransaction(
         Lib_OVMCodec.Transaction memory _transaction
     )
         public
@@ -44,7 +44,7 @@ contract TestLib_OVMCodec {
             bytes32 _hash
         )
     {
-        return Lib_OVMCodec.hashTransaction(_transaction);
+        return Lib_OVMCodec.hashOVMTransaction(_transaction);
     }
 
     function decompressEIP155Transaction(

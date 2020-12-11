@@ -59,7 +59,7 @@ contract TestLib_RLPWriter {
         return Lib_RLPWriter.writeAddress(_in);
     }
 
-    function writeUint(
+    function writeUint256(
         uint _in
     )
         public
@@ -68,7 +68,7 @@ contract TestLib_RLPWriter {
             bytes memory _out
         )
     {
-        return Lib_RLPWriter.writeUint(_in);
+        return Lib_RLPWriter.writeUint256(_in);
     }
 
     function writeInt(

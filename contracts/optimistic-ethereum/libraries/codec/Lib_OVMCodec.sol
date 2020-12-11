@@ -31,9 +31,9 @@ library Lib_OVMCodec {
     /*********
      * Enums *
      *********/
-    
+
     enum EOASignatureType {
-        EIP155_TRANSACTON,
+        EIP155_TRANSACTION,
         ETH_SIGNED_MESSAGE
     }
 
@@ -214,17 +214,17 @@ library Lib_OVMCodec {
         } else {
             bytes[] memory raw = new bytes[](9);
 
-            raw[0] = Lib_RLPWriter.writeUint(_transaction.nonce);
-            raw[1] = Lib_RLPWriter.writeUint(_transaction.gasPrice);
-            raw[2] = Lib_RLPWriter.writeUint(_transaction.gasLimit);
+            raw[0] = Lib_RLPWriter.writeUint256(_transaction.nonce);
+            raw[1] = Lib_RLPWriter.writeUint256(_transaction.gasPrice);
+            raw[2] = Lib_RLPWriter.writeUint256(_transaction.gasLimit);
             if (_transaction.to == address(0)) {
                 raw[3] = Lib_RLPWriter.writeBytes('');
             } else {
                 raw[3] = Lib_RLPWriter.writeAddress(_transaction.to);
             }
-            raw[4] = Lib_RLPWriter.writeUint(0);
+            raw[4] = Lib_RLPWriter.writeUint256(0);
             raw[5] = Lib_RLPWriter.writeBytes(_transaction.data);
-            raw[6] = Lib_RLPWriter.writeUint(_transaction.chainId);
+            raw[6] = Lib_RLPWriter.writeUint256(_transaction.chainId);
             raw[7] = Lib_RLPWriter.writeBytes(bytes(''));
             raw[8] = Lib_RLPWriter.writeBytes(bytes(''));
 
@@ -237,7 +237,7 @@ library Lib_OVMCodec {
      * @param _transaction OVM transaction to encode.
      * @return _encoded Encoded transaction bytes.
      */
-    function encodeTransaction(
+    function encodeOVMTransaction(
         Transaction memory _transaction
     )
         internal
@@ -262,7 +262,7 @@ library Lib_OVMCodec {
      * @param _transaction OVM transaction to encode.
      * @return _hash Hashed transaction
      */
-    function hashTransaction(
+    function hashOVMTransaction(
         Transaction memory _transaction
     )
         internal
@@ -271,7 +271,7 @@ library Lib_OVMCodec {
             bytes32 _hash
         )
     {
-        return keccak256(encodeTransaction(_transaction));
+        return keccak256(encodeOVMTransaction(_transaction));
     }
 
     /**
@@ -315,8 +315,8 @@ library Lib_OVMCodec {
         // Unfortunately we can't create this array outright because
         // RLPWriter.encodeList will reject fixed-size arrays. Assigning
         // index-by-index circumvents this issue.
-        raw[0] = Lib_RLPWriter.writeUint(_account.nonce);
-        raw[1] = Lib_RLPWriter.writeUint(_account.balance);
+        raw[0] = Lib_RLPWriter.writeUint256(_account.nonce);
+        raw[1] = Lib_RLPWriter.writeUint256(_account.balance);
         raw[2] = Lib_RLPWriter.writeBytes(abi.encodePacked(_account.storageRoot));
         raw[3] = Lib_RLPWriter.writeBytes(abi.encodePacked(_account.codeHash));
 

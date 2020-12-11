@@ -153,7 +153,7 @@ library Lib_EthUtils {
     {
         bytes[] memory encoded = new bytes[](2);
         encoded[0] = Lib_RLPWriter.writeAddress(_creator);
-        encoded[1] = Lib_RLPWriter.writeUint(_nonce);
+        encoded[1] = Lib_RLPWriter.writeUint256(_nonce);
 
         bytes memory encodedList = Lib_RLPWriter.writeList(encoded);
         return Lib_Bytes32Utils.toAddress(keccak256(encodedList));

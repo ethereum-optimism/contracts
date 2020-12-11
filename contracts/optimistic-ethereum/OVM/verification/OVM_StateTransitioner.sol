@@ -309,7 +309,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         contributesToFraudProof(preStateRoot, transactionHash)
     {
         require(
-            Lib_OVMCodec.hashTransaction(_transaction) == transactionHash,
+            Lib_OVMCodec.hashOVMTransaction(_transaction) == transactionHash,
             "Invalid transaction provided."
         );
 

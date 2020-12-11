@@ -121,7 +121,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      */
     modifier notStatic() {
         if (messageContext.isStatic == true) {
-            _revertWithFlag(RevertFlag.STATIC_VIOLATION);
+            _haltWithFlag(RevertFlag.STATIC_VIOLATION);
         }
         _;
     }
@@ -329,7 +329,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
-        _revertWithFlag(RevertFlag.INTENTIONAL_REVERT, _data);
+        _haltWithFlag(RevertFlag.INTENTIONAL_REVERT, _data);
     }
 
 
@@ -498,7 +498,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address(proxyEOA),
             keccak256(Lib_EthUtils.getCode(address(proxyEOA)))
         );
-        
+
         _setAccountNonce(eoa, 0);
     }
 
@@ -777,12 +777,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // and the OVM_FraudVerifier will populate the code hash of this address with a special
         // value that represents "known to be an empty account."
         if (_hasEmptyAccount(_address) == false) {
-            _revertWithFlag(RevertFlag.CREATE_COLLISION);
+            _haltWithFlag(RevertFlag.CREATE_COLLISION);
         }
 
         // Check the creation bytecode against the OVM_SafetyChecker.
         if (ovmSafetyChecker.isBytecodeSafe(_bytecode) == false) {
-            _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
+            _haltWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
         // We always need to initialize the contract with the default account values.
@@ -799,21 +799,21 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // left over since contract calls can only be passed 63/64ths of total gas,  so we need to
         // explicitly handle this case here.
         if (ethAddress == address(0)) {
-            _revertWithFlag(RevertFlag.CREATE_EXCEPTION);
+            _haltWithFlag(RevertFlag.CREATE_EXCEPTION);
         }
 
         // Here we pull out the revert flag that would've been set during creation code. Now that
         // we're out of creation code again, we can just revert normally while passing the flag
         // through the revert data.
         if (messageRecord.revertFlag != RevertFlag.DID_NOT_REVERT) {
-            _revertWithFlag(messageRecord.revertFlag);
+            _haltWithFlag(messageRecord.revertFlag);
         }
 
         // Again simply checking that the deployed code is safe too. Contracts can generate
         // arbitrary deployment code, so there's no easy way to analyze this beforehand.
         bytes memory deployedCode = Lib_EthUtils.getCode(ethAddress);
         if (ovmSafetyChecker.isBytecodeSafe(deployedCode) == false) {
-            _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
+            _haltWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
         // Contract creation didn't need to be reverted and the bytecode is safe. We finish up by
@@ -989,7 +989,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             // parent EVM message. This behavior is necessary because INVALID_STATE_ACCESS must
             // halt any further transaction execution that could impact the execution result.
             if (flag == RevertFlag.INVALID_STATE_ACCESS) {
-                _revertWithFlag(flag);
+                _haltWithFlag(flag);
             }
 
             // INTENTIONAL_REVERT, UNSAFE_BYTECODE, and STATIC_VIOLATION aren't dependent on the
@@ -1203,12 +1203,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // See `_checkContractStorageLoad` for more information.
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
-            _revertWithFlag(RevertFlag.OUT_OF_GAS);
+            _haltWithFlag(RevertFlag.OUT_OF_GAS);
         }
 
         // See `_checkContractStorageLoad` for more information.
         if (ovmStateManager.hasAccount(_address) == false) {
-            _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
+            _haltWithFlag(RevertFlag.INVALID_STATE_ACCESS);
         }
 
         // Check whether the account has been loaded before and mark it as loaded if not. We need
@@ -1271,14 +1271,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // allows us to also charge for the full message nuisance gas, because you deserve that for
         // trying to break the contract in this way.
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
-            _revertWithFlag(RevertFlag.OUT_OF_GAS);
+            _haltWithFlag(RevertFlag.OUT_OF_GAS);
         }
 
         // We need to make sure that the transaction isn't trying to access storage that hasn't
         // been provided to the OVM_StateManager. We'll immediately abort if this is the case.
         // We know that we have enough gas to do this check because of the above test.
         if (ovmStateManager.hasContractStorage(_contract, _key) == false) {
-            _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
+            _haltWithFlag(RevertFlag.INVALID_STATE_ACCESS);
         }
 
         // Check whether the slot has been loaded before and mark it as loaded if not. We need
@@ -1308,12 +1308,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // See `_checkContractStorageLoad` for more information.
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
-            _revertWithFlag(RevertFlag.OUT_OF_GAS);
+            _haltWithFlag(RevertFlag.OUT_OF_GAS);
         }
 
         // See `_checkContractStorageLoad` for more information.
         if (ovmStateManager.hasContractStorage(_contract, _key) == false) {
-            _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
+            _haltWithFlag(RevertFlag.INVALID_STATE_ACCESS);
         }
 
         // Check whether the slot has been changed before and mark it as changed if not. We need
@@ -1417,7 +1417,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @param _flag Flag to revert with.
      * @param _data Additional user-provided data.
      */
-    function _revertWithFlag(
+    function _haltWithFlag(
         RevertFlag _flag,
         bytes memory _data
     )
@@ -1457,12 +1457,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * Causes a message to revert or abort.
      * @param _flag Flag to revert with.
      */
-    function _revertWithFlag(
+    function _haltWithFlag(
         RevertFlag _flag
     )
         internal
     {
-        _revertWithFlag(_flag, bytes(''));
+        _haltWithFlag(_flag, bytes(''));
     }
 
 
@@ -1502,7 +1502,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Essentially the same as a standard OUT_OF_GAS, except we also retain a record of the gas
         // refund to be given at the end of the transaction.
         if (messageRecord.nuisanceGasLeft < _amount) {
-            _revertWithFlag(RevertFlag.EXCEEDS_NUISANCE_GAS);
+            _haltWithFlag(RevertFlag.EXCEEDS_NUISANCE_GAS);
         }
 
         messageRecord.nuisanceGasLeft -= _amount;
