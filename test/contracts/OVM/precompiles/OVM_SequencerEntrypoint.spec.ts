@@ -3,20 +3,16 @@ import { expect } from '../../../setup'
 /* External Imports */
 import { waffle, ethers } from '@nomiclabs/buidler'
 import { ContractFactory, Wallet, Contract } from 'ethers'
-import { zeroPad } from '@ethersproject/bytes'
 import { getContractInterface } from '../../../../src'
 import {
   encodeSequencerCalldata,
-  EIP155Transaction,
   signNativeTransaction,
   signEthSignMessage,
   DEFAULT_EIP155_TX,
   serializeNativeTransaction,
   serializeEthSignTransaction,
-  ZERO_ADDRESS,
 } from '../../../helpers'
 import { smockit, MockContract } from '@eth-optimism/smock'
-import { create } from 'lodash'
 
 describe('OVM_SequencerEntrypoint', () => {
   let wallet: Wallet
@@ -24,7 +20,6 @@ describe('OVM_SequencerEntrypoint', () => {
     const provider = waffle.provider
     ;[wallet] = provider.getWallets()
   })
-
   let Mock__OVM_ExecutionManager: MockContract
   let Helper_PrecompileCaller: Contract
   before(async () => {

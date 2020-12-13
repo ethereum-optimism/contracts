@@ -12,8 +12,8 @@ import { ZERO_ADDRESS } from '../constants'
 
 export interface EIP155Transaction {
   nonce: number
-  gasLimit: number
   gasPrice: number
+  gasLimit: number
   to: string
   data: string
   chainId: number
@@ -27,10 +27,10 @@ export interface SignatureParameters {
 }
 
 export const DEFAULT_EIP155_TX: EIP155Transaction = {
-  to: `0x${'12'.repeat(20)}`,
   nonce: 100,
-  gasLimit: 1000000,
   gasPrice: 100000000,
+  gasLimit: 1000000,
+  to: `0x${'12'.repeat(20)}`,
   data: `0x${'99'.repeat(10)}`,
   chainId: 420,
 }
@@ -56,9 +56,9 @@ export const encodeCompactTransaction = (transaction: any): string => {
   const data = hexStrToBuf(transaction.data)
 
   return Buffer.concat([
-    Buffer.from(gasLimit),
-    Buffer.from(gasPrice),
     Buffer.from(nonce),
+    Buffer.from(gasPrice),
+    Buffer.from(gasLimit),
     Buffer.from(to),
     data,
   ]).toString('hex')
@@ -68,14 +68,14 @@ export const serializeEthSignTransaction = (
   transaction: EIP155Transaction
 ): string => {
   return ethers.utils.defaultAbiCoder.encode(
-    ['uint256', 'uint256', 'uint256', 'uint256', 'address', 'bytes'],
+    ['uint256', 'uint256', 'uint256', 'address', 'bytes', 'uint256'],
     [
       transaction.nonce,
-      transaction.gasLimit,
       transaction.gasPrice,
-      transaction.chainId,
+      transaction.gasLimit,
       transaction.to,
       transaction.data,
+      transaction.chainId,
     ]
   )
 }

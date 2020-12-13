@@ -14,7 +14,7 @@ contract OVM_SequencerEntrypoint {
     /*********
      * Enums *
      *********/
-    
+
     enum TransactionType {
         NATIVE_ETH_TRANSACTION,
         ETH_SIGNED_MESSAGE
@@ -30,11 +30,11 @@ contract OVM_SequencerEntrypoint {
      * calldata[00:01]: transaction type (0 == EIP 155, 2 == Eth Sign Message)
      * calldata[01:33]: signature "r" parameter
      * calldata[33:65]: signature "s" parameter
-     * calldata[66:69]: transaction gas limit
+     * calldata[66:69]: transaction nonce
      * calldata[69:72]: transaction gas price
-     * calldata[72:75]: transaction nonce
+     * calldata[72:75]: transaction gas limit
      * calldata[75:95]: transaction target address
-     * calldata[95:XX]: transaction data
+     * calldata[94:XX]: transaction data
      */
     fallback()
         external
@@ -44,7 +44,7 @@ contract OVM_SequencerEntrypoint {
         bytes32 r = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 1, 32));
         bytes32 s = Lib_BytesUtils.toBytes32(Lib_BytesUtils.slice(msg.data, 33, 32));
         uint8 v = Lib_BytesUtils.toUint8(msg.data, 65);
-        
+
         // Remainder is the transaction to execute.
         bytes memory compressedTx = Lib_BytesUtils.slice(msg.data, 66);
         bool isEthSignedMessage = transactionType == TransactionType.ETH_SIGNED_MESSAGE;
@@ -85,7 +85,7 @@ contract OVM_SequencerEntrypoint {
             callbytes
         );
     }
-    
+
 
     /**********************
      * Internal Functions *

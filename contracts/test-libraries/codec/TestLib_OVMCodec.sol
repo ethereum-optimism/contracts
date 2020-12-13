@@ -23,6 +23,19 @@ contract TestLib_OVMCodec {
         return Lib_OVMCodec.decodeEIP155Transaction(_transaction, _isEthSignedMessage);
     }
 
+    function encodeEIP155Transaction(
+        Lib_OVMCodec.EIP155Transaction memory _transaction,
+        bool _isEthSignedMessage
+    )
+        public
+        pure
+        returns (
+            bytes memory _encoded
+        )
+    {
+        return Lib_OVMCodec.encodeEIP155Transaction(_transaction, _isEthSignedMessage);
+    }
+
     function encodeTransaction(
         Lib_OVMCodec.Transaction memory _transaction
     )

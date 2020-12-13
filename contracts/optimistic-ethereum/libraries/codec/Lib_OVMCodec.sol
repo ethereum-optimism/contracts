@@ -130,14 +130,14 @@ library Lib_OVMCodec {
         if (_isEthSignedMessage) {
             (
                 uint _nonce,
-                uint _gasLimit,
                 uint _gasPrice,
-                uint _chainId,
+                uint _gasLimit,
                 address _to,
-                bytes memory _data
+                bytes memory _data,
+                uint _chainId
             ) = abi.decode(
                 _transaction,
-                (uint, uint, uint, uint, address ,bytes)
+                (uint, uint, uint, address, bytes, uint)
             );
             return EIP155Transaction({
                 nonce: _nonce,
@@ -173,13 +173,13 @@ library Lib_OVMCodec {
         )
     {
         return EIP155Transaction({
-            gasLimit: Lib_BytesUtils.toUint24(_transaction, 0),
+            nonce: Lib_BytesUtils.toUint24(_transaction, 0),
             gasPrice: uint256(Lib_BytesUtils.toUint24(_transaction, 3)) * 1000000,
-            nonce: Lib_BytesUtils.toUint24(_transaction, 6),
+            gasLimit: Lib_BytesUtils.toUint24(_transaction, 6),
             to: Lib_BytesUtils.toAddress(_transaction, 9),
+            value: 0,
             data: Lib_BytesUtils.slice(_transaction, 29),
-            chainId: 420,
-            value: 0
+            chainId: 420
         });
     }
 
@@ -202,11 +202,11 @@ library Lib_OVMCodec {
         if (_isEthSignedMessage) {
             return abi.encode(
                 _transaction.nonce,
-                _transaction.gasLimit,
                 _transaction.gasPrice,
-                _transaction.chainId,
+                _transaction.gasLimit,
                 _transaction.to,
-                _transaction.data
+                _transaction.data,
+                _transaction.chainId
             );
         } else {
             bytes[] memory raw = new bytes[](9);
