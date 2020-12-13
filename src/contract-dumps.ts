@@ -44,9 +44,10 @@ const getStorageDump = async (
       const stream = trie.createReadStream()
 
       stream.on('data', (val: any) => {
-        const storageSlotValue = ethers.utils.RLP.decode('0x' + val.value.toString('hex'))
-        storage['0x' + val.key.toString('hex')] =
-          storageSlotValue
+        const storageSlotValue = ethers.utils.RLP.decode(
+          '0x' + val.value.toString('hex')
+        )
+        storage['0x' + val.key.toString('hex')] = storageSlotValue
       })
 
       stream.on('end', () => {
