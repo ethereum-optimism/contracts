@@ -47,7 +47,7 @@ contract OVM_StateTransitionerFactory is iOVM_StateTransitionerFactory, Lib_Addr
     {
         require(
             msg.sender == resolve("OVM_FraudVerifier"),
-            "StateTransitionerFactory: caller is not the OVM_FraudVerifier"
+            "Create can only be done by the OVM_FraudVerifier."
         );
         return new OVM_StateTransitioner(
             _libAddressManager,

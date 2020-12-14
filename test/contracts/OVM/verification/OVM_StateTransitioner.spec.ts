@@ -25,7 +25,7 @@ import {
 } from '@eth-optimism/smock'
 import { keccak256 } from 'ethers/lib/utils'
 
-describe.only('OVM_StateTransitioner', () => {
+describe('OVM_StateTransitioner', () => {
   let AddressManager: Contract
   before(async () => {
     AddressManager = await makeAddressManager()
