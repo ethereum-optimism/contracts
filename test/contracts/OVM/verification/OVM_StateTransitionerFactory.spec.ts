@@ -36,7 +36,7 @@ describe('OVM_StateTransitionerFactory', () => {
   })
 
   describe('create', () => {
-    describe("when the sender is not the OVM_FraudVerifier", () => {
+    describe('when the sender is not the OVM_FraudVerifier', () => {
       before(async () => {
         await AddressManager.setAddress('OVM_FraudVerifier', ZERO_ADDRESS)
       })

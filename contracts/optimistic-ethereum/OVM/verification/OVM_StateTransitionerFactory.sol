@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
-/* Logging */
-import { console } from "@nomiclabs/buidler/console.sol";
-
 /* Library Imports */
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 
