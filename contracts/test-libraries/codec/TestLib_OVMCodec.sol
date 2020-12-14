@@ -64,7 +64,6 @@ contract TestLib_OVMCodec {
         bytes memory _transaction
     )
         public
-        pure
         returns (
             Lib_OVMCodec.EIP155Transaction memory _decompressed
         )
