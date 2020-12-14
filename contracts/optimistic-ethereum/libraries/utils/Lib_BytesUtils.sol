@@ -170,21 +170,6 @@ library Lib_BytesUtils {
         return slice(_bytes, _start, _bytes.length - _start);
     }
 
-    function toBytes32PadLeft(
-        bytes memory _bytes
-    )
-        internal
-        pure
-        returns (bytes32)
-    {
-        bytes32 ret;
-        uint256 len = _bytes.length <= 32 ? _bytes.length : 32;
-        assembly {
-            ret := shr(mul(sub(32, len), 8), mload(add(_bytes, 32)))
-        }
-        return ret;
-    }
-
     function toBytes32(
         bytes memory _bytes
     )
@@ -192,11 +177,15 @@ library Lib_BytesUtils {
         pure
         returns (bytes32)
     {
-        bytes32 ret;
-        assembly {
-            ret := mload(add(_bytes, 32))
+        if (_bytes.length < 32) {
+            bytes32 ret;
+            assembly {
+                ret := mload(add(_bytes, 32))
+            }
+            return ret;
         }
-        return ret;
+
+        return abi.decode(_bytes,(bytes32)); // will truncate if input length > 32 bytes
     }
 
     function toUint256(

@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 import { Lib_RLPReader } from "../rlp/Lib_RLPReader.sol";
 import { Lib_RLPWriter } from "../rlp/Lib_RLPWriter.sol";
 import { Lib_BytesUtils } from "../utils/Lib_BytesUtils.sol";
-import { Lib_Bytes32Utils } from "../utils/Lib_Bytes32Utils.sol";
+import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
 /**
  * @title Lib_OVMCodec
@@ -19,9 +19,6 @@ library Lib_OVMCodec {
 
     bytes constant internal RLP_NULL_BYTES = hex'80';
     bytes constant internal NULL_BYTES = bytes('');
-    bytes32 constant internal NULL_BYTES32 = bytes32('');
-    bytes32 constant internal KECCAK256_RLP_NULL_BYTES = keccak256(RLP_NULL_BYTES);
-    bytes32 constant internal KECCAK256_NULL_BYTES = keccak256(NULL_BYTES);
 
     // Ring buffer IDs
     bytes32 constant internal RING_BUFFER_SCC_BATCHES = keccak256("RING_BUFFER_SCC_BATCHES");
@@ -171,7 +168,6 @@ library Lib_OVMCodec {
         bytes memory _transaction
     )
         internal
-        pure
         returns (
             EIP155Transaction memory _decompressed
         )
@@ -182,7 +178,7 @@ library Lib_OVMCodec {
             nonce: Lib_BytesUtils.toUint24(_transaction, 6),
             to: Lib_BytesUtils.toAddress(_transaction, 9),
             data: Lib_BytesUtils.slice(_transaction, 29),
-            chainId: 420,
+            chainId: Lib_SafeExecutionManagerWrapper.safeCHAINID(),
             value: 0
         });
     }
@@ -314,18 +310,10 @@ library Lib_OVMCodec {
         bytes[] memory raw = new bytes[](4);
 
         // Unfortunately we can't create this array outright because
-        // RLPWriter.encodeList will reject fixed-size arrays. Assigning
+        // Lib_RLPWriter.writeList will reject fixed-size arrays. Assigning
         // index-by-index circumvents this issue.
-        raw[0] = Lib_RLPWriter.writeBytes(
-            Lib_Bytes32Utils.removeLeadingZeros(
-                bytes32(_account.nonce)
-            )
-        );
-        raw[1] = Lib_RLPWriter.writeBytes(
-            Lib_Bytes32Utils.removeLeadingZeros(
-                bytes32(_account.balance)
-            )
-        );
+        raw[0] = Lib_RLPWriter.writeUint(_account.nonce);
+        raw[1] = Lib_RLPWriter.writeUint(_account.balance);
         raw[2] = Lib_RLPWriter.writeBytes(abi.encodePacked(_account.storageRoot));
         raw[3] = Lib_RLPWriter.writeBytes(abi.encodePacked(_account.codeHash));
 

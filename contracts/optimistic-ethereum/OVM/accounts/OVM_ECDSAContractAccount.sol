@@ -78,19 +78,24 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             "Transaction nonce does not match the expected nonce."
         );
 
-        // Need to make sure that the gas is sufficient to execute the transaction.
-        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
-           gasleft() >= Lib_SafeMathWrapper.add(decodedTx.gasLimit, EXECUTION_VALIDATION_GAS_OVERHEAD),
-           "Gas is not sufficient to execute the transaction."
-        );
+        // TEMPORARY: Disable gas checks for minnet.
+        // // Need to make sure that the gas is sufficient to execute the transaction.
+        // Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+        //    gasleft() >= Lib_SafeMathWrapper.add(decodedTx.gasLimit, EXECUTION_VALIDATION_GAS_OVERHEAD),
+        //    "Gas is not sufficient to execute the transaction."
+        // );
 
         // Transfer fee to relayer.
         address relayer = Lib_SafeExecutionManagerWrapper.safeCALLER();
         uint256 fee = decodedTx.gasLimit * decodedTx.gasPrice;
-        Lib_SafeExecutionManagerWrapper.safeCALL(
+        (bool success, ) = Lib_SafeExecutionManagerWrapper.safeCALL(
             gasleft(),
             ETH_ERC20_ADDRESS,
             abi.encodeWithSignature("transfer(address,uint256)", relayer, fee)
+        );
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+            success == true,
+            "Fee was not transferred to relayer."
         );
 
         // Contract creations are signalled by sending a transaction to the zero address.

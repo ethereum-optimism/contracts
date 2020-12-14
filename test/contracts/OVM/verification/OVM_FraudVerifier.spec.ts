@@ -179,10 +179,7 @@ describe('OVM_FraudVerifier', () => {
               DUMMY_OVM_TRANSACTIONS[0],
               DUMMY_TX_CHAIN_ELEMENTS[0],
               DUMMY_BATCH_HEADERS[0],
-              {
-                ...DUMMY_BATCH_PROOFS[0],
-                index: DUMMY_BATCH_PROOFS[0].index + 1,
-              }
+              DUMMY_BATCH_PROOFS[0]
             )
           ).to.not.be.reverted
 
@@ -229,10 +226,7 @@ describe('OVM_FraudVerifier', () => {
         DUMMY_OVM_TRANSACTIONS[0],
         DUMMY_TX_CHAIN_ELEMENTS[0],
         DUMMY_BATCH_HEADERS[0],
-        {
-          ...DUMMY_BATCH_PROOFS[0],
-          index: DUMMY_BATCH_PROOFS[0].index + 1,
-        }
+        DUMMY_BATCH_PROOFS[0]
       )
     })
 
@@ -280,7 +274,9 @@ describe('OVM_FraudVerifier', () => {
               DUMMY_BATCH_HEADERS[0],
               batchProof
             )
-          ).to.be.revertedWith('Post-state root global index must equal to the pre state root global index plus one.')
+          ).to.be.revertedWith(
+            'Post-state root global index must equal to the pre state root global index plus one.'
+          )
         })
       })
 
@@ -436,10 +432,7 @@ describe('OVM_FraudVerifier', () => {
               DUMMY_OVM_TRANSACTIONS[1],
               DUMMY_TX_CHAIN_ELEMENTS[0],
               DUMMY_BATCH_HEADERS[0],
-              {
-                ...DUMMY_BATCH_PROOFS[0],
-                index: DUMMY_BATCH_PROOFS[0].index + 1,
-              }
+              DUMMY_BATCH_PROOFS[0]
             )
           ).to.not.be.reverted
 
@@ -482,10 +475,7 @@ describe('OVM_FraudVerifier', () => {
             DUMMY_OVM_TRANSACTIONS[1],
             DUMMY_TX_CHAIN_ELEMENTS[1],
             DUMMY_BATCH_HEADERS[1],
-            {
-              ...DUMMY_BATCH_PROOFS[0],
-              index: DUMMY_BATCH_PROOFS[0].index + 1,
-            }
+            DUMMY_BATCH_PROOFS[0]
           )
 
           // finalize it as well
@@ -518,10 +508,7 @@ describe('OVM_FraudVerifier', () => {
             DUMMY_OVM_TRANSACTIONS[1],
             DUMMY_TX_CHAIN_ELEMENTS[1],
             DUMMY_BATCH_HEADERS[1],
-            {
-              ...DUMMY_BATCH_PROOFS[0],
-              index: DUMMY_BATCH_PROOFS[0].index + 1,
-            }
+            DUMMY_BATCH_PROOFS[0]
           )
 
           // finalize the new fraud first

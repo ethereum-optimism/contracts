@@ -241,7 +241,8 @@ describe('OVM_ECDSAContractAccount', () => {
       )
     })
 
-    it(`should revert on insufficient gas`, async () => {
+    // TEMPORARY: Skip gas checks for minnet.
+    it.skip(`should revert on insufficient gas`, async () => {
       const alteredInsufficientGasTx = {
         ...DEFAULT_EIP155_TX,
         gasLimit: 200000000,
@@ -267,6 +268,32 @@ describe('OVM_ECDSAContractAccount', () => {
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
       expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
         'Gas is not sufficient to execute the transaction.'
+      )
+    })
+
+    it(`should revert if fee is not transferred to the relayer`, async () => {
+      const message = serializeNativeTransaction(DEFAULT_EIP155_TX)
+      const sig = await signNativeTransaction(wallet, DEFAULT_EIP155_TX)
+      Mock__OVM_ExecutionManager.smocked.ovmCALL.will.return.with([false, '0x'])
+
+      await callPrecompile(
+        Helper_PrecompileCaller,
+        OVM_ECDSAContractAccount,
+        'execute',
+        [
+          message,
+          0, //isEthSignedMessage
+          `0x${sig.v}`, //v
+          `0x${sig.r}`, //r
+          `0x${sig.s}`, //s
+        ],
+        40000000
+      )
+
+      const ovmREVERT: any =
+        Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
+      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+        'Fee was not transferred to relayer.'
       )
     })
   })
