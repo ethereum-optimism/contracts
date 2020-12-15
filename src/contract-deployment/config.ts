@@ -164,7 +164,7 @@ export const makeContractDeployConfig = async (
     },
     OVM_BondManager: {
       factory: getContractFactory('mockOVM_BondManager'),
-      params: [AddressManager.address]
+      params: [AddressManager.address],
     },
     OVM_ETH: {
       factory: getContractFactory('OVM_ETH'),
