@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
-import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
+import { Lib_MerkleTree } from "../../libraries/utils/Lib_MerkleTree.sol";
 import { Lib_RingBuffer, iRingBufferOverwriter } from "../../libraries/utils/Lib_RingBuffer.sol";
 
 /* Interface Imports */
@@ -207,11 +207,12 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         );
 
         require(
-            Lib_MerkleUtils.verify(
+            Lib_MerkleTree.verify(
                 _batchHeader.batchRoot,
-                abi.encodePacked(_element),
+                _element,
                 _proof.index,
-                _proof.siblings
+                _proof.siblings,
+                _batchHeader.batchSize
             ),
             "Invalid inclusion proof."
         );
@@ -394,14 +395,16 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
             );
         }
 
-        bytes[] memory elements = new bytes[](_batch.length);
+        bytes32[] memory elements = new bytes32[](_batch.length);
         for (uint256 i = 0; i < _batch.length; i++) {
-            elements[i] = abi.encodePacked(_batch[i]);
+            elements[i] = keccak256(
+                abi.encodePacked(_batch[i])
+            );
         }
 
         Lib_OVMCodec.ChainBatchHeader memory batchHeader = Lib_OVMCodec.ChainBatchHeader({
             batchIndex: getTotalBatches(),
-            batchRoot: Lib_MerkleUtils.getMerkleRoot(elements),
+            batchRoot: Lib_MerkleTree.getMerkleRoot(elements),
             batchSize: elements.length,
             prevTotalElements: totalElements,
             extraData: _extraData
