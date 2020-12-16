@@ -102,7 +102,7 @@ export const makeContractDeployConfig = async (
         AddressManager.address,
         config.stateChainConfig.fraudProofWindowSeconds,
         config.stateChainConfig.sequencerPublishWindowSeconds,
-      ]
+      ],
     },
     OVM_DeployerWhitelist: {
       factory: getContractFactory('OVM_DeployerWhitelist'),
