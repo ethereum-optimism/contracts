@@ -5,7 +5,7 @@ import { ethers } from '@nomiclabs/buidler'
 import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { smockit, MockContract } from '@eth-optimism/smock'
-import _, { times } from 'lodash'
+import _ from 'lodash'
 
 /* Internal Imports */
 import {
@@ -187,16 +187,20 @@ describe('OVM_CanonicalTransactionChain', () => {
       Mock__OVM_StateCommitmentChain
     )
 
-    Mock__OVM_StateCommitmentChain.smocked.canOverwrite.will.return.with(false)
     Mock__OVM_ExecutionManager.smocked.getMaxTransactionGasLimit.will.return.with(
       MAX_GAS_LIMIT
     )
   })
 
   let Factory__OVM_CanonicalTransactionChain: ContractFactory
+  let Factory__OVM_ChainStorageContainer: ContractFactory
   before(async () => {
     Factory__OVM_CanonicalTransactionChain = await ethers.getContractFactory(
       'OVM_CanonicalTransactionChain'
+    )
+
+    Factory__OVM_ChainStorageContainer = await ethers.getContractFactory(
+      'OVM_ChainStorageContainer'
     )
   })
 
@@ -206,7 +210,30 @@ describe('OVM_CanonicalTransactionChain', () => {
       AddressManager.address,
       FORCE_INCLUSION_PERIOD_SECONDS
     )
-    await OVM_CanonicalTransactionChain.init()
+
+    const batches = await Factory__OVM_ChainStorageContainer.deploy(
+      AddressManager.address,
+      'OVM_CanonicalTransactionChain'
+    )
+    const queue = await Factory__OVM_ChainStorageContainer.deploy(
+      AddressManager.address,
+      'OVM_CanonicalTransactionChain'
+    )
+
+    await AddressManager.setAddress(
+      'OVM_ChainStorageContainer:CTC:batches',
+      batches.address
+    )
+
+    await AddressManager.setAddress(
+      'OVM_ChainStorageContainer:CTC:queue',
+      queue.address
+    )
+
+    await AddressManager.setAddress(
+      'OVM_CanonicalTransactionChain',
+      OVM_CanonicalTransactionChain.address
+    )
   })
 
   describe('enqueue', () => {
