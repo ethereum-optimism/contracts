@@ -6,7 +6,6 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
-import { Lib_RingBuffer, iRingBufferOverwriter } from "../../libraries/utils/Lib_RingBuffer.sol";
 
 /* Interface Imports */
 import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.sol";
@@ -15,12 +14,13 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 import { iOVM_BondManager } from "../../iOVM/verification/iOVM_BondManager.sol";
 import '@openzeppelin/contracts/math/SafeMath.sol';
 
+/* Contract Imports */
+import { OVM_ChainStorageContainer } from "./OVM_ChainStorageContainer.sol";
+
 /**
  * @title OVM_StateCommitmentChain
  */
-contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverwriter, Lib_AddressResolver {
-    using Lib_RingBuffer for Lib_RingBuffer.RingBuffer;
-
+contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResolver {
 
     /*************
      * Constants *
@@ -36,7 +36,6 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
 
     uint256 internal lastDeletableIndex;
     uint256 internal lastDeletableTimestamp;
-    Lib_RingBuffer.RingBuffer internal batches;
 
 
     /***************
@@ -50,7 +49,9 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         address _libAddressManager,
         uint256 _fraudProofWindow,
         uint256 _sequencerPublishWindow
-    ) Lib_AddressResolver(_libAddressManager) {
+    )
+        Lib_AddressResolver(_libAddressManager)
+    {
         FRAUD_PROOF_WINDOW = _fraudProofWindow;
         SEQUENCER_PUBLISH_WINDOW = _sequencerPublishWindow;
     }
@@ -60,17 +61,15 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
      * Public Functions *
      ********************/
 
-    /**
-     * @inheritdoc iOVM_StateCommitmentChain
-     */
-    function init()
-        override
+    function batches()
         public
+        view
+        returns (
+            OVM_ChainStorageContainer
+        )
     {
-        batches.init(
-            16,
-            Lib_OVMCodec.RING_BUFFER_SCC_BATCHES,
-            iRingBufferOverwriter(address(this))
+        return OVM_ChainStorageContainer(
+            resolve("ovm:scc:chain:batches")
         );
     }
 
@@ -100,7 +99,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
             uint256 _totalBatches
         )
     {
-        return uint256(batches.getLength());
+        return batches().length();
     }
 
     /**
@@ -284,27 +283,8 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
 
         lastDeletableIndex = _stateBatchHeader.batchIndex;
         lastDeletableTimestamp = _transaction.timestamp;
-    }
 
-    /**
-     * @inheritdoc iRingBufferOverwriter
-     */
-    function canOverwrite(
-        bytes32 _id,
-        uint256 _index
-    )
-        override
-        public
-        view
-        returns (
-            bool
-        )
-    {
-        if (_id == Lib_OVMCodec.RING_BUFFER_CTC_QUEUE) {
-            return iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain")).getQueueElement(_index / 2).timestamp < lastDeletableTimestamp;
-        } else {
-            return _index < lastDeletableIndex;
-        }
+        // TODO: Set overwritable in buffer.
     }
 
 
@@ -325,7 +305,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
             uint40
         )
     {
-        bytes27 extraData = batches.getExtraData();
+        bytes27 extraData = batches().getGlobalMetadata();
 
         uint40 totalElements;
         uint40 lastSequencerTimestamp;
@@ -415,7 +395,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
             batchHeader.extraData
         );
 
-        batches.push(
+        batches().push(
             Lib_OVMCodec.hashBatchHeader(batchHeader),
             _makeBatchExtraData(
                 uint40(batchHeader.prevTotalElements + batchHeader.batchSize),
@@ -434,7 +414,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         internal
     {
         require(
-            _batchHeader.batchIndex < batches.getLength(),
+            _batchHeader.batchIndex < batches().length(),
             "Invalid batch index."
         );
 
@@ -443,8 +423,8 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
             "Invalid batch header."
         );
 
-        batches.deleteElementsAfterInclusive(
-            uint40(_batchHeader.batchIndex),
+        batches().del(
+            _batchHeader.batchIndex,
             _makeBatchExtraData(
                 uint40(_batchHeader.prevTotalElements),
                 0
@@ -471,6 +451,6 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
             bool
         )
     {
-        return Lib_OVMCodec.hashBatchHeader(_batchHeader) == batches.get(uint40(_batchHeader.batchIndex));
+        return Lib_OVMCodec.hashBatchHeader(_batchHeader) == batches().get(_batchHeader.batchIndex);
     }
 }

@@ -27,14 +27,10 @@ interface iOVM_StateCommitmentChain {
         bytes32 _batchRoot
     );
 
+
     /********************
      * Public Functions *
      ********************/
-
-    /**
-     * Initializes this contract.
-     */
-    function init() external;
 
     /**
      * Retrieves the total number of elements submitted.
