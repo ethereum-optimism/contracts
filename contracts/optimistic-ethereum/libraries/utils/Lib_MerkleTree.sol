@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
+/**
+ * @title Lib_MerkleTree
+ * @author River Keefer
+ */
 library Lib_MerkleTree {
     function getMerkleRoot(
         bytes32[] memory _elements
