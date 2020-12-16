@@ -173,10 +173,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // But must ensure the full _tx.gasLimit can be given to the ovmCALL (determinism)
         // This includes 1/64 of the gas getting lost because of EIP-150
         uint256 gasProvided = gasleft();
-        require(gasProvided >= 100000 + _transaction.gasLimit * 64 / 63, "Not enough gas to execute deterministically");
-
-        // Check whether we need to start a new epoch, do so if necessary.
-        _checkNeedsNewEpoch(_transaction.timestamp);
+        require(
+            gasProvided >= 100000 + _transaction.gasLimit * 64 / 63,
+            "Not enough gas to execute deterministically"
+        );
 
         // Run the transaction, make sure to meter the gas usage.
         ovmCALL(
