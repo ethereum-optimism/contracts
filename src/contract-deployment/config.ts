@@ -20,6 +20,7 @@ export interface RollupDeployConfig {
   transactionChainConfig: {
     sequencer: string | Signer
     forceInclusionPeriodSeconds: number
+    forceInclusionPeriodBlocks: number
   }
   stateChainConfig: {
     fraudProofWindowSeconds: number
@@ -81,6 +82,7 @@ export const makeContractDeployConfig = async (
       params: [
         AddressManager.address,
         config.transactionChainConfig.forceInclusionPeriodSeconds,
+        config.transactionChainConfig.forceInclusionPeriodBlocks
       ],
       afterDeploy: async (): Promise<void> => {
         const sequencer = config.transactionChainConfig.sequencer
