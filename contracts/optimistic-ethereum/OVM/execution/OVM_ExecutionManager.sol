@@ -15,6 +15,7 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
+import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol";
 
 /**
  * @title OVM_ExecutionManager
@@ -359,6 +360,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Creator is always the current ADDRESS.
         address creator = ovmADDRESS();
 
+        // Check that the deployer is whitelisted, or
+        // that arbitrary contract deployment has been enabled.
+        _checkDeployerAllowed(creator);
+
         // Generate the correct CREATE address.
         address contractAddress = Lib_EthUtils.getAddressForCREATE(
             creator,
@@ -391,6 +396,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // Creator is always the current ADDRESS.
         address creator = ovmADDRESS();
+
+        // Check that the deployer is whitelisted, or
+        // that arbitrary contract deployment has been enabled.
+        _checkDeployerAllowed(creator);
 
         // Generate the correct CREATE2 address.
         address contractAddress = Lib_EthUtils.getAddressForCREATE2(
@@ -839,7 +848,32 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         return gasMeterConfig.maxTransactionGasLimit;
     }
 
+    /********************************************
+     * Public Functions: Deployment Witelisting *
+     ********************************************/
 
+    /**
+     * Checks whether the given address is on the whitelst to ovmCREATE/ovmCREATE2, and reverts if not.
+     * @param _deployerAddress Address attempting to deploy a contract.
+     */
+    function _checkDeployerAllowed(
+        address _deployerAddress
+    )
+        internal
+    {
+        // From an OVM semanitcs perspectibe, this will appear the identical to
+        // the deployer ovmCALLing the whitelist.  This is fine--in a sense, we are forcing them to.
+        (bool success, bytes memory data) = ovmCALL(
+            gasleft(),
+            0x4200000000000000000000000000000000000002,
+            abi.encodeWithSignature("isDeployerAllowed(address)", _deployerAddress)
+        );
+        bool isAllowed = abi.decode(data, (bool));
+
+        if (!isAllowed || !success) {
+            _revertWithFlag(RevertFlag.CREATOR_NOT_ALLOWED);
+        }   
+    }
 
     /********************************************
      * Internal Functions: Contract Interaction *
@@ -894,7 +928,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * Calls the deployed contract associated with a given address.
      * @param _nextMessageContext Message context to be used for the call.
      * @param _gasLimit Amount of gas to be passed into this call.
-     * @param _contract Address used to resolve the deployed contract.
+     * @param _contract OVM address to be called.
      * @param _calldata Data to send along with the call.
      * @return _success Whether or not the call returned (rather than reverted).
      * @return _returndata Data returned by the call.
@@ -911,6 +945,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes memory _returndata
         )
     {
+        // We reserve addresses of the form 0xdeaddeaddead...NNNN for the container contracts in L2 geth.
+        // So, we block calls to these addresses since they are not safe to run as an OVM contract itself.
+        if (
+            (uint256(_contract) & uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000)) 
+            == uint256(0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000)
+        ) {
+            return (true, hex'');
+        }
 
         // Both 0x0000... and the EVM precompiles have the same address on L1 and L2 --> no trie lookup needed.
         address codeContractAddress =
@@ -990,13 +1032,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 _revertWithFlag(flag);
             }
 
-            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, and STATIC_VIOLATION aren't dependent on the
-            // input state, so we can just handle them like standard reverts. Our only change here
+            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_ALLOWED aren't 
+            // dependent on the input state, so we can just handle them like standard reverts. Our only change here
             // is to record the gas refund reported by the call (enforced by safety checking).
             if (
                 flag == RevertFlag.INTENTIONAL_REVERT
                 || flag == RevertFlag.UNSAFE_BYTECODE
                 || flag == RevertFlag.STATIC_VIOLATION
+                || flag == RevertFlag.CREATOR_NOT_ALLOWED
             ) {
                 transactionRecord.ovmGasRefund = ovmGasRefund;
             }
