@@ -414,7 +414,7 @@ describe('OVM_CanonicalTransactionChain', () => {
     })
   })
 
-  describe('appendSequencerBatch disabled', () => {
+  describe('appendQueueBatch disabled', () => {
     it('should revert', async () => {
       await expect(
         OVM_CanonicalTransactionChain.appendQueueBatch(0)
