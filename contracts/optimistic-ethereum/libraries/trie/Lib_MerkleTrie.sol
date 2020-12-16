@@ -145,9 +145,7 @@ library Lib_MerkleTrie {
     {
         // Special case when inserting the very first node.
         if (_root == KECCAK256_RLP_NULL_BYTES) {
-            return keccak256(
-                _makeLeafNode(_key, _value).encoded
-            );
+            return getSingleNodeRootHash(_key, _value);
         }
 
         TrieNode[] memory proof = _parseProof(_proof);
@@ -212,7 +210,7 @@ library Lib_MerkleTrie {
         )
     {
         return keccak256(_makeLeafNode(
-            _key,
+            Lib_BytesUtils.toNibbles(_key),
             _value
         ).encoded);
     }
@@ -328,6 +326,8 @@ library Lib_MerkleTrie {
                         currentKeyIncrement = sharedNibbleLength;
                         continue;
                     }
+                } else {
+                    revert("Received a node with an unknown prefix");
                 }
             } else {
                 revert("Received an unparseable node.");
@@ -817,7 +817,7 @@ library Lib_MerkleTrie {
 
     /**
      * @notice Creates an empty branch node.
-     * @return _node Empty branch node as a TrieNode stuct.
+     * @return _node Empty branch node as a TrieNode struct.
      */
     function _makeEmptyBranchNode()
         private

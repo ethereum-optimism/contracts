@@ -611,18 +611,16 @@ describe('OVM_CanonicalTransactionChain', () => {
     })
   })
 
-  describe('appendSequencerBatch', () => {
+  describe.skip('appendSequencerBatch', () => {
     beforeEach(() => {
       OVM_CanonicalTransactionChain = OVM_CanonicalTransactionChain.connect(
         sequencer
       )
     })
 
-    it.skip(
-      'should allow for a lower bound per-tx gas usage of <400 gas [GAS BENCHMARK]',
-      async () => {
-        const timestamp = (await getEthTime(ethers.provider)) - 100
-        const blockNumber = (await getNextBlockNumber(ethers.provider)) + 100
+    it('should allow for a lower bound per-tx gas usage of <400 gas [GAS BENCHMARK]', async () => {
+      const timestamp = (await getEthTime(ethers.provider)) - 100
+      const blockNumber = (await getNextBlockNumber(ethers.provider)) + 100
 
         // do two batch appends for no reason
         await appendSequencerBatch(OVM_CanonicalTransactionChain, {
@@ -675,8 +673,7 @@ describe('OVM_CanonicalTransactionChain', () => {
         })
         const receipt = await res.wait()
         console.log('Benchmark complete. Gas used:', receipt.gasUsed)
-      }
-    ).timeout(100000000)
+    }).timeout(100000000)
 
     it('should revert if expected start does not match current total batches', async () => {
       await expect(
