@@ -16,6 +16,16 @@ import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageCo
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
 
+library Math {
+    function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        if (x < y) {
+            return x;
+        }
+        return y;
+    }
+}
+
+
 /**
  * @title OVM_CanonicalTransactionChain
  */
