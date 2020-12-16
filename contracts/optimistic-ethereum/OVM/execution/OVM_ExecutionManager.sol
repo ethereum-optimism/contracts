@@ -175,7 +175,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // This includes 1/64 of the gas getting lost because of EIP-150
         uint256 gasProvided = gasleft();
         require(
-            gasProvided >= 100000 + _transaction.gasLimit * 64 / 63,
+            gasProvided >= 10000 + _transaction.gasLimit * 64 / 63,
             "Not enough gas to execute deterministically"
         );
 
