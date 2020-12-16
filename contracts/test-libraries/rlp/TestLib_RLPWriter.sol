@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 /* Library Imports */
 import { Lib_RLPWriter } from "../../optimistic-ethereum/libraries/rlp/Lib_RLPWriter.sol";
+import { TestERC20 } from "../../test-helpers/TestERC20.sol";
 
 /**
  * @title TestLib_RLPWriter
@@ -70,18 +71,6 @@ contract TestLib_RLPWriter {
         return Lib_RLPWriter.writeUint(_in);
     }
 
-    function writeInt(
-        int _in
-    )
-        public
-        pure
-        returns (
-            bytes memory _out
-        )
-    {
-        return Lib_RLPWriter.writeInt(_in);
-    }
-
     function writeBool(
         bool _in
     )
@@ -92,5 +81,17 @@ contract TestLib_RLPWriter {
         )
     {
         return Lib_RLPWriter.writeBool(_in);
+    }
+
+    function writeAddressWithOtherMemory(
+        address _in
+    )
+        public
+        returns (
+            bytes memory _out
+        )
+    {
+        new TestERC20();
+        return Lib_RLPWriter.writeAddress(_in);
     }
 }

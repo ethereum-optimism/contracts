@@ -6,9 +6,13 @@ import { Contract, ContractFactory, Signer, BigNumber } from 'ethers'
 import _ from 'lodash'
 
 /* Internal Imports */
-import { DUMMY_ACCOUNTS, DUMMY_BYTES32, ZERO_ADDRESS, EMPTY_ACCOUNT_CODE_HASH, KECCAK_256_NULL } from '../../../helpers'
-
-
+import {
+  DUMMY_ACCOUNTS,
+  DUMMY_BYTES32,
+  ZERO_ADDRESS,
+  EMPTY_ACCOUNT_CODE_HASH,
+  KECCAK_256_NULL,
+} from '../../../helpers'
 
 describe('OVM_StateManager', () => {
   let signer1: Signer
@@ -184,6 +188,7 @@ describe('OVM_StateManager', () => {
       beforeEach(async () => {
         await OVM_StateManager.putAccount(DUMMY_ACCOUNTS[0].address, {
           ...DUMMY_ACCOUNTS[0].data,
+          nonce: 0,
           codeHash: EMPTY_ACCOUNT_CODE_HASH,
         })
       })
