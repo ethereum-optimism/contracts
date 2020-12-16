@@ -2,6 +2,7 @@ pragma solidity ^0.7.0;
 
 /* Library Imports */
 import { Lib_RingBuffer } from "../../libraries/utils/Lib_RingBuffer.sol";
+import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 
 /* Interface Imports */
 import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageContainer.sol";
@@ -9,7 +10,7 @@ import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageCo
 /**
  * @title OVM_ChainStorageContainer
  */
-contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
+contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressResolver {
 
     /*************
      * Libraries *
@@ -22,7 +23,39 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
      * Variables *
      *************/
 
-    Lib_RingBuffer.RingBuffer buffer;
+    string public owner;
+    Lib_RingBuffer.RingBuffer internal buffer;
+
+
+    /***************
+     * Constructor *
+     ***************/
+    
+    /**
+     * @param _libAddressManager Address of the Address Manager.
+     * @param _owner Name of the contract that owns this container (will be resolved later).
+     */
+    constructor(
+        address _libAddressManager,
+        string memory _owner
+    )
+        Lib_AddressResolver(_libAddressManager)
+    {
+        owner = _owner;
+    }
+
+
+    /**********************
+     * Function Modifiers *
+     **********************/
+    
+    modifier onlyOwner() {
+        require(
+            msg.sender == resolve(owner),
+            "OVM_ChainStorageContainer: Function can only be called by the owner."
+        );
+        _;
+    }
 
 
     /********************
@@ -37,6 +70,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
     )
         override
         public
+        onlyOwner
     {
         return buffer.setExtraData(_globalMetadata);
     }
@@ -77,6 +111,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
     )
         override
         public
+        onlyOwner
     {
         buffer.push(_object);
     }
@@ -90,6 +125,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
     )
         override
         public
+        onlyOwner
     {
         buffer.push(_object, _globalMetadata);
     }
@@ -103,6 +139,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
     )
         override
         public
+        onlyOwner
     {
         buffer.push2(_objectA, _objectB);
     }
@@ -117,6 +154,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
     )
         override
         public
+        onlyOwner
     {
         buffer.push2(_objectA, _objectB, _globalMetadata);
     }
@@ -145,6 +183,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
     )
         override
         public
+        onlyOwner
     {
         buffer.deleteElementsAfterInclusive(
             uint40(_index)
@@ -160,6 +199,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
     )
         override
         public
+        onlyOwner
     {
         buffer.deleteElementsAfterInclusive(
             uint40(_index),
@@ -175,6 +215,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer {
     )
         override
         public
+        onlyOwner
     {
         buffer.nextOverwritableIndex = _index;
     }

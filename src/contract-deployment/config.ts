@@ -173,12 +173,15 @@ export const makeContractDeployConfig = async (
     },
     'OVM_ChainStorageContainer:CTC:batches': {
       factory: getContractFactory('OVM_ChainStorageContainer'),
+      params: [AddressManager.address, 'OVM_CanonicalTransactionChain'],
     },
     'OVM_ChainStorageContainer:CTC:queue': {
       factory: getContractFactory('OVM_ChainStorageContainer'),
+      params: [AddressManager.address, 'OVM_CanonicalTransactionChain'],
     },
     'OVM_ChainStorageContainer:SCC:batches': {
       factory: getContractFactory('OVM_ChainStorageContainer'),
+      params: [AddressManager.address, 'OVM_StateCommitmentChain'],
     },
   }
 }

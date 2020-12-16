@@ -211,8 +211,14 @@ describe('OVM_CanonicalTransactionChain', () => {
       FORCE_INCLUSION_PERIOD_SECONDS
     )
 
-    const batches = await Factory__OVM_ChainStorageContainer.deploy()
-    const queue = await Factory__OVM_ChainStorageContainer.deploy()
+    const batches = await Factory__OVM_ChainStorageContainer.deploy(
+      AddressManager.address,
+      'OVM_CanonicalTransactionChain'
+    )
+    const queue = await Factory__OVM_ChainStorageContainer.deploy(
+      AddressManager.address,
+      'OVM_CanonicalTransactionChain'
+    )
 
     await AddressManager.setAddress(
       'OVM_ChainStorageContainer:CTC:batches',
@@ -222,6 +228,11 @@ describe('OVM_CanonicalTransactionChain', () => {
     await AddressManager.setAddress(
       'OVM_ChainStorageContainer:CTC:queue',
       queue.address
+    )
+
+    await AddressManager.setAddress(
+      'OVM_CanonicalTransactionChain',
+      OVM_CanonicalTransactionChain.address
     )
   })
 

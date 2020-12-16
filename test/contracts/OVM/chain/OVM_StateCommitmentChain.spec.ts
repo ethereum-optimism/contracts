@@ -11,7 +11,6 @@ import {
   setProxyTarget,
   NON_NULL_BYTES32,
   ZERO_ADDRESS,
-  toHexString32,
   getEthTime,
   NULL_BYTES32,
   increaseEthTime,
@@ -81,11 +80,19 @@ describe('OVM_StateCommitmentChain', () => {
       60 * 30 // 30 minute sequencer publish window
     )
 
-    const batches = await Factory__OVM_ChainStorageContainer.deploy()
+    const batches = await Factory__OVM_ChainStorageContainer.deploy(
+      AddressManager.address,
+      'OVM_StateCommitmentChain'
+    )
 
     await AddressManager.setAddress(
       'OVM_ChainStorageContainer:SCC:batches',
       batches.address
+    )
+
+    await AddressManager.setAddress(
+      'OVM_StateCommitmentChain',
+      OVM_StateCommitmentChain.address
     )
   })
 
