@@ -334,7 +334,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint24 totalElementsToAppend;
         uint24 numContexts;
         assembly {
-            shouldStartAtElement    := shr(216, calldataload(4))
+            shouldStartAtElement  := shr(216, calldataload(4))
             totalElementsToAppend := shr(232, calldataload(9))
             numContexts           := shr(232, calldataload(12))
         }
@@ -552,10 +552,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint40 lastBlockNumber;
         assembly {
             extraData       :=  shr(40, extraData)
-            totalElements   :=          and(extraData, 0x000000000000000000000000000000000000000000000000000000FFFFFFFFFF)
+            totalElements   :=  and(extraData, 0x000000000000000000000000000000000000000000000000000000FFFFFFFFFF)
             nextQueueIndex  :=  shr(40, and(extraData, 0x00000000000000000000000000000000000000000000FFFFFFFFFF0000000000))
             lastTimestamp   :=  shr(80, and(extraData, 0x0000000000000000000000000000000000FFFFFFFFFF00000000000000000000))
-            lastBlockNumber := shr(120, and(extraData, 0x000000000000000000000000FFFFFFFFFF000000000000000000000000000000))
+            lastBlockNumber :=  shr(120, and(extraData, 0x000000000000000000000000FFFFFFFFFF000000000000000000000000000000))
         }
 
         return (
@@ -822,7 +822,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         if (getQueueLength() - _nextQueueIndex > 0) {
             Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_nextQueueIndex);
 
-            // If the force inclusion preiod has passed for an enqueued transaction, it MUST be the next chain element.
+            // If the force inclusion period has passed for an enqueued transaction, it MUST be the next chain element.
             require(
                 block.timestamp < nextQueueElement.timestamp + forceInclusionPeriodSeconds,
                 "Previously enqueued batches have expired and must be appended before a new sequencer batch."
