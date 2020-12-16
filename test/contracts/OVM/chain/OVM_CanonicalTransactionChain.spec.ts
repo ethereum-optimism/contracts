@@ -414,7 +414,15 @@ describe('OVM_CanonicalTransactionChain', () => {
     })
   })
 
-  describe('appendQueueBatch', () => {
+  describe('appendSequencerBatch disabled', () => {
+    it('should revert', async () => {
+      await expect(
+        OVM_CanonicalTransactionChain.appendQueueBatch(0)
+      ).to.be.revertedWith('Cannot appendQueueBatch.')
+    })
+  })
+
+  describe.skip('appendQueueBatch', () => {
     it('should revert if trying to append zero transactions', async () => {
       await expect(
         OVM_CanonicalTransactionChain.appendQueueBatch(0)
@@ -500,7 +508,7 @@ describe('OVM_CanonicalTransactionChain', () => {
   })
 
   describe('verifyTransaction', () => {
-    it('should successfully verify against a valid queue transaction', async () => {
+    it.skip('should successfully verify against a valid queue transaction', async () => {
       const entrypoint = NON_ZERO_ADDRESS
       const gasLimit = 500_000
       const data = '0x' + '12'.repeat(1234)
