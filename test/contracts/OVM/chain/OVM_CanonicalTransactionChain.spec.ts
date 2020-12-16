@@ -418,7 +418,7 @@ describe('OVM_CanonicalTransactionChain', () => {
     it('should revert', async () => {
       await expect(
         OVM_CanonicalTransactionChain.appendQueueBatch(0)
-      ).to.be.revertedWith('Cannot appendQueueBatch.')
+      ).to.be.revertedWith('appendQueueBatch is currently disabled.')
     })
   })
 
@@ -508,7 +508,7 @@ describe('OVM_CanonicalTransactionChain', () => {
   })
 
   describe('verifyTransaction', () => {
-    it.skip('should successfully verify against a valid queue transaction', async () => {
+    it('should successfully verify against a valid queue transaction', async () => {
       const entrypoint = NON_ZERO_ADDRESS
       const gasLimit = 500_000
       const data = '0x' + '12'.repeat(1234)
@@ -520,7 +520,19 @@ describe('OVM_CanonicalTransactionChain', () => {
       const blockNumber = await ethers.provider.getBlockNumber()
       await increaseEthTime(ethers.provider, FORCE_INCLUSION_PERIOD_SECONDS * 2)
 
-      await OVM_CanonicalTransactionChain.appendQueueBatch(1)
+      await appendSequencerBatch(OVM_CanonicalTransactionChain.connect(sequencer), {
+        shouldStartAtBatch: 0,
+        totalElementsToAppend: 1,
+        contexts: [
+          {
+            numSequencedTransactions: 0,
+            numSubsequentQueueTransactions: 1,
+            timestamp,
+            blockNumber,
+          },
+        ],
+        transactions: [],
+      })
 
       expect(
         await OVM_CanonicalTransactionChain.verifyTransaction(
