@@ -107,7 +107,7 @@ interface iOVM_ChainStorageContainer {
      * Removes all objects after and including a given index.
      * @param _index Object index to delete from.
      */
-    function del(
+    function deleteElementsAfterInclusive(
         uint256 _index
     )
         external;
@@ -118,7 +118,7 @@ interface iOVM_ChainStorageContainer {
      * @param _index Object index to delete from.
      * @param _globalMetadata New global metadata for the container.
      */
-    function del(
+    function deleteElementsAfterInclusive(
         uint256 _index,
         bytes27 _globalMetadata
     )
@@ -128,7 +128,7 @@ interface iOVM_ChainStorageContainer {
      * Marks an index as overwritable, meaing the underlying buffer can start to write values over
      * any objects before and including the given index.
      */
-    function overwritable(
+    function setNextOverwritableIndex(
         uint256 _index
     )
         external;

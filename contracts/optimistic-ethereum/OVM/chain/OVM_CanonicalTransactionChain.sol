@@ -6,22 +6,14 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
+import { Lib_Math } from "../../libraries/utils/Lib_Math.sol";
 
 /* Interface Imports */
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
+import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageContainer.sol";
 
 /* Contract Imports */
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
-import { OVM_ChainStorageContainer } from "./OVM_ChainStorageContainer.sol";
-
-library Math {
-    function min(uint x, uint y) internal pure returns (uint z) {
-        if (x < y) {
-            return x;
-        }
-        return y;
-    }
-}
 
 
 /**
@@ -79,10 +71,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         public
         view
         returns (
-            OVM_ChainStorageContainer
+            iOVM_ChainStorageContainer
         )
     {
-        return OVM_ChainStorageContainer(
+        return iOVM_ChainStorageContainer(
             resolve("OVM_ChainStorageContainer:CTC:batches")
         );
     }
@@ -95,10 +87,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         public
         view
         returns (
-            OVM_ChainStorageContainer
+            iOVM_ChainStorageContainer
         )
     {
-        return OVM_ChainStorageContainer(
+        return iOVM_ChainStorageContainer(
             resolve("OVM_ChainStorageContainer:CTC:queue")
         );
     }
@@ -273,7 +265,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         override
         public
     {
-        _numQueuedTransactions = Math.min(_numQueuedTransactions, getNumPendingQueueElements());
+        _numQueuedTransactions = Lib_Math.min(_numQueuedTransactions, getNumPendingQueueElements());
         require(
             _numQueuedTransactions > 0,
             "Must append more than zero transactions."

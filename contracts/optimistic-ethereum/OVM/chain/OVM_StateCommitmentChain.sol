@@ -12,10 +12,10 @@ import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.s
 import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitmentChain.sol";
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
 import { iOVM_BondManager } from "../../iOVM/verification/iOVM_BondManager.sol";
-import '@openzeppelin/contracts/math/SafeMath.sol';
+import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageContainer.sol";
 
-/* Contract Imports */
-import { OVM_ChainStorageContainer } from "./OVM_ChainStorageContainer.sol";
+/* External Imports */
+import '@openzeppelin/contracts/math/SafeMath.sol';
 
 /**
  * @title OVM_StateCommitmentChain
@@ -61,10 +61,10 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
         public
         view
         returns (
-            OVM_ChainStorageContainer
+            iOVM_ChainStorageContainer
         )
     {
-        return OVM_ChainStorageContainer(
+        return iOVM_ChainStorageContainer(
             resolve("OVM_ChainStorageContainer:SCC:batches")
         );
     }
@@ -375,7 +375,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
             "Invalid batch header."
         );
 
-        batches().del(
+        batches().deleteElementsAfterInclusive(
             _batchHeader.batchIndex,
             _makeBatchExtraData(
                 uint40(_batchHeader.prevTotalElements),

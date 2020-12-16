@@ -178,7 +178,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
     /**
      * @inheritdoc iOVM_ChainStorageContainer
      */
-    function del(
+    function deleteElementsAfterInclusive(
         uint256 _index
     )
         override
@@ -193,7 +193,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
     /**
      * @inheritdoc iOVM_ChainStorageContainer
      */
-    function del(
+    function deleteElementsAfterInclusive(
         uint256 _index,
         bytes27 _globalMetadata
     )
@@ -210,7 +210,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
     /**
      * @inheritdoc iOVM_ChainStorageContainer
      */
-    function overwritable(
+    function setNextOverwritableIndex(
         uint256 _index
     )
         override
