@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// Borrowed with <3 from https://github.com/ethereum/solidity-examples
 pragma solidity ^0.7.0;
 
 /**
@@ -7,6 +6,10 @@ pragma solidity ^0.7.0;
  * @author River Keefer
  */
 library Lib_MerkleTree {
+
+    /**********************
+     * Internal Functions *
+     **********************/
 
     /**
      * Calculates a merkle root for a list of 32-byte leaf hashes.  WARNING: If the number
@@ -168,6 +171,10 @@ library Lib_MerkleTree {
     }
 
 
+    /*********************
+     * Private Functions *
+     *********************/
+
     /**
      * Calculates the integer ceiling of the log base 2 of an input.
      * @param _in Unsigned input to calculate the log.
@@ -192,6 +199,7 @@ library Lib_MerkleTree {
         }
 
         // Find the highest set bit (will be floor(log_2)).
+        // Borrowed with <3 from https://github.com/ethereum/solidity-examples
         uint256 val = _in;
         uint256 highest = 0;
         for (uint8 i = 128; i >= 1; i >>= 1) {
