@@ -257,6 +257,12 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
         override
         public
     {
+        // TEMPORARY: Disable overwrites by anyone except the sequencer for now.
+        require(
+            msg.sender == resolve("OVM_Sequencer"),
+            "OVM_StateCommitmentChain: Only the sequencer can attempt to trigger overwrites of old values."
+        );
+
         require(
             _isValidBatchHeader(_stateBatchHeader),
             "Invalid batch header."
