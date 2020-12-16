@@ -2,22 +2,24 @@ import { expect } from '../../../setup'
 
 /* External Imports */
 import { ethers } from '@nomiclabs/buidler'
-import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
+import { Signer, ContractFactory, Contract, BigNumber, providers } from 'ethers'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { smockit, MockContract } from '@eth-optimism/smock'
-import _, { times } from 'lodash'
+import _ from 'lodash'
 
 /* Internal Imports */
 import {
   makeAddressManager,
   setProxyTarget,
   FORCE_INCLUSION_PERIOD_SECONDS,
+  FORCE_INCLUSION_PERIOD_BLOCKS,
   setEthTime,
   NON_ZERO_ADDRESS,
   remove0x,
   getEthTime,
   getNextBlockNumber,
   increaseEthTime,
+  getBlockTime,
   ZERO_ADDRESS,
 } from '../../../helpers'
 import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
@@ -77,17 +79,17 @@ interface BatchContext {
 }
 
 interface AppendSequencerBatchParams {
-  shouldStartAtBatch: number // 5 bytes -- starts at batch
+  shouldStartAtElement: number // 5 bytes -- starts at batch
   totalElementsToAppend: number // 3 bytes -- total_elements_to_append
   contexts: BatchContext[] // total_elements[fixed_size[]]
   transactions: string[] // total_size_bytes[],total_size_bytes[]
 }
 
 const encodeAppendSequencerBatch = (b: AppendSequencerBatchParams): string => {
-  let encoding: string
-  const encodedShouldStartAtBatch = remove0x(
-    BigNumber.from(b.shouldStartAtBatch).toHexString()
+  const encodedShouldStartAtElement = remove0x(
+    BigNumber.from(b.shouldStartAtElement).toHexString()
   ).padStart(10, '0')
+
   const encodedTotalElementsToAppend = remove0x(
     BigNumber.from(b.totalElementsToAppend).toHexString()
   ).padStart(6, '0')
@@ -95,6 +97,7 @@ const encodeAppendSequencerBatch = (b: AppendSequencerBatchParams): string => {
   const encodedContextsHeader = remove0x(
     BigNumber.from(b.contexts.length).toHexString()
   ).padStart(6, '0')
+
   const encodedContexts =
     encodedContextsHeader +
     b.contexts.reduce((acc, cur) => acc + encodeBatchContext(cur), '')
@@ -107,8 +110,9 @@ const encodeAppendSequencerBatch = (b: AppendSequencerBatchParams): string => {
     ).padStart(6, '0')
     return acc + encodedTxDataHeader + remove0x(cur)
   }, '')
+
   return (
-    encodedShouldStartAtBatch +
+    encodedShouldStartAtElement +
     encodedTotalElementsToAppend +
     encodedContexts +
     encodedTransactionData
@@ -187,16 +191,20 @@ describe('OVM_CanonicalTransactionChain', () => {
       Mock__OVM_StateCommitmentChain
     )
 
-    Mock__OVM_StateCommitmentChain.smocked.canOverwrite.will.return.with(false)
     Mock__OVM_ExecutionManager.smocked.getMaxTransactionGasLimit.will.return.with(
       MAX_GAS_LIMIT
     )
   })
 
   let Factory__OVM_CanonicalTransactionChain: ContractFactory
+  let Factory__OVM_ChainStorageContainer: ContractFactory
   before(async () => {
     Factory__OVM_CanonicalTransactionChain = await ethers.getContractFactory(
       'OVM_CanonicalTransactionChain'
+    )
+
+    Factory__OVM_ChainStorageContainer = await ethers.getContractFactory(
+      'OVM_ChainStorageContainer'
     )
   })
 
@@ -204,9 +212,33 @@ describe('OVM_CanonicalTransactionChain', () => {
   beforeEach(async () => {
     OVM_CanonicalTransactionChain = await Factory__OVM_CanonicalTransactionChain.deploy(
       AddressManager.address,
-      FORCE_INCLUSION_PERIOD_SECONDS
+      FORCE_INCLUSION_PERIOD_SECONDS,
+      FORCE_INCLUSION_PERIOD_BLOCKS
     )
-    await OVM_CanonicalTransactionChain.init()
+
+    const batches = await Factory__OVM_ChainStorageContainer.deploy(
+      AddressManager.address,
+      'OVM_CanonicalTransactionChain'
+    )
+    const queue = await Factory__OVM_ChainStorageContainer.deploy(
+      AddressManager.address,
+      'OVM_CanonicalTransactionChain'
+    )
+
+    await AddressManager.setAddress(
+      'OVM_ChainStorageContainer:CTC:batches',
+      batches.address
+    )
+
+    await AddressManager.setAddress(
+      'OVM_ChainStorageContainer:CTC:queue',
+      queue.address
+    )
+
+    await AddressManager.setAddress(
+      'OVM_CanonicalTransactionChain',
+      OVM_CanonicalTransactionChain.address
+    )
   })
 
   describe('enqueue', () => {
@@ -557,7 +589,7 @@ describe('OVM_CanonicalTransactionChain', () => {
       await appendSequencerBatch(
         OVM_CanonicalTransactionChain.connect(sequencer),
         {
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 1,
           contexts: [
             {
@@ -618,7 +650,7 @@ describe('OVM_CanonicalTransactionChain', () => {
 
       // do two batch appends for no reason
       await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-        shouldStartAtBatch: 0,
+        shouldStartAtElement: 0,
         totalElementsToAppend: 1,
         contexts: [
           {
@@ -631,7 +663,7 @@ describe('OVM_CanonicalTransactionChain', () => {
         transactions: ['0x1234'],
       })
       await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-        shouldStartAtBatch: 1,
+        shouldStartAtElement: 1,
         totalElementsToAppend: 1,
         contexts: [
           {
@@ -653,7 +685,7 @@ describe('OVM_CanonicalTransactionChain', () => {
         )
       }
       const res = await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-        shouldStartAtBatch: 2,
+        shouldStartAtElement: 2,
         totalElementsToAppend: numTxs,
         contexts: [
           {
@@ -681,7 +713,7 @@ describe('OVM_CanonicalTransactionChain', () => {
               blockNumber: 0,
             },
           ],
-          shouldStartAtBatch: 1234,
+          shouldStartAtElement: 1234,
           totalElementsToAppend: 1,
         })
       ).to.be.revertedWith(
@@ -690,6 +722,9 @@ describe('OVM_CanonicalTransactionChain', () => {
     })
 
     it('should revert if not all sequencer transactions are processed', async () => {
+      const timestamp = await getEthTime(ethers.provider)
+      const blockNumber = (await getNextBlockNumber(ethers.provider)) - 1
+
       await expect(
         appendSequencerBatch(OVM_CanonicalTransactionChain, {
           transactions: ['0x1234', '0x1234'],
@@ -697,11 +732,11 @@ describe('OVM_CanonicalTransactionChain', () => {
             {
               numSequencedTransactions: 0,
               numSubsequentQueueTransactions: 0,
-              timestamp: 0,
-              blockNumber: 0,
+              timestamp,
+              blockNumber,
             },
           ],
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 1,
         })
       ).to.be.revertedWith('Not all sequencer transactions were processed.')
@@ -719,7 +754,7 @@ describe('OVM_CanonicalTransactionChain', () => {
               blockNumber: 0,
             },
           ],
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 1,
         })
       ).to.be.revertedWith('Function can only be called by the Sequencer.')
@@ -730,7 +765,7 @@ describe('OVM_CanonicalTransactionChain', () => {
         appendSequencerBatch(OVM_CanonicalTransactionChain, {
           transactions: ['0x1234'],
           contexts: [],
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 1,
         })
       ).to.be.revertedWith('Must provide at least one batch context.')
@@ -748,87 +783,541 @@ describe('OVM_CanonicalTransactionChain', () => {
               blockNumber: 0,
             },
           ],
-          shouldStartAtBatch: 0,
+          shouldStartAtElement: 0,
           totalElementsToAppend: 0,
         })
       ).to.be.revertedWith('Must append at least one element.')
     })
 
-    for (const size of ELEMENT_TEST_SIZES) {
-      describe(`when appending ${size} sequencer transactions`, () => {
-        const target = NON_ZERO_ADDRESS
-        const gasLimit = 500_000
-        const data = '0x' + '12'.repeat(1234)
-        beforeEach(async () => {
-          await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+    describe('Sad path cases', () => {
+      const target = NON_ZERO_ADDRESS
+      const gasLimit = 500_000
+      const data = '0x' + '12'.repeat(1234)
+
+      describe('when the sequencer attempts to add more queue transactions than exist', () => {
+        it('reverts when there are zero transactions in the queue', async () => {
+          const timestamp = await getEthTime(ethers.provider)
+          const blockNumber = (await getNextBlockNumber(ethers.provider)) - 1
+
+          await expect(
+            appendSequencerBatch(OVM_CanonicalTransactionChain, {
+              transactions: ['0x1234'],
+              contexts: [
+                {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 1,
+                  timestamp,
+                  blockNumber,
+                },
+              ],
+              shouldStartAtElement: 0,
+              totalElementsToAppend: 1,
+            })
+          ).to.be.revertedWith('Not enough queued transactions to append.')
         })
 
-        it('should revert if a queue element needs to be processed', async () => {
+        it('reverts when there are insufficient (but nonzero) transactions in the queue', async () => {
+          const timestamp = await getEthTime(ethers.provider)
+          const blockNumber = (await getNextBlockNumber(ethers.provider)) - 1
+
+          const numEnqueues = 7
+          for (let i = 0; i < numEnqueues; i++) {
+            await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+          }
+
+          await expect(
+            appendSequencerBatch(OVM_CanonicalTransactionChain, {
+              transactions: ['0x1234'],
+              contexts: [
+                {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: numEnqueues + 1,
+                  timestamp,
+                  blockNumber,
+                },
+              ],
+              shouldStartAtElement: 0,
+              totalElementsToAppend: numEnqueues + 1,
+            })
+          ).to.be.revertedWith('Not enough queued transactions to append.')
+        })
+      })
+
+      describe('when the sequencer attempts to add transactions which are not monotonically increasing', () => {
+        describe('when the sequencer transactions themselves have out-of-order times', () => {
+          it('should revert when adding two out-of-order-timestamp sequencer elements', async () => {
+            const timestamp = await getEthTime(ethers.provider)
+            const blockNumber = (await getNextBlockNumber(ethers.provider)) - 1
+
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234', '0x5678'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp: timestamp + 1,
+                    blockNumber,
+                  },
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp,
+                    blockNumber,
+                  },
+                ],
+                shouldStartAtElement: 0,
+                totalElementsToAppend: 2,
+              })
+            ).to.be.revertedWith(
+              'Context timestamp values must monotonically increase.'
+            )
+          })
+
+          it('should revert when adding two out-of-order-blocknumber sequencer elements', async () => {
+            const timestamp = await getEthTime(ethers.provider)
+            const blockNumber = (await getNextBlockNumber(ethers.provider)) - 1
+
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234', '0x5678'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp,
+                    blockNumber: blockNumber + 1,
+                  },
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp,
+                    blockNumber,
+                  },
+                ],
+                shouldStartAtElement: 0,
+                totalElementsToAppend: 2,
+              })
+            ).to.be.revertedWith(
+              'Context blockNumber values must monotonically increase.'
+            )
+          })
+        })
+        describe('when the elements are out-of-order with regards to pending queue elements', async () => {
+          describe('adding a single sequencer transaction with a single pending queue element', () => {
+            beforeEach(async () => {
+              // enqueue a single element so that it is pending, but do not yet apply it
+              await OVM_CanonicalTransactionChain.enqueue(
+                target,
+                gasLimit,
+                data
+              )
+            })
+            it('should revert if the first context timestamp is > the head queue element timestamp', async () => {
+              const timestamp = (await getEthTime(ethers.provider)) + 100
+
+              await expect(
+                appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                  transactions: ['0x1234'],
+                  contexts: [
+                    {
+                      numSequencedTransactions: 1,
+                      numSubsequentQueueTransactions: 0,
+                      timestamp: timestamp,
+                      blockNumber: 0,
+                    },
+                  ],
+                  shouldStartAtElement: 0,
+                  totalElementsToAppend: 1,
+                })
+              ).to.be.revertedWith(
+                'Sequencer transaction timestamp exceeds that of next queue element.'
+              )
+            })
+
+            it('should revert if the context block number is > the head queue element block number', async () => {
+              const timestamp = (await getEthTime(ethers.provider)) - 100
+              const blockNumber =
+                (await getNextBlockNumber(ethers.provider)) + 100
+
+              await expect(
+                appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                  transactions: ['0x1234'],
+                  contexts: [
+                    {
+                      numSequencedTransactions: 1,
+                      numSubsequentQueueTransactions: 0,
+                      timestamp: timestamp,
+                      blockNumber: blockNumber,
+                    },
+                  ],
+                  shouldStartAtElement: 0,
+                  totalElementsToAppend: 1,
+                })
+              ).to.be.revertedWith(
+                'Sequencer transaction blockNumber exceeds that of next queue element.'
+              )
+            })
+          })
+          describe('adding multiple sequencer transactions with multiple pending queue elements', () => {
+            const numQueuedTransactions = 10
+            let queueElements = []
+            let validContexts = []
+            beforeEach(async () => {
+              for (let i = 0; i < numQueuedTransactions; i++) {
+                await OVM_CanonicalTransactionChain.enqueue(
+                  target,
+                  gasLimit,
+                  data
+                )
+                queueElements[
+                  i
+                ] = await OVM_CanonicalTransactionChain.getQueueElement(i)
+                // this is a valid context for this TX
+                validContexts[i] = {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 1,
+                  timestamp: queueElements[i].timestamp,
+                  blockNumber: queueElements[i].blockNumber,
+                }
+              }
+            })
+
+            it('does not revert for valid context', async () => {
+              await appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: new Array(numQueuedTransactions).fill('0x1234'),
+                contexts: validContexts,
+                shouldStartAtElement: 0,
+                totalElementsToAppend: 2 * numQueuedTransactions,
+              })
+            })
+
+            it('reverts if wrong timestamp in middle', async () => {
+              let invalidTimestampContexts = [...validContexts]
+              // put a bigger timestamp early
+              invalidTimestampContexts[6].timestamp =
+                invalidTimestampContexts[8].timestamp
+
+              await expect(
+                appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                  transactions: new Array(numQueuedTransactions).fill('0x1234'),
+                  contexts: invalidTimestampContexts,
+                  shouldStartAtElement: 0,
+                  totalElementsToAppend: 2 * numQueuedTransactions,
+                })
+              ).to.be.revertedWith(
+                'Sequencer transaction timestamp exceeds that of next queue element.'
+              )
+            })
+
+            it('reverts if wrong block number in the middle', async () => {
+              let invalidBlockNumberContexts = [...validContexts]
+              // put a bigger block number early
+              invalidBlockNumberContexts[6].blockNumber =
+                invalidBlockNumberContexts[8].blockNumber
+
+              await expect(
+                appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                  transactions: new Array(numQueuedTransactions).fill('0x1234'),
+                  contexts: invalidBlockNumberContexts,
+                  shouldStartAtElement: 0,
+                  totalElementsToAppend: 2 * numQueuedTransactions,
+                })
+              ).to.be.revertedWith(
+                'Sequencer transaction blockNumber exceeds that of next queue element.'
+              )
+            })
+          })
+        })
+      })
+
+      describe('when the sequencer attempts to add transactions with out-of-bounds times', async () => {
+        describe('when trying to add elements from the future', () => {
+          it('reverts on initial timestamp in the future', async () => {
+            const timestamp = (await getEthTime(ethers.provider)) + 100_000_000
+            const blockNumber = (await getNextBlockNumber(ethers.provider)) - 1
+
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp,
+                    blockNumber,
+                  },
+                ],
+                shouldStartAtElement: 0,
+                totalElementsToAppend: 1,
+              })
+            ).to.be.revertedWith('Context timestamp is from the future.')
+          })
+
+          it('reverts on non-initial timestamp in the future', async () => {
+            const timestamp = await getEthTime(ethers.provider)
+            const blockNumber = (await getNextBlockNumber(ethers.provider)) - 1
+
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234', '0x1234'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp,
+                    blockNumber,
+                  },
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp: timestamp + 100_000_000,
+                    blockNumber,
+                  },
+                ],
+                shouldStartAtElement: 0,
+                totalElementsToAppend: 2,
+              })
+            ).to.be.revertedWith('Context timestamp is from the future.')
+          })
+
+          it('reverts on initial blocknumber in the future', async () => {
+            const timestamp = await getEthTime(ethers.provider)
+            const blockNumber = (await getNextBlockNumber(ethers.provider)) + 1
+
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp,
+                    blockNumber,
+                  },
+                ],
+                shouldStartAtElement: 0,
+                totalElementsToAppend: 1,
+              })
+            ).to.be.revertedWith('Context block number is from the future.')
+          })
+        })
+      })
+
+      describe('when trying to add elements which are older than the force inclusion period', async () => {
+        it('reverts for a timestamp older than the f.i.p. ago', async () => {
+          const timestamp = await getEthTime(ethers.provider)
           await increaseEthTime(
             ethers.provider,
-            FORCE_INCLUSION_PERIOD_SECONDS * 2
+            FORCE_INCLUSION_PERIOD_SECONDS + 1
           )
+          const blockNumber = (await getNextBlockNumber(ethers.provider)) - 1
 
           await expect(
             appendSequencerBatch(OVM_CanonicalTransactionChain, {
               transactions: ['0x1234'],
               contexts: [
                 {
-                  numSequencedTransactions: 0,
+                  numSequencedTransactions: 1,
                   numSubsequentQueueTransactions: 0,
-                  timestamp: 0,
+                  timestamp,
+                  blockNumber,
+                },
+              ],
+              shouldStartAtElement: 0,
+              totalElementsToAppend: 1,
+            })
+          ).to.be.revertedWith('Context timestamp too far in the past.')
+        })
+
+        it('reverts for a blockNumber older than the f.i.p. ago', async () => {
+          const timestamp = await getEthTime(ethers.provider)
+
+          for (let i = 0; i < FORCE_INCLUSION_PERIOD_BLOCKS + 1; i++) {
+            await ethers.provider.send('evm_mine', [])
+          }
+
+          await expect(
+            appendSequencerBatch(OVM_CanonicalTransactionChain, {
+              transactions: ['0x1234'],
+              contexts: [
+                {
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 0,
+                  timestamp,
                   blockNumber: 0,
                 },
               ],
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: 1,
             })
-          ).to.be.revertedWith(
-            'Older queue batches must be processed before a new sequencer batch.'
-          )
+          ).to.be.revertedWith('Context timestamp too far in the past.')
         })
+      })
 
-        it('should revert if the context timestamp is <= the head queue element timestamp', async () => {
-          const timestamp = (await getEthTime(ethers.provider)) + 1000
-
-          await expect(
-            appendSequencerBatch(OVM_CanonicalTransactionChain, {
+      describe('when trying to add elements which are older than already existing CTC elements', () => {
+        let timestamp
+        let blockNumber
+        describe('when the most recent CTC element is a sequencer transaction', () => {
+          beforeEach(async () => {
+            timestamp = await getEthTime(ethers.provider)
+            blockNumber = (await getNextBlockNumber(ethers.provider)) - 1
+            await appendSequencerBatch(OVM_CanonicalTransactionChain, {
               transactions: ['0x1234'],
               contexts: [
                 {
-                  numSequencedTransactions: 0,
+                  numSequencedTransactions: 1,
                   numSubsequentQueueTransactions: 0,
-                  timestamp: timestamp,
-                  blockNumber: 0,
+                  timestamp,
+                  blockNumber,
                 },
               ],
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: 1,
             })
-          ).to.be.revertedWith('Sequencer transactions timestamp too high.')
+          })
+
+          it('reverts if timestamp is older than previous one', async () => {
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp: timestamp - 1,
+                    blockNumber,
+                  },
+                ],
+                shouldStartAtElement: 1,
+                totalElementsToAppend: 1,
+              })
+            ).to.be.revertedWith(
+              'Context timestamp is lower than last submitted.'
+            )
+          })
+
+          it('reverts if block number is older than previous one', async () => {
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp,
+                    blockNumber: blockNumber - 1,
+                  },
+                ],
+                shouldStartAtElement: 1,
+                totalElementsToAppend: 1,
+              })
+            ).to.be.revertedWith(
+              'Context block number is lower than last submitted.'
+            )
+          })
         })
 
-        it('should revert if the context block number is <= the head queue element block number', async () => {
-          const timestamp = (await getEthTime(ethers.provider)) - 100
-          const blockNumber = (await getNextBlockNumber(ethers.provider)) + 100
-
-          await expect(
-            appendSequencerBatch(OVM_CanonicalTransactionChain, {
+        describe('when the previous transaction is a queue transaction', () => {
+          beforeEach(async () => {
+            // enqueue
+            timestamp = await getEthTime(ethers.provider)
+            blockNumber = await getNextBlockNumber(ethers.provider)
+            await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+            await appendSequencerBatch(OVM_CanonicalTransactionChain, {
               transactions: ['0x1234'],
               contexts: [
                 {
-                  numSequencedTransactions: 0,
-                  numSubsequentQueueTransactions: 0,
-                  timestamp: timestamp,
-                  blockNumber: blockNumber,
+                  numSequencedTransactions: 1,
+                  numSubsequentQueueTransactions: 1, // final element will be CTC
+                  timestamp,
+                  blockNumber,
                 },
               ],
-              shouldStartAtBatch: 0,
-              totalElementsToAppend: 1,
+              shouldStartAtElement: 0,
+              totalElementsToAppend: 2,
             })
-          ).to.be.revertedWith('Sequencer transactions blockNumber too high.')
-        })
+          })
 
+          it('reverts if timestamp is older than previous one', async () => {
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp: timestamp - 1,
+                    blockNumber,
+                  },
+                ],
+                shouldStartAtElement: 2,
+                totalElementsToAppend: 1,
+              })
+            ).to.be.revertedWith(
+              'Context timestamp is lower than last submitted.'
+            )
+          })
+
+          it('reverts if block number is older than previous one', async () => {
+            await expect(
+              appendSequencerBatch(OVM_CanonicalTransactionChain, {
+                transactions: ['0x1234'],
+                contexts: [
+                  {
+                    numSequencedTransactions: 1,
+                    numSubsequentQueueTransactions: 0,
+                    timestamp,
+                    blockNumber: blockNumber - 1,
+                  },
+                ],
+                shouldStartAtElement: 2,
+                totalElementsToAppend: 1,
+              })
+            ).to.be.revertedWith(
+              'Context block number is lower than last submitted.'
+            )
+          })
+        })
+      })
+
+      it('should revert if a queue element has expired and needs to be included', async () => {
+        // enqueue a tx
+        await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+        // increase time past force inclusion period
+        await increaseEthTime(
+          ethers.provider,
+          FORCE_INCLUSION_PERIOD_SECONDS * 2
+        )
+
+        const validTimestamp = (await getBlockTime(ethers.provider)) + 100
+
+        await expect(
+          appendSequencerBatch(OVM_CanonicalTransactionChain, {
+            transactions: ['0x1234'],
+            contexts: [
+              {
+                numSequencedTransactions: 1,
+                numSubsequentQueueTransactions: 0,
+                timestamp: validTimestamp,
+                blockNumber: 0,
+              },
+            ],
+            shouldStartAtElement: 0,
+            totalElementsToAppend: 1,
+          })
+        ).to.be.revertedWith(
+          'Previously enqueued batches have expired and must be appended before a new sequencer batch.'
+        )
+      })
+    })
+
+    for (const size of ELEMENT_TEST_SIZES) {
+      const target = NON_ZERO_ADDRESS
+      const gasLimit = 500_000
+      const data = '0x' + '12'.repeat(1234)
+
+      describe(`Happy path: when appending ${size} sequencer transactions`, () => {
         describe('when not inserting queue elements in between', () => {
           describe('when using a single batch context', () => {
             let contexts: any[]
@@ -857,7 +1346,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 appendSequencerBatch(OVM_CanonicalTransactionChain, {
                   transactions,
                   contexts,
-                  shouldStartAtBatch: 0,
+                  shouldStartAtElement: 0,
                   totalElementsToAppend: size,
                 })
               )
@@ -908,7 +1397,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 appendSequencerBatch(OVM_CanonicalTransactionChain, {
                   transactions,
                   contexts,
-                  shouldStartAtBatch: 0,
+                  shouldStartAtElement: 0,
                   totalElementsToAppend: size * 2,
                 })
               )
@@ -920,11 +1409,8 @@ describe('OVM_CanonicalTransactionChain', () => {
             })
           })
 
-          describe(`between every ${Math.max(
-            Math.floor(size / 8),
-            1
-          )} sequencer transaction`, () => {
-            const spacing = Math.max(Math.floor(size / 8), 1)
+          const spacing = Math.max(Math.floor(size / 4), 1)
+          describe(`between every ${spacing} sequencer transaction`, () => {
             let contexts: any[]
             let transactions: any[]
             beforeEach(async () => {
@@ -951,7 +1437,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 appendSequencerBatch(OVM_CanonicalTransactionChain, {
                   transactions,
                   contexts,
-                  shouldStartAtBatch: 0,
+                  shouldStartAtElement: 0,
                   totalElementsToAppend: size + spacing,
                 })
               )
@@ -991,15 +1477,16 @@ describe('OVM_CanonicalTransactionChain', () => {
             return '0x' + '12' + '34'.repeat(idx)
           })
 
-          await appendSequencerBatch(
+          const res = await appendSequencerBatch(
             OVM_CanonicalTransactionChain.connect(sequencer),
             {
               transactions,
               contexts,
-              shouldStartAtBatch: 0,
+              shouldStartAtElement: 0,
               totalElementsToAppend: size,
             }
           )
+          await res.wait()
         })
 
         it(`should return ${size}`, async () => {
