@@ -5,16 +5,16 @@ pragma solidity ^0.7.0;
 import { iOVM_BondManager } from "../../iOVM/verification/iOVM_BondManager.sol";
 
 /* Contract Imports */
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
+import { OVM_AddressResolver } from "../../OVM/resolver/OVM_AddressResolver.sol";
 
 /**
  * @title mockOVM_BondManager
  */
-contract mockOVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
+contract mockOVM_BondManager is iOVM_BondManager, OVM_AddressResolver {
     constructor(
-        address _libAddressManager
+        address _ovmAddressManager
     )
-        Lib_AddressResolver(_libAddressManager)
+        OVM_AddressResolver(_ovmAddressManager)
     {}
 
     function recordGasSpent(
