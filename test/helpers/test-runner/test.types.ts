@@ -19,6 +19,7 @@ type RevertFlagError = {
   nuisanceGasLeft?: number
   ovmGasRefund?: number
   data?: string
+  onlyValidateFlag?: boolean
 }
 
 interface TestStep_evm {
@@ -179,6 +180,7 @@ export interface ParsedTestStep {
   functionData: string
   expectedReturnStatus: boolean
   expectedReturnData: string
+  onlyValidateFlag: boolean
 }
 
 export const isRevertFlagError = (
