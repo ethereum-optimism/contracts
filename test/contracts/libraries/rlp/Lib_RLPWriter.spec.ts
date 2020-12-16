@@ -19,8 +19,6 @@ const encode = async (Lib_RLPWriter: Contract, input: any): Promise<void> => {
     return Lib_RLPWriter.writeList(elements)
   } else if (Number.isInteger(input)) {
     return Lib_RLPWriter.writeUint(input)
-  } else if (input[0] === '#') {
-    return Lib_RLPWriter.writeInt(input.slice(1))
   } else {
     return Lib_RLPWriter.writeString(input)
   }
@@ -42,11 +40,14 @@ describe('Lib_RLPWriter', () => {
     }
   })
 
-  describe.only('Use of library with other memory-modifying operations', () => {
+  describe('Use of library with other memory-modifying operations', () => {
     it('should allow creation of a contract beforehand and still work', async () => {
       const randomAddress = '0x1234123412341234123412341234123412341234'
-      const rlpEncodedRandomAddress = '0x941234123412341234123412341234123412341234'
-      const encoded = await Lib_RLPWriter.callStatic.writeAddressWithOtherMemory(randomAddress)
+      const rlpEncodedRandomAddress =
+        '0x941234123412341234123412341234123412341234'
+      const encoded = await Lib_RLPWriter.callStatic.writeAddressWithOtherMemory(
+        randomAddress
+      )
       expect(encoded).to.eq(rlpEncodedRandomAddress)
     })
   })
