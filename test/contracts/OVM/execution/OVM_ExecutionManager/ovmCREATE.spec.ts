@@ -23,12 +23,16 @@ const DUMMY_REVERT_DATA =
   '0xdeadbeef1e5420deadbeef1e5420deadbeef1e5420deadbeef1e5420deadbeef1e5420'
 
 const NON_WHITELISTED_DEPLOYER = '0x1234123412341234123412341234123412341234'
-const NON_WHITELISTED_DEPLOYER_KEY = '0x0000000000000000000000001234123412341234123412341234123412341234'
-const CREATED_BY_NON_WHITELISTED_DEPLOYER = '0x794e4aa3be128b0fc01ba12543b70bf9d77072fc'
+const NON_WHITELISTED_DEPLOYER_KEY =
+  '0x0000000000000000000000001234123412341234123412341234123412341234'
+const CREATED_BY_NON_WHITELISTED_DEPLOYER =
+  '0x794e4aa3be128b0fc01ba12543b70bf9d77072fc'
 
 const WHITELISTED_DEPLOYER = '0x3456345634563456345634563456345634563456'
-const WHITELISTED_DEPLOYER_KEY = '0x0000000000000000000000003456345634563456345634563456345634563456'
-const CREATED_BY_WHITELISTED_DEPLOYER = '0x9f397a91ccb7cc924d1585f1053bc697d30f343f'
+const WHITELISTED_DEPLOYER_KEY =
+  '0x0000000000000000000000003456345634563456345634563456345634563456'
+const CREATED_BY_WHITELISTED_DEPLOYER =
+  '0x9f397a91ccb7cc924d1585f1053bc697d30f343f'
 
 const test_ovmCREATE: TestDefinition = {
   name: 'Basic tests for ovmCREATE',
@@ -666,7 +670,7 @@ const test_ovmCREATE: TestDefinition = {
   ],
   subTests: [
     {
-      name: "Deployer whitelist tests",
+      name: 'Deployer whitelist tests',
       preState: {
         StateManager: {
           accounts: {
@@ -686,14 +690,20 @@ const test_ovmCREATE: TestDefinition = {
           contractStorage: {
             ['0x4200000000000000000000000000000000000002']: {
               // initialized? true
-              '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR('0x' + '00'.repeat(31) + '01'),
+              '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR(
+                '0x' + '00'.repeat(31) + '01'
+              ),
               // allowArbitraryDeployment? false
-              '0x0000000000000000000000000000000000000000000000000000000000000012': getStorageXOR(NULL_BYTES32),
+              '0x0000000000000000000000000000000000000000000000000000000000000012': getStorageXOR(
+                NULL_BYTES32
+              ),
               // non-whitelisted deployer is whitelisted? false
               [NON_WHITELISTED_DEPLOYER_KEY]: getStorageXOR(NULL_BYTES32),
               // whitelisted deployer is whitelisted? true
-              [WHITELISTED_DEPLOYER_KEY]: getStorageXOR('0x' + '00'.repeat(31) + '01'),
-            }
+              [WHITELISTED_DEPLOYER_KEY]: getStorageXOR(
+                '0x' + '00'.repeat(31) + '01'
+              ),
+            },
           },
           verifiedContractStorage: {
             ['0x4200000000000000000000000000000000000002']: {
@@ -701,9 +711,9 @@ const test_ovmCREATE: TestDefinition = {
               '0x0000000000000000000000000000000000000000000000000000000000000012': 1,
               [NON_WHITELISTED_DEPLOYER_KEY]: 1,
               [WHITELISTED_DEPLOYER_KEY]: 1,
-            }
-          }
-        }
+            },
+          },
+        },
       },
       parameters: [
         {
@@ -721,7 +731,7 @@ const test_ovmCREATE: TestDefinition = {
                       bytecode: DUMMY_BYTECODE,
                     },
                     expectedReturnStatus: true,
-                    expectedReturnValue: CREATED_BY_WHITELISTED_DEPLOYER
+                    expectedReturnValue: CREATED_BY_WHITELISTED_DEPLOYER,
                   },
                 ],
               },
@@ -746,7 +756,7 @@ const test_ovmCREATE: TestDefinition = {
                     expectedReturnStatus: false,
                     expectedReturnValue: {
                       flag: REVERT_FLAGS.CREATOR_NOT_ALLOWED,
-                      onlyValidateFlag: true
+                      onlyValidateFlag: true,
                     },
                   },
                 ],
@@ -777,7 +787,7 @@ const test_ovmCREATE: TestDefinition = {
                     expectedReturnStatus: false,
                     expectedReturnValue: {
                       flag: REVERT_FLAGS.CREATOR_NOT_ALLOWED,
-                      onlyValidateFlag: true
+                      onlyValidateFlag: true,
                     },
                   },
                 ],
@@ -790,10 +800,10 @@ const test_ovmCREATE: TestDefinition = {
             },
           ],
         },
-      ]
+      ],
     },
     {
-      name: "Deployer whitelist tests",
+      name: 'Deployer whitelist tests',
       preState: {
         StateManager: {
           accounts: {
@@ -813,14 +823,20 @@ const test_ovmCREATE: TestDefinition = {
           contractStorage: {
             ['0x4200000000000000000000000000000000000002']: {
               // initialized? true
-              '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR('0x' + '00'.repeat(31) + '01'),
+              '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR(
+                '0x' + '00'.repeat(31) + '01'
+              ),
               // allowArbitraryDeployment? true
-              '0x0000000000000000000000000000000000000000000000000000000000000012': getStorageXOR('0x' + '00'.repeat(31) + '01'),
+              '0x0000000000000000000000000000000000000000000000000000000000000012': getStorageXOR(
+                '0x' + '00'.repeat(31) + '01'
+              ),
               // non-whitelisted deployer is whitelisted? false
               [NON_WHITELISTED_DEPLOYER_KEY]: getStorageXOR(NULL_BYTES32),
               // whitelisted deployer is whitelisted? true
-              [WHITELISTED_DEPLOYER_KEY]: getStorageXOR('0x' + '00'.repeat(31) + '01'),
-            }
+              [WHITELISTED_DEPLOYER_KEY]: getStorageXOR(
+                '0x' + '00'.repeat(31) + '01'
+              ),
+            },
           },
           verifiedContractStorage: {
             ['0x4200000000000000000000000000000000000002']: {
@@ -828,16 +844,16 @@ const test_ovmCREATE: TestDefinition = {
               '0x0000000000000000000000000000000000000000000000000000000000000012': 1,
               [NON_WHITELISTED_DEPLOYER_KEY]: 1,
               [WHITELISTED_DEPLOYER_KEY]: 1,
-            }
-          }
-        }
+            },
+          },
+        },
       },
       subTests: [
         {
-          name: "when arbitrary contract deployment is enabled",
+          name: 'when arbitrary contract deployment is enabled',
           parameters: [
             {
-            name: 'ovmCREATE by NON_WHITELISTED_DEPLOYER',
+              name: 'ovmCREATE by NON_WHITELISTED_DEPLOYER',
               steps: [
                 {
                   functionName: 'ovmCALL',
@@ -851,7 +867,7 @@ const test_ovmCREATE: TestDefinition = {
                           subSteps: [],
                         },
                         expectedReturnStatus: true,
-                        expectedReturnValue: CREATED_BY_NON_WHITELISTED_DEPLOYER
+                        expectedReturnValue: CREATED_BY_NON_WHITELISTED_DEPLOYER,
                       },
                     ],
                   },
@@ -859,11 +875,11 @@ const test_ovmCREATE: TestDefinition = {
                 },
               ],
             },
-          ]
-        }
-      ]
-    }
-  ]
+          ],
+        },
+      ],
+    },
+  ],
 }
 
 const runner = new ExecutionManagerTestRunner()
