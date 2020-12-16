@@ -921,8 +921,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // We reserve addresses of the form 0xdeaddeaddead...NNNN for the container contracts in L2 geth.
         // So, we block calls to these addresses since they are not safe to run as an OVM contract itself.
         if (
-            (uint(_contract) & uint(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000)) 
-            == uint(0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000)
+            (uint256(_contract) & uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000)) 
+            == uint256(0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000)
         ) {
             return (true, hex'');
         }
