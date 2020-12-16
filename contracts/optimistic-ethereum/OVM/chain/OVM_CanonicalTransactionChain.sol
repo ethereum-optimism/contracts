@@ -43,6 +43,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      *************/
 
     uint256 internal forceInclusionPeriodSeconds;
+    uint256 internal forceInclusionPeriodBlocks;
     uint256 internal lastOVMTimestamp;
 
 
@@ -184,7 +185,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint40
         )
     {
-        return  getQueueLength() - getNextPendingQueueIndex();
+        return getQueueLength() - getNextPendingQueueIndex();
     }
 
     /**
@@ -201,7 +202,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         // The underlying queue data structure stores 2 elements
         // per insertion, so to get the real queue length we need
         // to divide by 2. See the usage of `push2(..)`.
-        return queue.getLength() / 2;
+        return uint40(queue().length() / 2);
     }
 
     /**
