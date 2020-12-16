@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
-import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
+import { Lib_MerkleTree } from "../../libraries/utils/Lib_MerkleTree.sol";
 import { Lib_Math } from "../../libraries/utils/Lib_Math.sol";
 
 /* Interface Imports */
@@ -310,7 +310,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         Lib_OVMCodec.QueueElement memory lastElement = getQueueElement(nextQueueIndex - 1);
 
         _appendBatch(
-            Lib_MerkleUtils.getMerkleRoot(leaves),
+            Lib_MerkleTree.getMerkleRoot(leaves),
             _numQueuedTransactions,
             _numQueuedTransactions,
             lastElement.timestamp,
@@ -443,7 +443,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         }
 
         _appendBatch(
-            Lib_MerkleUtils.getMerkleRoot(leaves),
+            Lib_MerkleTree.getMerkleRoot(leaves),
             totalElementsToAppend,
             numQueuedTransactions,
             timestamp,
@@ -1004,11 +1004,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         require(
-            Lib_MerkleUtils.verify(
+            Lib_MerkleTree.verify(
                 _batchHeader.batchRoot,
                 _element,
                 _proof.index,
-                _proof.siblings
+                _proof.siblings,
+                _batchHeader.batchSize
             ),
             "Invalid inclusion proof."
         );
