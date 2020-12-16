@@ -16,10 +16,23 @@ export interface DeployResult {
 export const deploy = async (
   config: RollupDeployConfig
 ): Promise<DeployResult> => {
-  const AddressManager: Contract = await getContractFactory(
-    'Lib_AddressManager',
-    config.deploymentSigner
-  ).deploy()
+  let AddressManager: Contract
+
+  if (config.addressManager) {
+    console.log(`Connecting to existing address manager.`)
+    AddressManager = getContractFactory(
+      'Lib_AddressManager',
+      config.deploymentSigner
+    ).attach(config.addressManager)
+  } else {
+    console.log(
+      `Address manager wasn't provided, so we're deploying a new one.`
+    )
+    AddressManager = await getContractFactory(
+      'Lib_AddressManager',
+      config.deploymentSigner
+    ).deploy()
+  }
 
   const contractDeployConfig = await makeContractDeployConfig(
     config,

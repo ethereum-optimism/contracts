@@ -248,6 +248,24 @@ library Lib_RingBuffer {
     }
 
     /**
+     * Deletes all elements after (and including) a given index.
+     * @param _self Buffer to access.
+     * @param _index Index of the element to delete from (inclusive).
+     */
+    function deleteElementsAfterInclusive(
+        RingBuffer storage _self,
+        uint40 _index
+    )
+        internal
+    {
+        RingBufferContext memory ctx = _self.getContext();
+        _self.deleteElementsAfterInclusive(
+            _index,
+            ctx.extraData
+        );
+    }
+
+    /**
      * Retrieves the current global index.
      * @param _self Buffer to access.
      * @return Current global index.

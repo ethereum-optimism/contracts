@@ -71,7 +71,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * Public Functions *
      ********************/
 
-
+    /**
+     * Accesses the batch storage container.
+     * @return Reference to the batch storage container.
+     */
     function batches()
         public
         view
@@ -80,10 +83,14 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         )
     {
         return OVM_ChainStorageContainer(
-            resolve("ovm:ctc:chain:batches")
+            resolve("OVM_ChainStorageContainer:CTC:batches")
         );
     }
 
+    /**
+     * Accesses the queue storage container.
+     * @return Reference to the queue storage container.
+     */
     function queue()
         public
         view
@@ -92,7 +99,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         )
     {
         return OVM_ChainStorageContainer(
-            resolve("ovm:ctc:chain:queue")
+            resolve("OVM_ChainStorageContainer:CTC:queue")
         );
     }
 

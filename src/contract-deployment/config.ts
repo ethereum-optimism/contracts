@@ -32,6 +32,7 @@ export interface RollupDeployConfig {
     owner: string | Signer
     allowArbitraryContractDeployment: boolean
   }
+  addressManager?: string
   deployOverrides?: Overrides
   dependencies?: string[]
 }
@@ -169,6 +170,15 @@ export const makeContractDeployConfig = async (
     OVM_ETH: {
       factory: getContractFactory('OVM_ETH'),
       params: [config.ethConfig.initialAmount, 'Ether', 18, 'ETH'],
+    },
+    'OVM_ChainStorageContainer:CTC:batches': {
+      factory: getContractFactory('OVM_ChainStorageContainer'),
+    },
+    'OVM_ChainStorageContainer:CTC:queue': {
+      factory: getContractFactory('OVM_ChainStorageContainer'),
+    },
+    'OVM_ChainStorageContainer:SCC:batches': {
+      factory: getContractFactory('OVM_ChainStorageContainer'),
     },
   }
 }

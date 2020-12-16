@@ -62,9 +62,14 @@ describe('OVM_StateCommitmentChain', () => {
   })
 
   let Factory__OVM_StateCommitmentChain: ContractFactory
+  let Factory__OVM_ChainStorageContainer: ContractFactory
   before(async () => {
     Factory__OVM_StateCommitmentChain = await ethers.getContractFactory(
       'OVM_StateCommitmentChain'
+    )
+
+    Factory__OVM_ChainStorageContainer = await ethers.getContractFactory(
+      'OVM_ChainStorageContainer'
     )
   })
 
@@ -75,7 +80,13 @@ describe('OVM_StateCommitmentChain', () => {
       60 * 60 * 24 * 7, // 1 week fraud proof window
       60 * 30 // 30 minute sequencer publish window
     )
-    await OVM_StateCommitmentChain.init()
+
+    const batches = await Factory__OVM_ChainStorageContainer.deploy()
+
+    await AddressManager.setAddress(
+      'OVM_ChainStorageContainer:SCC:batches',
+      batches.address
+    )
   })
 
   describe('appendStateBatch', () => {

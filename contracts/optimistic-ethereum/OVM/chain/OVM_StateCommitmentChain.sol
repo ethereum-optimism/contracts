@@ -30,14 +30,6 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
     uint256 public SEQUENCER_PUBLISH_WINDOW;
 
 
-    /*************
-     * Variables *
-     *************/
-
-    uint256 internal lastDeletableIndex;
-    uint256 internal lastDeletableTimestamp;
-
-
     /***************
      * Constructor *
      ***************/
@@ -61,6 +53,10 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
      * Public Functions *
      ********************/
 
+    /**
+     * Accesses the batch storage container.
+     * @return Reference to the batch storage container.
+     */
     function batches()
         public
         view
@@ -69,7 +65,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
         )
     {
         return OVM_ChainStorageContainer(
-            resolve("ovm:scc:chain:batches")
+            resolve("OVM_ChainStorageContainer:SCC:batches")
         );
     }
 
@@ -241,50 +237,6 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
             "Batch header timestamp cannot be zero"
         );
         return SafeMath.add(timestamp, FRAUD_PROOF_WINDOW) > block.timestamp;
-    }
-
-    /**
-     * @inheritdoc iOVM_StateCommitmentChain
-     */
-    function setLastOverwritableIndex(
-        Lib_OVMCodec.ChainBatchHeader memory _stateBatchHeader,
-        Lib_OVMCodec.Transaction memory _transaction,
-        Lib_OVMCodec.TransactionChainElement memory _txChainElement,
-        Lib_OVMCodec.ChainBatchHeader memory _txBatchHeader,
-        Lib_OVMCodec.ChainInclusionProof memory _txInclusionProof
-    )
-        override
-        public
-    {
-        require(
-            _isValidBatchHeader(_stateBatchHeader),
-            "Invalid batch header."
-        );
-
-        require(
-            insideFraudProofWindow(_stateBatchHeader) == false,
-            "Batch header must be outside of fraud proof window to be overwritable."
-        );
-
-        require(
-            _stateBatchHeader.batchIndex > lastDeletableIndex,
-            "Batch index must be greater than last overwritable index."
-        );
-
-        require(
-            iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain")).verifyTransaction(
-                _transaction,
-                _txChainElement,
-                _txBatchHeader,
-                _txInclusionProof
-            ),
-            "Invalid transaction proof."
-        );
-
-        lastDeletableIndex = _stateBatchHeader.batchIndex;
-        lastDeletableTimestamp = _transaction.timestamp;
-
-        // TODO: Set overwritable in buffer.
     }
 
 
