@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// Borrowed with <3 from https://github.com/ethereum/solidity-examples
 pragma solidity ^0.7.0;
 
 /**
@@ -6,6 +7,15 @@ pragma solidity ^0.7.0;
  * @author River Keefer
  */
 library Lib_MerkleTree {
+
+    /**
+     * Calculates a merkle root for a list of 32-byte leaf hashes.  WARNING: If the number
+     * of leaves passed in is not a power of two, it pads out the tree with zero hashes.
+     * If you do not know the original length of elements for the tree you are verifying,
+     * then this may allow empty leaves past _elements.length to pass a verification check down the line.
+     * @param _elements Array of hashes from which to generate a merkle root.
+     * @return Merkle root of the leaves, with zero hashes for non-powers-of-two (see above).
+     */
     function getMerkleRoot(
         bytes32[] memory _elements
     )
@@ -93,6 +103,17 @@ library Lib_MerkleTree {
         return _elements[0];
     }
 
+    /**
+     * Verifies a merkle branch for the given leaf hash.  Assumes the original length
+     * of leaves generated is a known, correct input, and does not return true for indices 
+     * extending past that index (even if _siblings would be otherwise valid.)
+     * @param _root The Merkle root to verify against.
+     * @param _leaf The leaf hash to verify inclusion of.
+     * @param _index The index in the tree of this leaf.
+     * @param _siblings Array of sibline nodes in the inclusion proof, starting from depth 0 (bottom of the tree). 
+     * @param _totalLeaves The total number of leaves originally passed into.
+     * @return Whether or not the merkle branch and leaf passes verification.
+     */
     function verify(
         bytes32 _root,
         bytes32 _leaf,
@@ -146,6 +167,12 @@ library Lib_MerkleTree {
         return _root == computedRoot;
     }
 
+
+    /**
+     * Calculates the integer ceiling of the log base 2 of an input.
+     * @param _in Unsigned input to calculate the log.
+     * @return ceil(log_base_2(_in))
+     */
     function _ceilLog2(
         uint256 _in
     )
