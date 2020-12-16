@@ -452,6 +452,11 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, iRingBufferOverw
                 0
             )
         );
+
+        emit StateBatchDeleted(
+            _batchHeader.batchIndex,
+            _batchHeader.batchRoot
+        );
     }
 
     /**

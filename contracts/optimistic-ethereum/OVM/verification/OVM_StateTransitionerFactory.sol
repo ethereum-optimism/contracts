@@ -20,12 +20,14 @@ contract OVM_StateTransitionerFactory is iOVM_StateTransitionerFactory {
     /**
      * Creates a new OVM_StateTransitioner
      * @param _ovmAddressManager Address of the Address Manager.
+     * @param _stateTransitionIndex Index of the state transition being verified.
      * @param _preStateRoot State root before the transition was executed.
      * @param _transactionHash Hash of the executed transaction.
      * @return _ovmStateTransitioner New OVM_StateTransitioner instance.
      */
     function create(
         address _ovmAddressManager,
+        uint256 _stateTransitionIndex,
         bytes32 _preStateRoot,
         bytes32 _transactionHash
     )
@@ -37,6 +39,7 @@ contract OVM_StateTransitionerFactory is iOVM_StateTransitionerFactory {
     {
         return new OVM_StateTransitioner(
             _ovmAddressManager,
+            _stateTransitionIndex,
             _preStateRoot,
             _transactionHash
         );
