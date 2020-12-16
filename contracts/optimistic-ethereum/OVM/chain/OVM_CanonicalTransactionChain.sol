@@ -253,7 +253,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             timestampAndBlockNumber
         );
 
-        uint40 queueIndex = uint40(queue().length() / 2);
+        uint256 queueIndex = queue().length() / 2;
         emit TransactionEnqueued(
             msg.sender,
             _target,

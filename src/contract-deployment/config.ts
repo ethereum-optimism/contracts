@@ -82,7 +82,7 @@ export const makeContractDeployConfig = async (
         AddressManager.address,
         config.transactionChainConfig.forceInclusionPeriodSeconds,
       ],
-      afterDeploy: async (contracts): Promise<void> => {
+      afterDeploy: async (): Promise<void> => {
         const sequencer = config.transactionChainConfig.sequencer
         const sequencerAddress =
           typeof sequencer === 'string'
@@ -94,7 +94,6 @@ export const makeContractDeployConfig = async (
         )
         await AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
         await AddressManager.setAddress('Sequencer', sequencerAddress)
-        await contracts.OVM_CanonicalTransactionChain.init()
       },
     },
     OVM_StateCommitmentChain: {
@@ -103,10 +102,7 @@ export const makeContractDeployConfig = async (
         AddressManager.address,
         config.stateChainConfig.fraudProofWindowSeconds,
         config.stateChainConfig.sequencerPublishWindowSeconds,
-      ],
-      afterDeploy: async (contracts): Promise<void> => {
-        await contracts.OVM_StateCommitmentChain.init()
-      },
+      ]
     },
     OVM_DeployerWhitelist: {
       factory: getContractFactory('OVM_DeployerWhitelist'),
