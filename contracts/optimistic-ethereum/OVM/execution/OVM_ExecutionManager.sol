@@ -867,7 +867,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         internal
     {
         // From an OVM semanitcs perspectibe, this will appear the identical to
-        //  the deployer ovmCALLing the whitelist.  This is fine--in a sense, we are forcing them to.
+        // the deployer ovmCALLing the whitelist.  This is fine--in a sense, we are forcing them to.
         (bool success, bytes memory data) = ovmCALL(
             gasleft(),
             0x4200000000000000000000000000000000000002,
