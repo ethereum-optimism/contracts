@@ -82,7 +82,7 @@ export const makeContractDeployConfig = async (
       params: [
         AddressManager.address,
         config.transactionChainConfig.forceInclusionPeriodSeconds,
-        config.transactionChainConfig.forceInclusionPeriodBlocks
+        config.transactionChainConfig.forceInclusionPeriodBlocks,
       ],
       afterDeploy: async (): Promise<void> => {
         const sequencer = config.transactionChainConfig.sequencer

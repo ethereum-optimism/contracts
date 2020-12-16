@@ -37,9 +37,7 @@ import {
   NON_NULL_BYTES32,
   NULL_BYTES32,
 } from '../constants'
-import {
-  getStorageXOR
-} from '../'
+import { getStorageXOR } from '../'
 
 export class ExecutionManagerTestRunner {
   private snapshot: string
@@ -56,7 +54,7 @@ export class ExecutionManagerTestRunner {
     OVM_ExecutionManager: undefined,
     Helper_TestRunner: undefined,
     Factory__Helper_TestRunner_CREATE: undefined,
-    OVM_DeployerWhitelist: undefined
+    OVM_DeployerWhitelist: undefined,
   }
 
   // Default pre-state with contract deployer whitelist NOT initialized.
@@ -71,23 +69,25 @@ export class ExecutionManagerTestRunner {
       },
       contractStorage: {
         ['0x4200000000000000000000000000000000000002']: {
-          '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR(NULL_BYTES32)
-        }
+          '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR(
+            NULL_BYTES32
+          ),
+        },
       },
       verifiedContractStorage: {
         ['0x4200000000000000000000000000000000000002']: {
-          '0x0000000000000000000000000000000000000000000000000000000000000010': true
-        }
+          '0x0000000000000000000000000000000000000000000000000000000000000010': true,
+        },
       },
-    }
+    },
   }
 
   public run(test: TestDefinition) {
-    test.preState = merge(
+    ;(test.preState = merge(
       cloneDeep(this.defaultPreState),
       cloneDeep(test.preState)
-    ),
-    test.postState = test.postState || {}
+    )),
+      (test.postState = test.postState || {})
 
     describe(`OVM_ExecutionManager Test: ${test.name}`, () => {
       test.subTests?.map((subTest) => {
@@ -190,18 +190,18 @@ export class ExecutionManagerTestRunner {
     MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(true)
 
     this.contracts.OVM_SafetyChecker = MockSafetyChecker
-    
+
     await AddressManager.setAddress(
       'OVM_SafetyChecker',
       this.contracts.OVM_SafetyChecker.address
     )
-    
+
     const DeployerWhitelist = await (
       await ethers.getContractFactory('OVM_DeployerWhitelist')
     ).deploy()
-    
+
     this.contracts.OVM_DeployerWhitelist = DeployerWhitelist
-      
+
     this.contracts.OVM_ExecutionManager = await (
       await smoddit('OVM_ExecutionManager')
     ).deploy(
@@ -341,15 +341,15 @@ export class ExecutionManagerTestRunner {
       functionData: this.encodeFunctionData(step),
       expectedReturnStatus: this.getReturnStatus(step),
       expectedReturnData: this.encodeExpectedReturnData(step),
-      onlyValidateFlag: this.shouldStepOnlyValidateFlag(step)
+      onlyValidateFlag: this.shouldStepOnlyValidateFlag(step),
     }
   }
 
   private shouldStepOnlyValidateFlag(step: TestStep): boolean {
     if (!!(step as any).expectedReturnValue) {
-       if (!!((step as any).expectedReturnValue as any).onlyValidateFlag) {
-         return true
-       }
+      if (!!((step as any).expectedReturnValue as any).onlyValidateFlag) {
+        return true
+      }
     }
     return false
   }
@@ -364,8 +364,7 @@ export class ExecutionManagerTestRunner {
         isRevertFlagError(step.expectedReturnValue) &&
         (step.expectedReturnValue.flag === REVERT_FLAGS.INVALID_STATE_ACCESS ||
           step.expectedReturnValue.flag === REVERT_FLAGS.STATIC_VIOLATION ||
-          step.expectedReturnValue.flag === REVERT_FLAGS.CREATOR_NOT_ALLOWED
-          )
+          step.expectedReturnValue.flag === REVERT_FLAGS.CREATOR_NOT_ALLOWED)
       ) {
         return step.expectedReturnStatus
       } else {
@@ -432,7 +431,7 @@ export class ExecutionManagerTestRunner {
             return this.parseTestStep(subStep)
           }) || []
         ).data,
-        step.functionParams.salt
+        step.functionParams.salt,
       ]
     } else if (isTestStep_REVERT(step)) {
       functionParams = [step.revertData || '0x']
