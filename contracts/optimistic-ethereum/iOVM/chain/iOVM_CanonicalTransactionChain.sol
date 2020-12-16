@@ -61,13 +61,8 @@ interface iOVM_CanonicalTransactionChain {
      ********************/
 
     /**
-     * Initializes this contract.
-     */
-    function init() external;
-
-    /**
-     * Retrieves the total number of elements appended to the CTC.
-     * @return _totalElements Total appended elements.
+     * Retrieves the total number of elements submitted.
+     * @return _totalElements Total submitted elements.
      */
     function getTotalElements()
         external

@@ -33,6 +33,7 @@ export interface RollupDeployConfig {
     owner: string | Signer
     allowArbitraryContractDeployment: boolean
   }
+  addressManager?: string
   deployOverrides?: Overrides
   dependencies?: string[]
 }
@@ -83,7 +84,7 @@ export const makeContractDeployConfig = async (
         config.transactionChainConfig.forceInclusionPeriodSeconds,
         config.transactionChainConfig.forceInclusionPeriodBlocks
       ],
-      afterDeploy: async (contracts): Promise<void> => {
+      afterDeploy: async (): Promise<void> => {
         const sequencer = config.transactionChainConfig.sequencer
         const sequencerAddress =
           typeof sequencer === 'string'
@@ -95,7 +96,6 @@ export const makeContractDeployConfig = async (
         )
         await AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
         await AddressManager.setAddress('Sequencer', sequencerAddress)
-        await contracts.OVM_CanonicalTransactionChain.init()
       },
     },
     OVM_StateCommitmentChain: {
@@ -105,9 +105,6 @@ export const makeContractDeployConfig = async (
         config.stateChainConfig.fraudProofWindowSeconds,
         config.stateChainConfig.sequencerPublishWindowSeconds,
       ],
-      afterDeploy: async (contracts): Promise<void> => {
-        await contracts.OVM_StateCommitmentChain.init()
-      },
     },
     OVM_DeployerWhitelist: {
       factory: getContractFactory('OVM_DeployerWhitelist'),
@@ -171,6 +168,18 @@ export const makeContractDeployConfig = async (
     OVM_ETH: {
       factory: getContractFactory('OVM_ETH'),
       params: [config.ethConfig.initialAmount, 'Ether', 18, 'ETH'],
+    },
+    'OVM_ChainStorageContainer:CTC:batches': {
+      factory: getContractFactory('OVM_ChainStorageContainer'),
+      params: [AddressManager.address, 'OVM_CanonicalTransactionChain'],
+    },
+    'OVM_ChainStorageContainer:CTC:queue': {
+      factory: getContractFactory('OVM_ChainStorageContainer'),
+      params: [AddressManager.address, 'OVM_CanonicalTransactionChain'],
+    },
+    'OVM_ChainStorageContainer:SCC:batches': {
+      factory: getContractFactory('OVM_ChainStorageContainer'),
+      params: [AddressManager.address, 'OVM_StateCommitmentChain'],
     },
   }
 }

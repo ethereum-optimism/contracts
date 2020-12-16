@@ -6,30 +6,20 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_MerkleUtils } from "../../libraries/utils/Lib_MerkleUtils.sol";
-import { Lib_RingBuffer, iRingBufferOverwriter } from "../../libraries/utils/Lib_RingBuffer.sol";
+import { Lib_Math } from "../../libraries/utils/Lib_Math.sol";
 
 /* Interface Imports */
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
+import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageContainer.sol";
 
 /* Contract Imports */
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
-
-library Math {
-    function min(uint x, uint y) internal pure returns (uint z) {
-        if (x < y) {
-            return x;
-        }
-        return y;
-    }
-}
 
 
 /**
  * @title OVM_CanonicalTransactionChain
  */
 contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_AddressResolver {
-    using Lib_RingBuffer for Lib_RingBuffer.RingBuffer;
-
 
     /*************
      * Constants *
@@ -53,9 +43,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      *************/
 
     uint256 internal forceInclusionPeriodSeconds;
-    uint256 internal forceInclusionPeriodBlocks;
-    Lib_RingBuffer.RingBuffer internal batches;
-    Lib_RingBuffer.RingBuffer internal queue;
+    uint256 internal lastOVMTimestamp;
 
 
     /***************
@@ -79,22 +67,34 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      ********************/
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Accesses the batch storage container.
+     * @return Reference to the batch storage container.
      */
-    function init()
-        override
+    function batches()
         public
+        view
+        returns (
+            iOVM_ChainStorageContainer
+        )
     {
-        batches.init(
-            16,
-            Lib_OVMCodec.RING_BUFFER_CTC_BATCHES,
-            iRingBufferOverwriter(resolve("OVM_StateCommitmentChain"))
+        return iOVM_ChainStorageContainer(
+            resolve("OVM_ChainStorageContainer:CTC:batches")
         );
+    }
 
-        queue.init(
-            16,
-            Lib_OVMCodec.RING_BUFFER_CTC_QUEUE,
-            iRingBufferOverwriter(resolve("OVM_StateCommitmentChain"))
+    /**
+     * Accesses the queue storage container.
+     * @return Reference to the queue storage container.
+     */
+    function queue()
+        public
+        view
+        returns (
+            iOVM_ChainStorageContainer
+        )
+    {
+        return iOVM_ChainStorageContainer(
+            resolve("OVM_ChainStorageContainer:CTC:queue")
         );
     }
 
@@ -124,7 +124,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint256 _totalBatches
         )
     {
-        return uint256(batches.getLength());
+        return batches().length();
     }
 
     /**
@@ -156,8 +156,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         )
     {
         uint40 trueIndex = uint40(_index * 2);
-        bytes32 queueRoot = queue.get(trueIndex);
-        bytes32 timestampAndBlockNumber = queue.get(trueIndex + 1);
+        bytes32 queueRoot = queue().get(trueIndex);
+        bytes32 timestampAndBlockNumber = queue().get(trueIndex + 1);
 
         uint40 elementTimestamp;
         uint40 elementBlockNumber;
@@ -260,12 +260,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             timestampAndBlockNumber := or(timestampAndBlockNumber, shl(40, number()))
         }
 
-        queue.push2(
+        queue().push2(
             transactionHash,
             timestampAndBlockNumber
         );
 
-        uint40 queueIndex = queue.getLength() / 2;
+        uint256 queueIndex = queue().length() / 2;
         emit TransactionEnqueued(
             msg.sender,
             _target,
@@ -285,7 +285,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         override
         public
     {
-        _numQueuedTransactions = Math.min(_numQueuedTransactions, getNumPendingQueueElements());
+        _numQueuedTransactions = Lib_Math.min(_numQueuedTransactions, getNumPendingQueueElements());
         require(
             _numQueuedTransactions > 0,
             "Must append more than zero transactions."
@@ -544,7 +544,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint40
         )
     {
-        bytes27 extraData = batches.getExtraData();
+        bytes27 extraData = batches().getGlobalMetadata();
 
         uint40 totalElements;
         uint40 nextQueueIndex;
@@ -621,6 +621,23 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                 txData: hex""
             })
         );
+    }
+
+    /**
+     * Retrieves the length of the queue.
+     * @return Length of the queue.
+     */
+    function _getQueueLength()
+        internal
+        view
+        returns (
+            uint40
+        )
+    {
+        // The underlying queue data structure stores 2 elements
+        // per insertion, so to get the real queue length we need
+        // to divide by 2. See the usage of `push2(..)`.
+        return uint40(queue().length() / 2);
     }
 
     /**
@@ -729,7 +746,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         (uint40 totalElements, uint40 nextQueueIndex, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
 
         Lib_OVMCodec.ChainBatchHeader memory header = Lib_OVMCodec.ChainBatchHeader({
-            batchIndex: batches.getLength(),
+            batchIndex: batches().length(),
             batchRoot: _transactionRoot,
             batchSize: _batchSize,
             prevTotalElements: totalElements,
@@ -752,7 +769,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             _blockNumber
         );
 
-        batches.push(batchHeaderHash, latestBatchContext);
+        batches().push(batchHeaderHash, latestBatchContext);
     }
 
     /**
@@ -981,7 +998,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         )
     {
         require(
-            Lib_OVMCodec.hashBatchHeader(_batchHeader) == batches.get(uint32(_batchHeader.batchIndex)),
+            Lib_OVMCodec.hashBatchHeader(_batchHeader) == batches().get(uint32(_batchHeader.batchIndex)),
             "Invalid batch header."
         );
 
