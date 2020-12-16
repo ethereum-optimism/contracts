@@ -156,17 +156,19 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             "Only authenticated addresses in ovmStateManager can call this function"
         );
 
-        // Check whether we need to start a new epoch, do so if necessary.
-        _checkNeedsNewEpoch(_transaction.timestamp);
+        // Initialize the execution context, must be initialized before we perform any gas metering
+        // or we'll throw a nuisance gas error.
+        _initContext(_transaction);
+
+        // TEMPORARY: Gas metering is disabled for minnet.
+        // // Check whether we need to start a new epoch, do so if necessary.
+        // _checkNeedsNewEpoch(_transaction.timestamp);
 
         // Make sure the transaction's gas limit is valid. We don't revert here because we reserve
         // reverts for INVALID_STATE_ACCESS.
         if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
             return;
         }
-
-        // Initialize the execution context.
-        _initContext(_transaction);
 
         // Run the transaction, make sure to meter the gas usage.
         uint256 gasProvided = gasleft();
@@ -177,8 +179,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         );
         uint256 gasUsed = gasProvided - gasleft();
 
-        // Update the cumulative gas based on the amount of gas used.
-        _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);
+        // TEMPORARY: Gas metering is disabled for minnet.
+        // // Update the cumulative gas based on the amount of gas used.
+        // _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);
 
         // Wipe the execution context.
         _resetContext();
@@ -288,7 +291,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
     /**
      * @notice Specifies from which L1 rollup queue this transaction originated from.
-     * @return _queueOrigin Address of the CALLER within the current message context.
+     * @return _queueOrigin Address of the ovmL1QUEUEORIGIN within the current message context.
      */
     function ovmL1QUEUEORIGIN()
         override
@@ -507,7 +510,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address(proxyEOA),
             keccak256(Lib_EthUtils.getCode(address(proxyEOA)))
         );
-        
+
         _setAccountNonce(eoa, 0);
     }
 
@@ -735,7 +738,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * @notice Overrides EXTCODEHASH.
      * @param _contract Address of the contract to query the hash of.
-     * @return _EXTCODEHASH Size of the requested contract in bytes.
+     * @return _EXTCODEHASH Hash of the requested contract.
      */
     function ovmEXTCODEHASH(
         address _contract
@@ -830,9 +833,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         _commitPendingAccount(
             _address,
             ethAddress,
-            keccak256(deployedCode)
+            Lib_EthUtils.getCodeHash(ethAddress)
         );
     }
+
 
     /***************************************
      * Public Functions: Execution Context *
@@ -948,7 +952,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes memory _returndata
         )
     {
-        // EVM precompiles have the same address on L1 and L2 --> no trie lookup neededgit s.
+        // EVM precompiles have the same address on L1 and L2 --> no trie lookup needed.
         address codeContractAddress =
             uint(_contract) < 100
             ? _contract
@@ -1222,6 +1226,15 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
+        // We don't set storage if the value didn't change. Although this acts as a convenient
+        // optimization, it's also necessary to avoid the case in which a contract with no storage
+        // attempts to store the value "0" at any key. Putting this value (and therefore requiring
+        // that the value be committed into the storage trie after execution) would incorrectly
+        // modify the storage root.
+        if (_getContractStorage(_contract, _key) == _value) {
+            return;
+        }
+
         _checkContractStorageChange(_contract, _key);
         ovmStateManager.putContractStorage(_contract, _key, _value);
     }
@@ -1271,13 +1284,17 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
+        // Start by checking for a load as we only want to charge nuisance gas proportional to
+        // contract size once.
+        _checkAccountLoad(_address);
+
         // Check whether the account has been changed before and mark it as changed if not. We need
         // this because "nuisance gas" only applies to the first time that an account is changed.
         (
             bool _wasAccountAlreadyChanged
         ) = ovmStateManager.testAndSetAccountChanged(_address);
 
-        // If we hadn't already changed the account, then we'll need to charge "nuisance gas" based
+        // If we hadn't already loaded the account, then we'll need to charge "nuisance gas" based
         // on the size of the contract code.
         if (_wasAccountAlreadyChanged == false) {
             ovmStateManager.incrementTotalUncommittedAccounts();
@@ -1341,15 +1358,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
-        // See `_checkContractStorageLoad` for more information.
-        if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
-            _revertWithFlag(RevertFlag.OUT_OF_GAS);
-        }
-
-        // See `_checkContractStorageLoad` for more information.
-        if (ovmStateManager.hasContractStorage(_contract, _key) == false) {
-            _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
-        }
+        // Start by checking for load to make sure we have the storage slot and that we charge the
+        // "nuisance gas" necessary to prove the storage slot state.
+        _checkContractStorageLoad(_contract, _key);
 
         // Check whether the slot has been changed before and mark it as changed if not. We need
         // this because "nuisance gas" only applies to the first time that a slot is changed.
@@ -1360,6 +1371,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // If we hadn't already changed the account, then we'll need to charge some fixed amount of
         // "nuisance gas".
         if (_wasContractStorageAlreadyChanged == false) {
+            // Changing a storage slot means that we're also going to have to change the
+            // corresponding account, so do an account change check.
+            _checkAccountChange(_contract);
+
             ovmStateManager.incrementTotalUncommittedContractStorage();
             _useNuisanceGas(NUISANCE_GAS_SSTORE);
         }
@@ -1587,7 +1602,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * Validates the gas limit for a given transaction.
      * @param _gasLimit Gas limit provided by the transaction.
-     * @param _queueOrigin Queue from which the transaction orginated.
+     * @param _queueOrigin Queue from which the transaction originated.
      * @return _valid Whether or not the gas limit is valid.
      */
     function _isValidGasLimit(
@@ -1604,34 +1619,36 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             return false;
         }
 
-        // Always have to be above the minumum gas limit.
+        // Always have to be above the minimum gas limit.
         if (_gasLimit < gasMeterConfig.minTransactionGasLimit) {
             return false;
         }
 
-        GasMetadataKey cumulativeGasKey;
-        GasMetadataKey prevEpochGasKey;
-        if (_queueOrigin == Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE) {
-            cumulativeGasKey = GasMetadataKey.CUMULATIVE_SEQUENCER_QUEUE_GAS;
-            prevEpochGasKey = GasMetadataKey.PREV_EPOCH_SEQUENCER_QUEUE_GAS;
-        } else {
-            cumulativeGasKey = GasMetadataKey.CUMULATIVE_L1TOL2_QUEUE_GAS;
-            prevEpochGasKey = GasMetadataKey.PREV_EPOCH_L1TOL2_QUEUE_GAS;
-        }
+        // TEMPORARY: Gas metering is disabled for minnet.
+        return true;
+        // GasMetadataKey cumulativeGasKey;
+        // GasMetadataKey prevEpochGasKey;
+        // if (_queueOrigin == Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE) {
+        //     cumulativeGasKey = GasMetadataKey.CUMULATIVE_SEQUENCER_QUEUE_GAS;
+        //     prevEpochGasKey = GasMetadataKey.PREV_EPOCH_SEQUENCER_QUEUE_GAS;
+        // } else {
+        //     cumulativeGasKey = GasMetadataKey.CUMULATIVE_L1TOL2_QUEUE_GAS;
+        //     prevEpochGasKey = GasMetadataKey.PREV_EPOCH_L1TOL2_QUEUE_GAS;
+        // }
 
-        return (
-            (
-                _getGasMetadata(cumulativeGasKey)
-                - _getGasMetadata(prevEpochGasKey)
-                + _gasLimit
-            ) < gasMeterConfig.maxGasPerQueuePerEpoch
-        );
+        // return (
+        //     (
+        //         _getGasMetadata(cumulativeGasKey)
+        //         - _getGasMetadata(prevEpochGasKey)
+        //         + _gasLimit
+        //     ) < gasMeterConfig.maxGasPerQueuePerEpoch
+        // );
     }
 
     /**
      * Updates the cumulative gas after a transaction.
      * @param _gasUsed Gas used by the transaction.
-     * @param _queueOrigin Queue from which the transaction orginated.
+     * @param _queueOrigin Queue from which the transaction originated.
      */
     function _updateCumulativeGas(
         uint256 _gasUsed,
