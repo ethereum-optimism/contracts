@@ -539,7 +539,7 @@ describe('OVM_CanonicalTransactionChain', () => {
     })
   })
 
-  describe.only('verifyTransaction', () => {
+  describe('verifyTransaction', () => {
     it('should successfully verify against a valid queue transaction appended by the sequencer', async () => {
       const entrypoint = NON_ZERO_ADDRESS
       const gasLimit = 500_000
