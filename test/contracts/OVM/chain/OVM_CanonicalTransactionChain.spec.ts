@@ -539,7 +539,7 @@ describe('OVM_CanonicalTransactionChain', () => {
     })
   })
 
-  describe('verifyTransaction', () => {
+  describe.only('verifyTransaction', () => {
     it('should successfully verify against a valid queue transaction appended by the sequencer', async () => {
       const entrypoint = NON_ZERO_ADDRESS
       const gasLimit = 500_000
@@ -550,21 +550,23 @@ describe('OVM_CanonicalTransactionChain', () => {
       await OVM_CanonicalTransactionChain.enqueue(entrypoint, gasLimit, data)
 
       const blockNumber = await ethers.provider.getBlockNumber()
-      await increaseEthTime(ethers.provider, FORCE_INCLUSION_PERIOD_SECONDS * 2)
 
-      await appendSequencerBatch(OVM_CanonicalTransactionChain.connect(sequencer), {
-        shouldStartAtBatch: 0,
-        totalElementsToAppend: 1,
-        contexts: [
-          {
-            numSequencedTransactions: 0,
-            numSubsequentQueueTransactions: 1,
-            timestamp,
-            blockNumber,
-          },
-        ],
-        transactions: [],
-      })
+      await appendSequencerBatch(
+        OVM_CanonicalTransactionChain.connect(sequencer),
+        {
+          shouldStartAtElement: 0,
+          totalElementsToAppend: 1,
+          contexts: [
+            {
+              numSequencedTransactions: 0,
+              numSubsequentQueueTransactions: 1,
+              timestamp,
+              blockNumber,
+            },
+          ],
+          transactions: [],
+        }
+      )
 
       expect(
         await OVM_CanonicalTransactionChain.verifyTransaction(
