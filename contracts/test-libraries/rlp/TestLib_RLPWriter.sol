@@ -60,7 +60,7 @@ contract TestLib_RLPWriter {
     }
 
     function writeUint256(
-        uint _in
+            uint256 _in
     )
         public
         pure

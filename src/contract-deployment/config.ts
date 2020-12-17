@@ -20,6 +20,7 @@ export interface RollupDeployConfig {
   transactionChainConfig: {
     sequencer: string | Signer
     forceInclusionPeriodSeconds: number
+    forceInclusionPeriodBlocks: number
   }
   stateChainConfig: {
     fraudProofWindowSeconds: number
@@ -81,6 +82,7 @@ export const makeContractDeployConfig = async (
       params: [
         AddressManager.address,
         config.transactionChainConfig.forceInclusionPeriodSeconds,
+        config.transactionChainConfig.forceInclusionPeriodBlocks,
       ],
       afterDeploy: async (): Promise<void> => {
         const sequencer = config.transactionChainConfig.sequencer
@@ -139,6 +141,7 @@ export const makeContractDeployConfig = async (
     },
     OVM_StateManagerFactory: {
       factory: getContractFactory('OVM_StateManagerFactory'),
+      params: [AddressManager.address],
     },
     OVM_FraudVerifier: {
       factory: getContractFactory('OVM_FraudVerifier'),
