@@ -86,7 +86,7 @@ interface iOVM_CanonicalTransactionChain {
      * Returns the index of the next element to be enqueued.
      * @return Index for the next queue element.
      */
-    function getNextPendingQueueIndex()
+    function getNextQueueIndex()
         external
         view
         returns (
