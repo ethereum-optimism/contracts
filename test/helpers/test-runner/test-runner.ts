@@ -316,9 +316,7 @@ export class ExecutionManagerTestRunner {
         { gasLimit: step.suppliedGas || RUN_OVM_TEST_GAS }
       )
       if (!!step.expectedRevertValue) {
-        await expect(
-          toRun
-        ).to.be.revertedWith(step.expectedRevertValue)
+        await expect(toRun).to.be.revertedWith(step.expectedRevertValue)
       } else {
         await toRun
       }

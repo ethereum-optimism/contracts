@@ -116,7 +116,7 @@ const test_run: TestDefinition = {
             gasLimit: OVM_TX_GAS_LIMIT,
             subSteps: [],
           },
-          expectedRevertValue: 'Not enough gas to execute deterministically'
+          expectedRevertValue: 'Not enough gas to execute deterministically',
         },
       ],
     },
