@@ -134,7 +134,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     /**
      * @inheritdoc iOVM_CanonicalTransactionChain
      */
-    function getNextPendingQueueIndex()
+    function getNextQueueIndex()
         override
         public
         view
@@ -188,7 +188,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint40
         )
     {
-        return getQueueLength() - getNextPendingQueueIndex();
+        return getQueueLength() - getNextQueueIndex();
     }
 
     /**
@@ -304,7 +304,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         bytes32[] memory leaves = new bytes32[](_numQueuedTransactions);
-        uint40 nextQueueIndex = getNextPendingQueueIndex();
+        uint40 nextQueueIndex = getNextQueueIndex();
 
         for (uint256 i = 0; i < _numQueuedTransactions; i++) {
             if (msg.sender != resolve("OVM_Sequencer")) {
@@ -393,7 +393,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint32 numSequencerTransactions = 0;
         // We will sequentially append leaves which are pointers to the queue.
         // The initial queue index is what is currently in storage.
-        uint40 nextQueueIndex = getNextPendingQueueIndex();
+        uint40 nextQueueIndex = getNextQueueIndex();
 
         BatchContext memory curContext;
 
