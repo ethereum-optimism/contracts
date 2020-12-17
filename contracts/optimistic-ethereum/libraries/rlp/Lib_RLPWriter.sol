@@ -89,25 +89,16 @@ library Lib_RLPWriter {
             bytes memory _out
         )
     {
-        _malloc(0x20);
-        bytes memory inputBytes;
-        assembly {
-            let m := mload(0x40)
-            mstore(add(m, 20), xor(0x140000000000000000000000000000000000000000, _in))
-            mstore(0x40, add(m, 52))
-            inputBytes := m
-        }
-
-        return writeBytes(inputBytes);
+        return writeBytes(abi.encodePacked(_in));
     }
 
     /**
      * RLP encodes a uint.
-     * @param _in The uint to encode.
-     * @return _out The RLP encoded uint in bytes.
+     * @param _in The uint256 to encode.
+     * @return _out The RLP encoded uint256 in bytes.
      */
     function writeUint(
-        uint _in
+        uint256 _in
     )
         internal
         pure
@@ -116,23 +107,6 @@ library Lib_RLPWriter {
         )
     {
         return writeBytes(_toBinary(_in));
-    }
-
-    /**
-     * RLP encodes an int.
-     * @param _in The int to encode.
-     * @return _out The RLP encoded int in bytes.
-     */
-    function writeInt(
-        int _in
-    )
-        internal
-        pure
-        returns (
-            bytes memory _out
-        )
-    {
-        return writeUint(uint(_in));
     }
 
     /**
@@ -166,8 +140,8 @@ library Lib_RLPWriter {
      * @return _encoded RLP encoded bytes.
      */
     function _writeLength(
-        uint _len,
-        uint _offset
+        uint256 _len,
+        uint256 _offset
     )
         private
         pure
@@ -181,8 +155,8 @@ library Lib_RLPWriter {
             encoded = new bytes(1);
             encoded[0] = byte(uint8(_len) + uint8(_offset));
         } else {
-            uint lenLen;
-            uint i = 1;
+            uint256 lenLen;
+            uint256 i = 1;
             while (_len / i != 0) {
                 lenLen++;
                 i *= 256;
@@ -205,7 +179,7 @@ library Lib_RLPWriter {
      * @return _binary RLP encoded bytes.
      */
     function _toBinary(
-        uint _x
+        uint256 _x
     )
         private
         pure
@@ -213,12 +187,9 @@ library Lib_RLPWriter {
             bytes memory _binary
         )
     {
-        bytes memory b = new bytes(32);
-        assembly {
-            mstore(add(b, 32), _x)
-        }
+        bytes memory b = abi.encodePacked(_x);
 
-        uint i = 0;
+        uint256 i = 0;
         for (; i < 32; i++) {
             if (b[i] != 0) {
                 break;
@@ -226,7 +197,7 @@ library Lib_RLPWriter {
         }
 
         bytes memory res = new bytes(32 - i);
-        for (uint j = 0; j < res.length; j++) {
+        for (uint256 j = 0; j < res.length; j++) {
             res[j] = b[i++];
         }
 
@@ -241,16 +212,16 @@ library Lib_RLPWriter {
      * @param _len Length of memory to copy.
      */
     function _memcpy(
-        uint _dest,
-        uint _src,
-        uint _len
+        uint256 _dest,
+        uint256 _src,
+        uint256 _len
     )
         private
         pure
     {
-        uint dest = _dest;
-        uint src = _src;
-        uint len = _len;
+        uint256 dest = _dest;
+        uint256 src = _src;
+        uint256 len = _len;
 
         for(; len >= 32; len -= 32) {
             assembly {
@@ -260,7 +231,7 @@ library Lib_RLPWriter {
             src += 32;
         }
 
-        uint mask = 256 ** (32 - len) - 1;
+        uint256 mask = 256 ** (32 - len) - 1;
         assembly {
             let srcpart := and(mload(src), not(mask))
             let destpart := and(mload(dest), mask)
@@ -287,20 +258,20 @@ library Lib_RLPWriter {
             return new bytes(0);
         }
 
-        uint len;
-        uint i = 0;
+        uint256 len;
+        uint256 i = 0;
         for (; i < _list.length; i++) {
             len += _list[i].length;
         }
 
         bytes memory flattened = new bytes(len);
-        uint flattenedPtr;
+        uint256 flattenedPtr;
         assembly { flattenedPtr := add(flattened, 0x20) }
 
         for(i = 0; i < _list.length; i++) {
             bytes memory item = _list[i];
 
-            uint listPtr;
+            uint256 listPtr;
             assembly { listPtr := add(item, 0x20)}
 
             _memcpy(flattenedPtr, listPtr, item.length);
@@ -308,23 +279,5 @@ library Lib_RLPWriter {
         }
 
         return flattened;
-    }
-
-    /**
-     * Clears memory wherever the free memory is pointing.
-     * @param _numBytes Number of bytes to clear out (will be rounded up to nearest word).
-     */
-    function _malloc(
-        uint _numBytes
-    )
-        private
-        pure
-    {
-        assembly {
-            let free_mem := mload(0x40)
-            for { let offset := 0x00 } lt(offset, _numBytes) { offset := add(offset, 0x20) } {
-                mstore(add(free_mem, offset), 0x00)
-            }
-        }
     }
 }

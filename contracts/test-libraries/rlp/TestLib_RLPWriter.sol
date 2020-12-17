@@ -60,7 +60,7 @@ contract TestLib_RLPWriter {
     }
 
     function writeUint(
-        uint _in
+        uint256 _in
     )
         public
         pure
@@ -69,18 +69,6 @@ contract TestLib_RLPWriter {
         )
     {
         return Lib_RLPWriter.writeUint(_in);
-    }
-
-    function writeInt(
-        int _in
-    )
-        public
-        pure
-        returns (
-            bytes memory _out
-        )
-    {
-        return Lib_RLPWriter.writeInt(_in);
     }
 
     function writeBool(

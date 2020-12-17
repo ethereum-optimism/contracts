@@ -16,7 +16,7 @@ import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
 
 library Math {
-    function min(uint x, uint y) internal pure returns (uint z) {
+    function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
         if (x < y) {
             return x;
         }
@@ -355,7 +355,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         for (uint32 i = 0; i < numContexts; i++) {
             BatchContext memory context = _getBatchContext(i);
-            _validateBatchContext(context, nextQueueIndex);
 
             for (uint32 j = 0; j < context.numSequencedTransactions; j++) {
                 uint256 txDataLength;
@@ -433,6 +432,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             );
         }
     }
+
 
     /**********************
      * Internal Functions *
