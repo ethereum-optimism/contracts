@@ -213,7 +213,8 @@ describe('OVM_CanonicalTransactionChain', () => {
     OVM_CanonicalTransactionChain = await Factory__OVM_CanonicalTransactionChain.deploy(
       AddressManager.address,
       FORCE_INCLUSION_PERIOD_SECONDS,
-      FORCE_INCLUSION_PERIOD_BLOCKS
+      FORCE_INCLUSION_PERIOD_BLOCKS,
+      MAX_GAS_LIMIT
     )
 
     const batches = await Factory__OVM_ChainStorageContainer.deploy(
@@ -253,7 +254,17 @@ describe('OVM_CanonicalTransactionChain', () => {
       await expect(
         OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
       ).to.be.revertedWith(
-        'Transaction exceeds maximum rollup transaction data size.'
+        'Transaction data size exceeds maximum for rollup transaction.'
+      )
+    })
+
+    it('should revert when trying to enqueue a transaction with a higher gasLimit than the max', async () => {
+      const data = '0x1234567890'
+
+      await expect(
+        OVM_CanonicalTransactionChain.enqueue(target, MAX_GAS_LIMIT + 1, data)
+      ).to.be.revertedWith(
+        'Transaction gas limit exceeds maximum for rollup transaction.'
       )
     })
 

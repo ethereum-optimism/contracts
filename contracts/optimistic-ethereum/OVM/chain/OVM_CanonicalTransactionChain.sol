@@ -44,6 +44,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
     uint256 internal forceInclusionPeriodSeconds;
     uint256 internal forceInclusionPeriodBlocks;
+    uint256 internal maxTransactionGasLimit;
     uint256 internal lastOVMTimestamp;
 
 
@@ -54,12 +55,14 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     constructor(
         address _libAddressManager,
         uint256 _forceInclusionPeriodSeconds,
-        uint256 _forceInclusionPeriodBlocks
+        uint256 _forceInclusionPeriodBlocks,
+        uint256 _maxTransactionGasLimit
     )
         Lib_AddressResolver(_libAddressManager)
     {
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
         forceInclusionPeriodBlocks = _forceInclusionPeriodBlocks;
+        maxTransactionGasLimit = _maxTransactionGasLimit;
     }
 
 
@@ -218,7 +221,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     {
         require(
             _data.length <= MAX_ROLLUP_TX_SIZE,
-            "Transaction exceeds maximum rollup transaction data size."
+            "Transaction data size exceeds maximum for rollup transaction."
+        );
+
+        require(
+            _gasLimit <= maxTransactionGasLimit,
+            "Transaction gas limit exceeds maximum for rollup transaction."
         );
 
         require(

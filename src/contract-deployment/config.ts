@@ -83,6 +83,7 @@ export const makeContractDeployConfig = async (
         AddressManager.address,
         config.transactionChainConfig.forceInclusionPeriodSeconds,
         config.transactionChainConfig.forceInclusionPeriodBlocks,
+        config.ovmGasMeteringConfig.maxTransactionGasLimit
       ],
       afterDeploy: async (): Promise<void> => {
         const sequencer = config.transactionChainConfig.sequencer
