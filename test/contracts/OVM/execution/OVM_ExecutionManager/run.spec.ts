@@ -101,6 +101,25 @@ const test_run: TestDefinition = {
         },
       ],
     },
+    {
+      name: 'run with insufficient gas supplied',
+      steps: [
+        {
+          functionName: 'run',
+          suppliedGas: OVM_TX_GAS_LIMIT / 2,
+          functionParams: {
+            timestamp: 0,
+            queueOrigin: 0,
+            entrypoint: '$OVM_CALL_HELPER',
+            origin: ZERO_ADDRESS,
+            msgSender: ZERO_ADDRESS,
+            gasLimit: OVM_TX_GAS_LIMIT,
+            subSteps: [],
+          },
+          expectedRevertValue: 'Not enough gas to execute deterministically',
+        },
+      ],
+    },
   ],
 }
 

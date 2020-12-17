@@ -146,6 +146,7 @@ interface TestStep_CREATEEOA {
 
 export interface TestStep_Run {
   functionName: 'run'
+  suppliedGas?: number
   functionParams: {
     timestamp: number
     queueOrigin: number
@@ -156,6 +157,7 @@ export interface TestStep_Run {
     data?: string
     subSteps?: TestStep[]
   }
+  expectedRevertValue?: string
 }
 
 export type TestStep =

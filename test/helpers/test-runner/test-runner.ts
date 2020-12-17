@@ -302,7 +302,7 @@ export class ExecutionManagerTestRunner {
         calldata = this.encodeFunctionData(runStep)
       }
 
-      await this.contracts.OVM_ExecutionManager.run(
+      const toRun = this.contracts.OVM_ExecutionManager.run(
         {
           timestamp: step.functionParams.timestamp,
           blockNumber: 0,
@@ -313,8 +313,13 @@ export class ExecutionManagerTestRunner {
           data: calldata,
         },
         this.contracts.OVM_StateManager.address,
-        { gasLimit: RUN_OVM_TEST_GAS }
+        { gasLimit: step.suppliedGas || RUN_OVM_TEST_GAS }
       )
+      if (!!step.expectedRevertValue) {
+        await expect(toRun).to.be.revertedWith(step.expectedRevertValue)
+      } else {
+        await toRun
+      }
     } else {
       await this.contracts.OVM_ExecutionManager.ovmCALL(
         OVM_TX_GAS_LIMIT,
