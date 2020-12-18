@@ -19,15 +19,15 @@ export const deploy = async (
   let AddressManager: Contract
 
   if (config.addressManager) {
-    console.log(`Connecting to existing address manager.`)
+    // console.log(`Connecting to existing address manager.`) //console.logs currently break our deployer
     AddressManager = getContractFactory(
       'Lib_AddressManager',
       config.deploymentSigner
     ).attach(config.addressManager)
   } else {
-    console.log(
-      `Address manager wasn't provided, so we're deploying a new one.`
-    )
+    // console.log(
+    //   `Address manager wasn't provided, so we're deploying a new one.`
+    // ) //console.logs currently break our deployer
     AddressManager = await getContractFactory(
       'Lib_AddressManager',
       config.deploymentSigner
