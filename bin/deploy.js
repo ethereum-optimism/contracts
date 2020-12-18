@@ -22,6 +22,7 @@ const SEQUENCER_PUBLISH_WINDOW_SECONDS = env.SEQUENCER_PUBLISH_WINDOW_SECONDS ||
 const CHAIN_ID = env.CHAIN_ID || 420; // layer 2 chainid
 const USE_LEDGER = env.USE_LEDGER || false;
 const HD_PATH = env.HD_PATH || utils.defaultPath;
+const BLOCK_TIME_SECONDS = env.BLOCK_TIME_SECONDS || 15;
 const L2_CROSS_DOMAIN_MESSENGER_ADDRESS =
   env.L2_CROSS_DOMAIN_MESSENGER_ADDRESS || '0x4200000000000000000000000000000000000007';
 
@@ -57,6 +58,7 @@ const L2_CROSS_DOMAIN_MESSENGER_ADDRESS =
     transactionChainConfig: {
       forceInclusionPeriodSeconds: FORCE_INCLUSION_PERIOD_SECONDS,
       sequencer: SEQUENCER_ADDRESS,
+      forceInclusionPeriodBlocks: Math.ceil(FORCE_INCLUSION_PERIOD_SECONDS/BLOCK_TIME_SECONDS),
     },
     stateChainConfig: {
       fraudProofWindowSeconds: FRAUD_PROOF_WINDOW_SECONDS,
