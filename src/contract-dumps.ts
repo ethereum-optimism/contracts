@@ -135,6 +135,7 @@ export const makeStateDump = async (): Promise<any> => {
       owner: signer,
       allowArbitraryContractDeployment: true,
     },
+    l1CrossDomainMessengerConfig: {},
     ethConfig: {
       initialAmount: 0,
     },
