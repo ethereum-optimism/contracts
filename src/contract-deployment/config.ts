@@ -150,7 +150,7 @@ export const makeContractDeployConfig = async (
     },
     OVM_StateTransitionerFactory: {
       factory: getContractFactory('OVM_StateTransitionerFactory'),
-      params: [AddressManager.address]
+      params: [AddressManager.address],
     },
     OVM_ECDSAContractAccount: {
       factory: getContractFactory('OVM_ECDSAContractAccount'),
