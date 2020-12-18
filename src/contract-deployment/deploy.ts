@@ -60,6 +60,7 @@ export const deploy = async (
         )
       await AddressManager.setAddress(name, contracts[name].address)
     } catch (err) {
+      console.error(`Error deploying ${name}: ${err}`)
       failedDeployments.push(name)
     }
   }
