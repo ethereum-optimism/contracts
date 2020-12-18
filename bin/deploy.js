@@ -57,6 +57,7 @@ const L2_CROSS_DOMAIN_MESSENGER_ADDRESS =
     transactionChainConfig: {
       forceInclusionPeriodSeconds: FORCE_INCLUSION_PERIOD_SECONDS,
       sequencer: SEQUENCER_ADDRESS,
+      forceInclusionPeriodBlocks: FORCE_INCLUSION_PERIOD_SECONDS/15,
     },
     stateChainConfig: {
       fraudProofWindowSeconds: FRAUD_PROOF_WINDOW_SECONDS,
