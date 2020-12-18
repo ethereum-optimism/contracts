@@ -67,9 +67,7 @@ export const makeContractDeployConfig = async (
         if (config.l1CrossDomainMessengerConfig.relayerAddress) {
           const relayer = config.l1CrossDomainMessengerConfig.relayerAddress
           const address =
-            typeof relayer === 'string'
-              ? relayer
-              : await relayer.getAddress()
+            typeof relayer === 'string' ? relayer : await relayer.getAddress()
           await AddressManager.setAddress('OVM_L2MessageRelayer', address)
         }
       },
