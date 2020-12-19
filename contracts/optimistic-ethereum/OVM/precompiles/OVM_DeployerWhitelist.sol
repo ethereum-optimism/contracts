@@ -84,6 +84,23 @@ contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
     }
 
     /**
+     * Gets the owner of the whitelist.
+     */
+    function getOwner()
+        override
+        public
+        returns(
+            address
+        )
+    {
+        return Lib_Bytes32Utils.toAddress(
+            Lib_SafeExecutionManagerWrapper.safeSLOAD(
+                KEY_OWNER
+            )
+        );
+    }
+
+    /**
      * Adds or removes an address from the deployment whitelist.
      * @param _deployer Address to update permissions for.
      * @param _isWhitelisted Whether or not the address is whitelisted.
