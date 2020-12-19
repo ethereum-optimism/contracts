@@ -194,7 +194,7 @@ describe('OVM_StateCommitmentChain', () => {
     const batch = [NON_NULL_BYTES32]
     const batchHeader = {
       batchIndex: 0,
-      batchRoot: keccak256(NON_NULL_BYTES32),
+      batchRoot: NON_NULL_BYTES32,
       batchSize: 1,
       prevTotalElements: 0,
       extraData: NULL_BYTES32,

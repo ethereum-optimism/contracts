@@ -327,17 +327,10 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
             );
         }
 
-        bytes32[] memory elements = new bytes32[](_batch.length);
-        for (uint256 i = 0; i < _batch.length; i++) {
-            elements[i] = keccak256(
-                abi.encodePacked(_batch[i])
-            );
-        }
-
         Lib_OVMCodec.ChainBatchHeader memory batchHeader = Lib_OVMCodec.ChainBatchHeader({
             batchIndex: getTotalBatches(),
-            batchRoot: Lib_MerkleTree.getMerkleRoot(elements),
-            batchSize: elements.length,
+            batchRoot: Lib_MerkleTree.getMerkleRoot(_batch),
+            batchSize: _batch.length,
             prevTotalElements: totalElements,
             extraData: _extraData
         });
