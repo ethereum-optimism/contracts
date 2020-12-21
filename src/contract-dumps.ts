@@ -158,7 +158,7 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
     ],
   }
 
-  config = {...config, ...cfg}
+  config = { ...config, ...cfg }
 
   const precompiles = {
     OVM_L2ToL1MessagePasser: '0x4200000000000000000000000000000000000000',
