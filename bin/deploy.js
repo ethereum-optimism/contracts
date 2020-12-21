@@ -68,6 +68,9 @@ const L2_CROSS_DOMAIN_MESSENGER_ADDRESS =
       ovmCHAINID: CHAIN_ID,
       L2CrossDomainMessengerAddress: L2_CROSS_DOMAIN_MESSENGER_ADDRESS
     },
+    l1CrossDomainMessengerConfig: {
+      relayerAddress: SEQUENCER_ADDRESS,
+    },
     ovmGasMeteringConfig: {
       minTransactionGasLimit: MIN_TRANSACTION_GAS_LIMIT,
       maxTransactionGasLimit: MAX_TRANSACTION_GAS_LIMIT,
