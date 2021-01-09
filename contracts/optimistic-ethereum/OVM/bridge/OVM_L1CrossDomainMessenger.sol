@@ -7,6 +7,7 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_AddressManager } from "../../libraries/resolver/Lib_AddressManager.sol";
 import { Lib_SecureMerkleTrie } from "../../libraries/trie/Lib_SecureMerkleTrie.sol";
+import { Lib_ReentrancyGuard } from "../../libraries/utils/Lib_ReentrancyGuard.sol";
 
 /* Interface Imports */
 import { iOVM_L1CrossDomainMessenger } from "../../iOVM/bridge/iOVM_L1CrossDomainMessenger.sol";
@@ -18,6 +19,7 @@ import { OVM_BaseCrossDomainMessenger } from "./OVM_BaseCrossDomainMessenger.sol
 
 /**
  * @title OVM_L1CrossDomainMessenger
+ * @dev This contract lives on L1. It sends messages to L2, and relays them from L2
  */
 contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCrossDomainMessenger, Lib_AddressResolver {
 
@@ -81,6 +83,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
     )
         override
         public
+        nonReentrant
         onlyRelayer()
     {
         bytes memory xDomainCalldata = _getXDomainCalldata(
@@ -140,6 +143,7 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCros
     )
         override
         public
+        nonReentrant
     {
         bytes memory xDomainCalldata = _getXDomainCalldata(
             _target,
