@@ -42,7 +42,6 @@ contract OVM_ETH is iOVM_ERC20 {
         require(balances[msg.sender] >= _value);
         balances[msg.sender] -= _value;
         balances[_to] += _value;
-        emit Transfer(msg.sender, _to, _value);
         return true;
     }
 
@@ -54,7 +53,6 @@ contract OVM_ETH is iOVM_ERC20 {
         if (allowance < MAX_UINT256) {
             allowed[_from][msg.sender] -= _value;
         }
-        emit Transfer(_from, _to, _value);
         return true;
     }
 
@@ -64,7 +62,6 @@ contract OVM_ETH is iOVM_ERC20 {
 
     function approve(address _spender, uint256 _value) external override returns (bool success) {
         allowed[msg.sender][_spender] = _value;
-        emit Approval(msg.sender, _spender, _value);
         return true;
     }
 
