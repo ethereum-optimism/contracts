@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const contracts = require('../build/src/contract-deployment/deploy');
-const { providers, Wallet, utils } = require('ethers');
+const { providers, Wallet, utils, ethers } = require('ethers');
 const { LedgerSigner } = require('@ethersproject/hardware-wallets');
 const { JsonRpcProvider } = providers;
 
@@ -16,7 +16,7 @@ const MAX_GAS_PER_QUEUE_PER_EPOCH = env.MAX_GAS_PER_QUEUE_PER_EPOCH || 250000000
 const SECONDS_PER_EPOCH = env.SECONDS_PER_EPOCH || 0;
 let WHITELIST_OWNER = env.WHITELIST_OWNER;
 const WHITELIST_ALLOW_ARBITRARY_CONTRACT_DEPLOYMENT = env.WHITELIST_ALLOW_ARBITRARY_CONTRACT_DEPLOYMENT || true;
-const FORCE_INCLUSION_PERIOD_SECONDS = env.FORCE_INCLUSION_PERIOD_SECONDS || (60 * 300000); // 30 min
+const FORCE_INCLUSION_PERIOD_SECONDS = env.FORCE_INCLUSION_PERIOD_SECONDS || ethers.constants.MaxUint256;
 const FRAUD_PROOF_WINDOW_SECONDS = env.FRAUD_PROOF_WINDOW_SECONDS || (60 * 60 * 24 * 7); // 7 days
 const SEQUENCER_PUBLISH_WINDOW_SECONDS = env.SEQUENCER_PUBLISH_WINDOW_SECONDS || (60 * 30); // 30 min
 const CHAIN_ID = env.CHAIN_ID || 420; // layer 2 chainid
@@ -69,7 +69,7 @@ const RELAYER_PRIVATE_KEY = env.RELAYER_PRIVATE_KEY;
     transactionChainConfig: {
       forceInclusionPeriodSeconds: FORCE_INCLUSION_PERIOD_SECONDS,
       sequencer: SEQUENCER_ADDRESS,
-      forceInclusionPeriodBlocks: Math.ceil(FORCE_INCLUSION_PERIOD_SECONDS/BLOCK_TIME_SECONDS),
+      forceInclusionPeriodBlocks: FORCE_INCLUSION_PERIOD_SECONDS, // both of these are maxUint256 for minnet
     },
     stateChainConfig: {
       fraudProofWindowSeconds: FRAUD_PROOF_WINDOW_SECONDS,
