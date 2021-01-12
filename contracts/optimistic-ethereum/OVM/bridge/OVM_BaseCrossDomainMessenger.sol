@@ -43,7 +43,6 @@ abstract contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger,
     )
         override
         public
-        nonReentrant
     {
         bytes memory xDomainCalldata = _getXDomainCalldata(
             _target,
