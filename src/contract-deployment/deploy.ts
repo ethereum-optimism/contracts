@@ -63,7 +63,7 @@ export const deploy = async (
           config.deployOverrides || {}
         )
       await AddressManager.setAddress(name, contracts[name].address)
-      deployParams[name] = contractDeployParameters
+      deployParams[name] = contractDeployParameters.params
     } catch (err) {
       console.error(`Error deploying ${name}: ${err}`)
       failedDeployments.push(name)
