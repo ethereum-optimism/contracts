@@ -32,6 +32,7 @@
     "@eth-optimism/solc": "^0.6.12-alpha.1",
     "@ethersproject/contracts": "^5.0.5",
     "@ethersproject/hardware-wallets": "^5.0.8",
+    "@nomiclabs/buidler-etherscan": "^2.1.0",
     "@openzeppelin/contracts": "^3.3.0",
     "ethers": "5.0.0",
     "ganache-core": "^2.12.1"

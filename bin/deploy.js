@@ -97,11 +97,12 @@ const RELAYER_PRIVATE_KEY = env.RELAYER_PRIVATE_KEY;
     },
   });
 
-  const { failedDeployments, AddressManager } = result;
+  const { failedDeployments, AddressManager, deployParams } = result;
   if (failedDeployments.length !== 0)
     throw new Error(`Contract deployment failed: ${failedDeployments.join(',')}`);
 
   const out = {};
+  out.deployParams = deployParams;
   out.AddressManager = AddressManager.address;
   out.OVM_Sequencer = SEQUENCER_ADDRESS;
   out.Deployer = await signer.getAddress()

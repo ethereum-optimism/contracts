@@ -10,6 +10,9 @@ export interface DeployResult {
   failedDeployments: string[]
   contracts: {
     [name: string]: Contract
+  },
+  deployParams: {
+    [name: string]: {}
   }
 }
 
@@ -43,6 +46,7 @@ export const deploy = async (
   const contracts: {
     [name: string]: Contract
   } = {}
+  const deployParams: {[name: string]: {}} = {}
 
   for (const [name, contractDeployParameters] of Object.entries(
     contractDeployConfig
@@ -59,6 +63,7 @@ export const deploy = async (
           config.deployOverrides || {}
         )
       await AddressManager.setAddress(name, contracts[name].address)
+      deployParams[name] = contractDeployParameters
     } catch (err) {
       console.error(`Error deploying ${name}: ${err}`)
       failedDeployments.push(name)
@@ -81,5 +86,6 @@ export const deploy = async (
     AddressManager,
     failedDeployments,
     contracts,
+    deployParams,
   }
 }
