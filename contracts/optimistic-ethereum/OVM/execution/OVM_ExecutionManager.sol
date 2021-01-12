@@ -6,8 +6,6 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_EthUtils } from "../../libraries/utils/Lib_EthUtils.sol";
-import { Lib_ReentrancyGuard } from "../../libraries/utils/Lib_ReentrancyGuard.sol";
-
 
 /* Interface Imports */
 import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManager.sol";
@@ -22,7 +20,7 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
 /**
  * @title OVM_ExecutionManager
  */
-contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver, Lib_ReentrancyGuard {
+contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
     /********************************
      * External Contract References *
