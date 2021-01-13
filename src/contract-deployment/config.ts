@@ -68,7 +68,7 @@ export const makeContractDeployConfig = async (
           const relayer = config.l1CrossDomainMessengerConfig.relayerAddress
           const address =
             typeof relayer === 'string' ? relayer : await relayer.getAddress()
-          await AddressManager.setAddress('OVM_L2MessageRelayer', address)
+          await (await AddressManager.setAddress('OVM_L2MessageRelayer', address)).wait()
         }
       },
     },
@@ -107,8 +107,8 @@ export const makeContractDeployConfig = async (
           'OVM_DecompressionPrecompileAddress',
           '0x4200000000000000000000000000000000000005'
         )).wait()
-        await AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
-        await AddressManager.setAddress('Sequencer', sequencerAddress)
+        await (await AddressManager.setAddress('OVM_Sequencer', sequencerAddress)).wait()
+        await (await AddressManager.setAddress('Sequencer', sequencerAddress)).wait()
       },
     },
     OVM_StateCommitmentChain: {
