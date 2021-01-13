@@ -33,7 +33,9 @@ export const deploy = async (
       config.deploymentSigner
     ).deploy()
   }
-  await AddressManager.deployTransaction.wait()
+  if (config.waitForReceipts) {
+    await AddressManager.deployTransaction.wait()
+  }
 
   const contractDeployConfig = await makeContractDeployConfig(
     config,
@@ -59,9 +61,13 @@ export const deploy = async (
           ...(contractDeployParameters.params || []),
           config.deployOverrides
         )
-      await contracts[name].deployTransaction.wait()
+      if (config.waitForReceipts) {
+        await contracts[name].deployTransaction.wait()
+      }
       const res = await AddressManager.setAddress(name, contracts[name].address)
-      await res.wait()
+      if (config.waitForReceipts) {
+        await res.wait()
+      }
     } catch (err) {
       console.error(`Error deploying ${name}: ${err}`)
       failedDeployments.push(name)
