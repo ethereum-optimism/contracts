@@ -60,7 +60,8 @@ export const deploy = async (
           config.deployOverrides
         )
       await contracts[name].deployTransaction.wait()
-      await (await AddressManager.setAddress(name, contracts[name].address)).wait()
+      const res = await AddressManager.setAddress(name, contracts[name].address)
+      await res.wait()
     } catch (err) {
       console.error(`Error deploying ${name}: ${err}`)
       failedDeployments.push(name)
