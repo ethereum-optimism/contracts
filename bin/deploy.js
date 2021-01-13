@@ -10,6 +10,7 @@ const key = env.DEPLOYER_PRIVATE_KEY;
 const sequencerKey = env.SEQUENCER_PRIVATE_KEY;
 let SEQUENCER_ADDRESS = env.SEQUENCER_ADDRESS;
 const web3Url = env.L1_NODE_WEB3_URL || 'http://127.0.0.1:8545';
+const DEPLOY_TX_GAS_LIMIT = env.DEPLOY_TX_GAS_LIMIT || 5000000;
 const MIN_TRANSACTION_GAS_LIMIT = env.MIN_TRANSACTION_GAS_LIMIT || 50000;
 const MAX_TRANSACTION_GAS_LIMIT = env.MAX_TRANSACTION_GAS_LIMIT || Math.floor(9000000 * 63/64 - 100000); // = 8_759_375, Default max for Kovan
 const MAX_GAS_PER_QUEUE_PER_EPOCH = env.MAX_GAS_PER_QUEUE_PER_EPOCH || 250000000;
@@ -94,6 +95,9 @@ const RELAYER_PRIVATE_KEY = env.RELAYER_PRIVATE_KEY;
     },
     ethConfig: {
       initialAmount: 0,
+    },
+    deployOverrides: {
+      gasLimit: DEPLOY_TX_GAS_LIMIT
     },
   });
 

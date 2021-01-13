@@ -18,6 +18,8 @@ export const deploy = async (
 ): Promise<DeployResult> => {
   let AddressManager: Contract
 
+  console.log('Beginning deploy')
+
   if (config.addressManager) {
     // console.log(`Connecting to existing address manager.`) //console.logs currently break our deployer
     AddressManager = getContractFactory(
@@ -33,11 +35,13 @@ export const deploy = async (
       config.deploymentSigner
     ).deploy()
   }
+  await AddressManager.deployTransaction.wait()
 
   const contractDeployConfig = await makeContractDeployConfig(
     config,
     AddressManager
   )
+  console.log('Deployed AddressManager')
 
   const failedDeployments: string[] = []
   const contracts: {
@@ -52,13 +56,16 @@ export const deploy = async (
     }
 
     try {
+      process.stdout.write(`Deploying ${name}...`)
       contracts[name] = await contractDeployParameters.factory
         .connect(config.deploymentSigner)
         .deploy(
           ...(contractDeployParameters.params || []),
-          config.deployOverrides || {}
+          config.deployOverrides
         )
-      await AddressManager.setAddress(name, contracts[name].address)
+      await contracts[name].deployTransaction.wait()
+      await (await AddressManager.setAddress(name, contracts[name].address)).wait()
+      console.log('deployed.')
     } catch (err) {
       console.error(`Error deploying ${name}: ${err}`)
       failedDeployments.push(name)

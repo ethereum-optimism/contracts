@@ -37,7 +37,7 @@ export interface RollupDeployConfig {
     allowArbitraryContractDeployment: boolean
   }
   addressManager?: string
-  deployOverrides?: Overrides
+  deployOverrides: Overrides
   dependencies?: string[]
 }
 
@@ -81,11 +81,12 @@ export const makeContractDeployConfig = async (
         )
           .connect(config.deploymentSigner)
           .attach(contracts.Proxy__OVM_L1CrossDomainMessenger.address)
-        await xDomainMessenger.initialize(AddressManager.address)
-        await AddressManager.setAddress(
+        await (await xDomainMessenger.initialize(AddressManager.address, config.deployOverrides)).wait()
+        await (await AddressManager.setAddress(
           'OVM_L2CrossDomainMessenger',
-          config.ovmGlobalContext.L2CrossDomainMessengerAddress
-        )
+          config.ovmGlobalContext.L2CrossDomainMessengerAddress,
+          config.deployOverrides
+        )).wait()
       },
     },
     OVM_CanonicalTransactionChain: {
@@ -102,10 +103,10 @@ export const makeContractDeployConfig = async (
           typeof sequencer === 'string'
             ? sequencer
             : await sequencer.getAddress()
-        await AddressManager.setAddress(
+        await (await AddressManager.setAddress(
           'OVM_DecompressionPrecompileAddress',
           '0x4200000000000000000000000000000000000005'
-        )
+        )).wait()
         await AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
         await AddressManager.setAddress('Sequencer', sequencerAddress)
       },
@@ -146,9 +147,10 @@ export const makeContractDeployConfig = async (
       factory: getContractFactory('OVM_StateManager'),
       params: [await config.deploymentSigner.getAddress()],
       afterDeploy: async (contracts): Promise<void> => {
-        await contracts.OVM_StateManager.setExecutionManager(
-          contracts.OVM_ExecutionManager.address
-        )
+        await (await contracts.OVM_StateManager.setExecutionManager(
+          contracts.OVM_ExecutionManager.address,
+          config.deployOverrides
+        )).wait()
       },
     },
     OVM_StateManagerFactory: {
