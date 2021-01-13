@@ -1766,6 +1766,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         transactionContext.ovmGASLIMIT = gasMeterConfig.maxGasPerQueuePerEpoch;
 
         messageRecord.nuisanceGasLeft = _getNuisanceGasLimit(_transaction.gasLimit);
+        messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
     }
 
     /**
