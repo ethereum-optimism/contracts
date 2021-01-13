@@ -46,12 +46,10 @@ contract OVM_ETH is iOVM_ERC20, Lib_AddressResolver {
         symbol = _tokenSymbol;                               // Set the symbol for display purposes
     }
 
-    modifier onlyXDomainBridge() {
-        // Ensure function only callable from the L1 ETH deposit contract
-        iOVM_BaseCrossDomainMessenger _messenger = iOVM_BaseCrossDomainMessenger(resolve("OVM_L2CrossDomainMessenger"));
-        require(msg.sender == address(_messenger), "Only callable by xDomainMessenger.");
-        require(_messenger.xDomainMessageSender() == resolve("OVM_EthDepositContract"), "Only the L1 bridge can invoke.");
-
+    modifier onlyOVMETHBridge() {
+        address bridgeOnL2 = resolve("OVM_L2ETHBridge");
+        require(bridgeOnL2 != address(0), "OVM_L2ETHBridge is not yet initialized.");
+        require(msg.sender == bridgeOnL2, "Only callable by OVM ETH Deposit/Withdrawal contract");
         _;
     }
 
@@ -89,7 +87,7 @@ contract OVM_ETH is iOVM_ERC20, Lib_AddressResolver {
         return allowed[_owner][_spender];
     }
 
-    function mint(address _account, uint256 _amount) onlyXDomainBridge external returns (bool success) {
+    function mint(address _account, uint256 _amount) external onlyOVMETHBridge returns (bool success) {
         uint256 newTotalSupply = totalSupply + _amount;
         require(newTotalSupply >= totalSupply, "SafeMath: addition overflow");
         totalSupply = newTotalSupply;
@@ -99,12 +97,12 @@ contract OVM_ETH is iOVM_ERC20, Lib_AddressResolver {
         return true;
     }
 
-    function burn(uint256 _amount) external returns (bool success) {
-        require(balances[msg.sender] >= _amount, "Unable to burn due to insufficient balance");
-        balances[msg.sender] -= _amount;
+    function burn(address _account, uint256 _amount) external onlyOVMETHBridge returns (bool success) {
+        require(balances[_account] >= _amount, "Unable to burn due to insufficient balance");
+        balances[_account] -= _amount;
         totalSupply -= _amount;
 
-        emit Burn(msg.sender, _amount);
+        emit Burn(_account, _amount);
         return true;
     }
 }
