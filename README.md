@@ -8,4 +8,4 @@ This package requires that `yarn` be installed on your machine!  Once it is, run
 
 ## Security
 
-See [SECURITY.md](./SECURITY.md).
+See [SECURITY.md](https://github.com/ethereum-optimism/.github/security/policy).
