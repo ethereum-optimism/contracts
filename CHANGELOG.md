@@ -2,7 +2,7 @@
 
 ## v0.1.4
 
-Fix single contract redeployment & regenesis script for
+Fix single contract redeployment & state dump script for
 mainnet.
 
 ## v0.1.3
