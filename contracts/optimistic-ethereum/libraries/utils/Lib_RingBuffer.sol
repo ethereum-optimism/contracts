@@ -84,7 +84,8 @@ library Lib_RingBuffer {
         // Index to write to is the difference of the global and reset indices.
         uint256 writeHead = ctx.globalIndex - ctx.currResetIndex;
         currBuffer.buf[writeHead] = _value;
-
+        self.nextOverwritableIndex +=1;
+        
         // Bump the global index and insert our extra data, then save the context.
         ctx.globalIndex++;
         ctx.extraData = _extraData;
