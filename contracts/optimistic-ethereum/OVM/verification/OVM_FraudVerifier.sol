@@ -17,6 +17,17 @@ import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalT
 /* Contract Imports */
 import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
 
+
+
+/**
+    * @title OVM_FraudVerifier
+ * @dev Implementation of the Fraud Verifier contract.
+ * This contract compiles to EVM bytecode.
+ * It is only deployed on Layer 1.
+ * 
+ * The Fraud Verifier contract is the entrty point contract that a verifier will call to initiate 
+ * a fraud proof.
+ */
 contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_FraudVerifier {
 
     /*******************************************
