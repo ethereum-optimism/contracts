@@ -1,5 +1,7 @@
 import { usePlugin, BuidlerConfig } from '@nomiclabs/buidler/config'
 
+usePlugin('buidler-gas-reporter')
+
 import {
   DEFAULT_ACCOUNTS_BUIDLER,
   RUN_OVM_TEST_GAS,
@@ -11,7 +13,7 @@ usePlugin('buidler-typechain')
 
 import './plugins/buidler/ovm-compiler'
 
-const config: BuidlerConfig = {
+const config = {
   networks: {
     buidlerevm: {
       accounts: DEFAULT_ACCOUNTS_BUIDLER,
@@ -28,6 +30,9 @@ const config: BuidlerConfig = {
   typechain: {
     outDir: 'build/types',
     target: 'ethers-v5',
+  },
+  gasReporter: {
+    currency: 'USD',
   },
 }
 

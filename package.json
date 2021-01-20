@@ -50,6 +50,7 @@
     "@types/node": "^14.6.0",
     "assert": "^2.0.0",
     "buffer-xor": "^2.0.2",
+    "buidler-gas-reporter": "^0.1.4",
     "buidler-typechain": "^0.2.1",
     "chai": "^4.2.0",
     "copyfiles": "^2.3.0",
