@@ -18,17 +18,16 @@ import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
 /**
  * @title OVM_CanonicalTransactionChain
- * @dev Append-only log of transactions which should be applied to the rollup state. 
- * 
+ * @dev The OVM_CanonicalTransactionChain is an append-only log of transactions which must be
+ * applied to the rollup state. It defines the ordering of rollup transactions by writing them to
+ * the OVM_ChainStorageContainer.
+ * It also allows any user or contract to 'enqueue' their own transactions to the rollup state, 
+ * which will ensure that the Sequencer must eventually append it to the rollup state. 
+ * If the Sequencer does not include an enqueued transaction within the 'force inclusion period',
+ * then any account may force it to be included by calling appendQueueBatch().
+ *
  * This contract compiles to EVM bytecode.
  * It is only deployed on Layer 1.
- *
- * Key Functionality: 
- * Defines the ordering of rollup transactions by writing them to the OVM_ChainStorageContainer.
- * Allows any user or contract to 'enqueue' their own transactions to the rollup state, which the
- * Sequencer must eventually append to the rollup state. If the Sequencer does not include an
- * enqueued transaction, any user may force it to be included by calling appendQueueBatch.
- *   
  */
 contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_AddressResolver {
 

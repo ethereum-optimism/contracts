@@ -6,6 +6,14 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 
 /**
  * @title OVM_SafetyChecker
+ * @dev  The Safety Checker ensures that contracts deployed on L2 do not contain any
+ * "unsafe" opcodes. An opcode is considered unsafe if it would access state variables which
+ * are specific to the environment (ie. L1 or L2) in which it is executed, as this could be used
+ * to "escape the sandbox" of the OVM, resulting in non-deterministic fraud proofs. 
+ * That is, an attacker wouuld be able to "prove fraud" on an honestly applied transaction.
+ *
+ * This contract compiles to EVM bytecode.
+ * It is only deployed on both Layer 1 and Layer 2. 
  */
 contract OVM_SafetyChecker is iOVM_SafetyChecker {
 
