@@ -64,10 +64,11 @@ export const deploy = async (
       if (config.waitForReceipts) {
         await contracts[name].deployTransaction.wait()
       }
-      const res = await AddressManager.setAddress(name, contracts[name].address)
-      if (config.waitForReceipts) {
-        await res.wait()
-      }
+      // Don't set address because the deployer doesn't have access to this address
+      // const res = await AddressManager.setAddress(name, contracts[name].address)
+      // if (config.waitForReceipts) {
+      //   await res.wait()
+      // }
     } catch (err) {
       console.error(`Error deploying ${name}: ${err}`)
       failedDeployments.push(name)
