@@ -14,6 +14,10 @@ import { OVM_StateTransitioner } from "./OVM_StateTransitioner.sol";
 
 /**
  * @title OVM_StateTransitionerFactory
+ * @dev @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 contract OVM_StateTransitionerFactory is iOVM_StateTransitionerFactory, Lib_AddressResolver {
 

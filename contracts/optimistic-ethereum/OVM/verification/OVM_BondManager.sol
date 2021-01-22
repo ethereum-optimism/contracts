@@ -10,6 +10,10 @@ import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.s
 
 /**
  * @title OVM_BondManager
+ * @dev @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
 

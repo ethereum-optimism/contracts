@@ -9,6 +9,10 @@ import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageCo
 
 /**
  * @title OVM_ChainStorageContainer
+ * @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressResolver {
 

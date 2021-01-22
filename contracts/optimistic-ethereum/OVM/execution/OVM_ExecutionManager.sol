@@ -19,6 +19,10 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
 
 /**
  * @title OVM_ExecutionManager
+ * @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 

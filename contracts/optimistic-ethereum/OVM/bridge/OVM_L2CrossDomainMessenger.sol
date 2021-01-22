@@ -19,6 +19,10 @@ import { OVM_BaseCrossDomainMessenger } from "./OVM_BaseCrossDomainMessenger.sol
  * @title OVM_L2CrossDomainMessenger
  * @dev L2 CONTRACT (COMPILED)
  * This contract lives on L2. It sends messages to L1, and relays them from L1.
+ * @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, OVM_BaseCrossDomainMessenger, Lib_AddressResolver {
 

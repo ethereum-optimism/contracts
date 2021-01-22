@@ -13,6 +13,14 @@ import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrappe
 
 /**
  * @title OVM_ECDSAContractAccount
+ * @dev The OVM_ECDSAContractAccount
+ * 
+ * @todo: header comment
+ * 
+ * This contract compiles to EVM bytecode, but is OVM safe due to it's use of 
+ * Lib_SafeExecutionManagerWrapper.
+ * It is meant to be deployed on Layer 2, though it is not part of the genesis state
+ * like predeployed contracts.
  */
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 

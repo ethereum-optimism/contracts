@@ -5,6 +5,10 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 
 /**
  * @title OVM_ProxySequencerEntrypoint
+ * @dev @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 contract OVM_ProxySequencerEntrypoint {
 

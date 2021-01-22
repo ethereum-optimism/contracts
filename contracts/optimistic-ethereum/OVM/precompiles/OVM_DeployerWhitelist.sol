@@ -11,6 +11,10 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 /**
  * @title OVM_DeployerWhitelist
  * @dev L2 CONTRACT (NOT COMPILED)
+ * @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
 

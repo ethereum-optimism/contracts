@@ -11,6 +11,10 @@ import { Lib_ReentrancyGuard } from "../../libraries/utils/Lib_ReentrancyGuard.s
 
 /**
  * @title OVM_BaseCrossDomainMessenger
+ * @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 abstract contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger, Lib_ReentrancyGuard {
 

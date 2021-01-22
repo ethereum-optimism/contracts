@@ -10,6 +10,10 @@ import { OVM_StateManager } from "./OVM_StateManager.sol";
 
 /**
  * @title OVM_StateManagerFactory
+ * @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 contract OVM_StateManagerFactory is iOVM_StateManagerFactory {
 

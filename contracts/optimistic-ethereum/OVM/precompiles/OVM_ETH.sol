@@ -12,6 +12,10 @@ import { iOVM_BaseCrossDomainMessenger } from "../../iOVM/bridge/iOVM_BaseCrossD
 /**
  * @title OVM_ETH
  * @dev L2 CONTRACT (COMPILED)
+ * @todo: header comment
+ * 
+ * This contract compiles to __
+ * It is (only) deployed on Layer ...
  */
 contract OVM_ETH is iOVM_ERC20, Lib_AddressResolver {
 

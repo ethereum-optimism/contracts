@@ -8,6 +8,11 @@ import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManage
 /**
  * @title OVM_L1MessageSender
  * @dev L2 CONTRACT (NOT COMPILED)
+ * 
+ * This contract is compiled by the standard Solidity compiler, but is written to be OVM safe.
+ * It is a predeploy on Layer 2.
+ *
+ * The function of this contract is to return the L1 address which call 
  */
 contract OVM_L1MessageSender is iOVM_L1MessageSender {
 
