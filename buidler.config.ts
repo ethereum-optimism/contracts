@@ -7,6 +7,7 @@ import {
 
 usePlugin('@nomiclabs/buidler-ethers')
 usePlugin('@nomiclabs/buidler-waffle')
+usePlugin('@nomiclabs/buidler-etherscan')
 usePlugin('buidler-typechain')
 
 import './plugins/buidler/ovm-compiler'
