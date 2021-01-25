@@ -6,7 +6,7 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 
 /**
  * @title OVM_SafetyChecker
- * @dev  The Safety Checker ensures that contracts deployed on L2 do not contain any
+ * @dev  The Safety Checker verifies that contracts deployed on L2 do not contain any
  * "unsafe" operations. An operation is considered unsafe if it would access state variables which
  * are specific to the environment (ie. L1 or L2) in which it is executed, as this could be used
  * to "escape the sandbox" of the OVM, resulting in non-deterministic fraud proofs. 
