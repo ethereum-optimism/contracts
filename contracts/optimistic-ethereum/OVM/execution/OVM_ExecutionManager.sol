@@ -20,9 +20,10 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
 /**
  * @title OVM_ExecutionManager
  * @todo: header comment
+ * @dev The Execution Manager... 
  * 
- * This contract compiles to __
- * It is (only) deployed on Layer ...
+ * Compiler used: solc
+ * Runtime target: EVM
  */
 contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
@@ -312,8 +313,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /**
-     * @notice Specifies what L1 EOA, if any, sent this transaction.
-     * @return _l1TxOrigin Address of the EOA which send the tx into L2 from L1.
+     * @notice Specifies which L1 account, if any, sent this transaction.
+     * @return _l1TxOrigin Address of the account which sent the tx into L2 from L1.
      */
     function ovmL1TXORIGIN()
         override

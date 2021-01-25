@@ -7,12 +7,17 @@ import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManage
 
 /**
  * @title OVM_L1MessageSender
- * @dev L2 CONTRACT (NOT COMPILED)
+ * @dev The L1MessageSender is a predeploy contract running on L2. During an L1 to L2 cross domain transaction
+ * it returns the address of the L1 account (either an EOA or contract) which sent the message to L2 by calling
+ * the Canonical Transaction Chain's `enqueue()` function.
  * 
- * This contract is compiled by the standard Solidity compiler, but is written to be OVM safe.
- * It is a predeploy on Layer 2.
- *
- * The function of this contract is to return the L1 address which call 
+ * This contract can be thought of as a getter for the ovmL1TXORIGIN operation in the Execution Manager. 
+ * It is necessary to have this contract... @todo... this is WIP
+ * The only reason it exists is that if you add +build ovm to a contract this becomes inaccessible,
+ * because the above line would be turned into iOVM_EM(ovmCALLER).ovmL1TXORIGIN which would then not give you actual access to the EM.
+ * 
+ * Compiler used: solc
+ * Runtime target: EVM
  */
 contract OVM_L1MessageSender is iOVM_L1MessageSender {
 
@@ -31,6 +36,7 @@ contract OVM_L1MessageSender is iOVM_L1MessageSender {
             address _l1MessageSender
         )
     {
+        // msg.sender is expected to be the Execution Manager
         return iOVM_ExecutionManager(msg.sender).ovmL1TXORIGIN();
     }
 }
