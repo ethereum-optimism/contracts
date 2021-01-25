@@ -11,13 +11,27 @@ interface iOVM_BaseCrossDomainMessenger {
     /**********
      * Events *
      **********/
-    event SentMessage(bytes message);
-    event RelayedMessage(bytes32 msgHash);
 
-    /**********************
-     * Contract Variables *
-     **********************/
-    function xDomainMessageSender() external view returns (address);
+    event SentMessage(
+        bytes message
+    );
+
+    event RelayedMessage(
+        bytes32 msgHash
+    );
+
+
+    /*************
+     * Variables *
+     *************/
+
+    function xDomainMessageSender()
+        external
+        view
+        returns (
+            address
+        );
+
 
     /********************
      * Public Functions *
@@ -33,5 +47,6 @@ interface iOVM_BaseCrossDomainMessenger {
         address _target,
         bytes calldata _message,
         uint32 _gasLimit
-    ) external;
+    )
+        external;
 }

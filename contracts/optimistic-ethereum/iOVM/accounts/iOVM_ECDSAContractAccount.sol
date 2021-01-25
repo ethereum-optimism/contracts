@@ -14,11 +14,26 @@ interface iOVM_ECDSAContractAccount {
      * Public Functions *
      ********************/
 
+    /**
+     * Executes a signed transaction.
+     * @param _transaction Signed EOA transaction.
+     * @param _signatureType Hashing scheme used for the transaction (e.g., ETH signed message).
+     * @param _v Signature `v` parameter.
+     * @param _r Signature `r` parameter.
+     * @param _s Signature `s` parameter.
+     * @return Whether or not the call returned (rather than reverted).
+     * @return Data returned by the call.
+     */
     function execute(
         bytes memory _transaction,
         Lib_OVMCodec.EOASignatureType _signatureType,
         uint8 _v,
         bytes32 _r,
         bytes32 _s
-    ) external returns (bool _success, bytes memory _returndata);
+    )
+        external
+        returns (
+            bool,
+            bytes memory
+        );
 }

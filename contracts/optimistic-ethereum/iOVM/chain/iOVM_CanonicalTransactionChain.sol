@@ -62,24 +62,24 @@ interface iOVM_CanonicalTransactionChain {
 
     /**
      * Retrieves the total number of elements submitted.
-     * @return _totalElements Total submitted elements.
+     * @return Total submitted elements.
      */
     function getTotalElements()
         external
         view
         returns (
-            uint256 _totalElements
+            uint256
         );
 
     /**
      * Retrieves the total number of batches submitted.
-     * @return _totalBatches Total submitted batches.
+     * @return Total submitted batches.
      */
     function getTotalBatches()
         external
         view
         returns (
-            uint256 _totalBatches
+            uint256
         );
 
     /**
@@ -119,7 +119,7 @@ interface iOVM_CanonicalTransactionChain {
     /**
      * Gets the queue element at a particular index.
      * @param _index Index of the queue element to access.
-     * @return _element Queue element at the given index.
+     * @return Queue element at the given index.
      */
     function getQueueElement(
         uint256 _index
@@ -127,7 +127,7 @@ interface iOVM_CanonicalTransactionChain {
         external
         view
         returns (
-            Lib_OVMCodec.QueueElement memory _element
+            Lib_OVMCodec.QueueElement memory
         );
 
     /**

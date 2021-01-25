@@ -11,16 +11,18 @@ import { OVM_StateManager } from "./OVM_StateManager.sol";
 /**
  * @title OVM_StateManagerFactory
  */
-contract OVM_StateManagerFactory is iOVM_StateManagerFactory {
+contract OVM_StateManagerFactory is
+    iOVM_StateManagerFactory
+{
 
-    /***************************************
-     * Public Functions: Contract Creation *
-     ***************************************/
+    /********************
+     * Public Functions *
+     ********************/
 
     /**
      * Creates a new OVM_StateManager
      * @param _owner Owner of the created contract.
-     * @return _ovmStateManager New OVM_StateManager instance.
+     * @return New OVM_StateManager instance.
      */
     function create(
         address _owner
@@ -28,7 +30,7 @@ contract OVM_StateManagerFactory is iOVM_StateManagerFactory {
         override
         public
         returns (
-            iOVM_StateManager _ovmStateManager
+            iOVM_StateManager
         )
     {
         return new OVM_StateManager(_owner);

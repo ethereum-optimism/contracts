@@ -10,5 +10,17 @@ interface iOVM_SafetyChecker {
      * Public Functions *
      ********************/
 
-    function isBytecodeSafe(bytes calldata _bytecode) external view returns (bool);
+    /**
+     * Returns whether or not all of the provided bytecode is safe.
+     * @param _bytecode The bytecode to safety check.
+     * @return `true` if the bytecode is safe, `false` otherwise.
+     */
+    function isBytecodeSafe(
+        bytes calldata _bytecode
+    )
+        external
+        view
+        returns (
+            bool
+        );
 }

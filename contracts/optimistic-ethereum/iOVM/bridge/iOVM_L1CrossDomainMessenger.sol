@@ -11,11 +11,13 @@ import { iOVM_BaseCrossDomainMessenger } from "./iOVM_BaseCrossDomainMessenger.s
 /**
  * @title iOVM_L1CrossDomainMessenger
  */
-interface iOVM_L1CrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
+interface iOVM_L1CrossDomainMessenger is
+    iOVM_BaseCrossDomainMessenger
+{
 
-    /*******************
-     * Data Structures *
-     *******************/
+    /***********
+     * Structs *
+     ***********/
 
     struct L2MessageInclusionProof {
         bytes32 stateRoot;
@@ -44,7 +46,8 @@ interface iOVM_L1CrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
         bytes memory _message,
         uint256 _messageNonce,
         L2MessageInclusionProof memory _proof
-    ) external;
+    )
+        external;
 
     /**
      * Replays a cross domain message to the target messenger.
@@ -60,5 +63,6 @@ interface iOVM_L1CrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
         bytes memory _message,
         uint256 _messageNonce,
         uint32 _gasLimit
-    ) external;
+    )
+        external;
 }

@@ -73,7 +73,7 @@ contract OVM_ProxySequencerEntrypoint {
     function _getImplementation()
         internal
         returns (
-            address _implementation
+            address
         )
     {
         return address(uint160(uint256(
@@ -97,7 +97,7 @@ contract OVM_ProxySequencerEntrypoint {
     function _getOwner()
         internal
         returns (
-            address _owner
+            address
         )
     {
         return address(uint160(uint256(

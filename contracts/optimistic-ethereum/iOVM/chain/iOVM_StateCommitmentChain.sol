@@ -34,35 +34,35 @@ interface iOVM_StateCommitmentChain {
 
     /**
      * Retrieves the total number of elements submitted.
-     * @return _totalElements Total submitted elements.
+     * @return Total submitted elements.
      */
     function getTotalElements()
         external
         view
         returns (
-            uint256 _totalElements
+            uint256
         );
 
     /**
      * Retrieves the total number of batches submitted.
-     * @return _totalBatches Total submitted batches.
+     * @return Total submitted batches.
      */
     function getTotalBatches()
         external
         view
         returns (
-            uint256 _totalBatches
+            uint256
         );
 
     /**
      * Retrieves the timestamp of the last batch submitted by the sequencer.
-     * @return _lastSequencerTimestamp Last sequencer batch timestamp.
+     * @return Last sequencer batch timestamp.
      */
     function getLastSequencerTimestamp()
         external
         view
         returns (
-            uint256 _lastSequencerTimestamp
+            uint256
         );
 
     /**
@@ -99,13 +99,13 @@ interface iOVM_StateCommitmentChain {
         external
         view
         returns (
-            bool _verified
+            bool
         );
 
     /**
      * Checks whether a given batch is still inside its fraud proof window.
      * @param _batchHeader Header of the batch to check.
-     * @return _inside Whether or not the batch is inside the fraud proof window.
+     * @return Whether or not the batch is inside the fraud proof window.
      */
     function insideFraudProofWindow(
         Lib_OVMCodec.ChainBatchHeader memory _batchHeader
@@ -113,6 +113,6 @@ interface iOVM_StateCommitmentChain {
         external
         view
         returns (
-            bool _inside
+            bool
         );
 }

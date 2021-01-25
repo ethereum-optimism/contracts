@@ -12,11 +12,13 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
  * @title OVM_DeployerWhitelist
  * @dev L2 CONTRACT (NOT COMPILED)
  */
-contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
+contract OVM_DeployerWhitelist is
+    iOVM_DeployerWhitelist
+{
 
-    /**********************
-     * Contract Constants *
-     **********************/
+    /*************
+     * Constants *
+     *************/
 
     bytes32 internal constant KEY_INITIALIZED =                0x0000000000000000000000000000000000000000000000000000000000000010;
     bytes32 internal constant KEY_OWNER =                      0x0000000000000000000000000000000000000000000000000000000000000011;
@@ -168,7 +170,7 @@ contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
     /**
      * Checks whether an address is allowed to deploy contracts.
      * @param _deployer Address to check.
-     * @return _allowed Whether or not the address can deploy contracts.
+     * @return Whether or not the address can deploy contracts.
      */
     function isDeployerAllowed(
         address _deployer
@@ -176,7 +178,7 @@ contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
         override
         public
         returns (
-            bool _allowed
+            bool
         )
     {
         bool initialized = Lib_Bytes32Utils.toBool(

@@ -11,5 +11,12 @@ interface iOVM_L1MessageSender {
      * Public Functions *
      ********************/
 
-    function getL1MessageSender() external returns (address _l1MessageSender);
+    /**
+     * @return L1 message sender address (msg.sender).
+     */
+    function getL1MessageSender()
+        external
+        returns (
+            address
+        );
 }

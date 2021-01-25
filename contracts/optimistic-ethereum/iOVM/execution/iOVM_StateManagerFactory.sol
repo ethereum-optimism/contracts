@@ -9,15 +9,20 @@ import { iOVM_StateManager } from "./iOVM_StateManager.sol";
  */
 interface iOVM_StateManagerFactory {
 
-    /***************************************
-     * Public Functions: Contract Creation *
-     ***************************************/
+    /********************
+     * Public Functions *
+     ********************/
 
+    /**
+     * Creates a new OVM_StateManager
+     * @param _owner Owner of the created contract.
+     * @return New OVM_StateManager instance.
+     */
     function create(
         address _owner
     )
         external
         returns (
-            iOVM_StateManager _ovmStateManager
+            iOVM_StateManager
         );
 }
