@@ -158,7 +158,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint40
         )
     {
-        (, uint40 nextQueueIndex,,) = _getBatchExtraData();
+        (,uint40 nextQueueIndex,,) = _getBatchExtraData();
         return nextQueueIndex;
     }
 
@@ -166,6 +166,36 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * Gets the queue element at a particular index.
      * @param _index Index of the queue element to access.
      * @return _element Queue element at the given index.
+     */
+    function getLastTimestamp()
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+        (,,uint40 lastTimestamp,) = _getBatchExtraData();
+        return lastTimestamp;
+    }
+
+    /**
+     * @inheritdoc iOVM_CanonicalTransactionChain
+     */
+    function getLastBlockNumber()
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+        (,,,uint40 lastBlockNumber) = _getBatchExtraData();
+        return lastBlockNumber;
+    }
+
+    /**
+     * @inheritdoc iOVM_CanonicalTransactionChain
      */
     function getQueueElement(
         uint256 _index
@@ -886,7 +916,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                 _nextContext.blockNumber <= nextQueueElement.blockNumber,
                 "Sequencer transaction blockNumber exceeds that of next queue element."
             );
-        }   
+        }
     }
 
     /**
