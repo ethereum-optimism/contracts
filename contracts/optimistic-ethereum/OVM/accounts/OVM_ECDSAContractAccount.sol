@@ -13,14 +13,14 @@ import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrappe
 
 /**
  * @title OVM_ECDSAContractAccount
- * @dev The OVM_ECDSAContractAccount
- * 
- * @todo: header comment
- * 
- * This contract compiles to EVM bytecode, but is OVM safe due to it's use of 
- * Lib_SafeExecutionManagerWrapper.
- * It is meant to be deployed on Layer 2, though it is not part of the genesis state
- * like predeployed contracts.
+ * @dev The ECDSA Contract Account exists for backwards compatibility with Ethereum's Layer 1. 
+ * It allows for a contract to verify 
+  it contains a method execute(...) which behaves exactly like EOAs on L1: it recovers the signature based on standard L1 EIP155 transaction encoding, and increments its own nonce the same way as on L1.
+
+ *
+ * Compiler used: optimistic-solc
+ * Runtime target: OVM
+ * Execution environment: Layer 2
  */
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 

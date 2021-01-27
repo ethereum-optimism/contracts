@@ -22,7 +22,7 @@ import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
 /**
  * @title OVM_FraudVerifier
  * @dev Implementation of the Fraud Verifier contract.
- *
+ * @todo: header comment
  * This contract compiles to EVM bytecode.
  * It is only deployed on Layer 1.
  * 

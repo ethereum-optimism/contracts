@@ -42,7 +42,7 @@ library Lib_SafeExecutionManagerWrapper {
     }
 
     /**
-     * Makes an ovmCALL and performs all the necessary safety checks.
+     * Makes an ovmDELEGATECALL and performs all the necessary safety checks.
      * @param _gasLimit Gas limit for the call.
      * @param _target Address to call.
      * @param _calldata Data to send to the call.

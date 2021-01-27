@@ -35,6 +35,7 @@ import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
  * 
  * Compiler used: solc
  * Runtime target: EVM
+ * Execution environment: Layer 1
  */
 contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOVM_StateTransitioner {
 
