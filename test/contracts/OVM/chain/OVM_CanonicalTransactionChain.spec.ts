@@ -167,6 +167,7 @@ describe('OVM_CanonicalTransactionChain', () => {
       await sequencer.getAddress()
     )
     await AddressManager.setAddress(
+      //  @note: temp not touching this for now... 
       'OVM_DecompressionPrecompileAddress',
       DECOMPRESSION_ADDRESS
     )

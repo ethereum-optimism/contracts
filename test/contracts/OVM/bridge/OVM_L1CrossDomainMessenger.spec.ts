@@ -187,7 +187,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
 
       calldata = getXDomainCalldata(sender, target, message, 0)
 
-      const precompile = '0x4200000000000000000000000000000000000000'
+      const predeploy = '0x4200000000000000000000000000000000000000'
 
       const storageKey = keccak256(
         keccak256(
@@ -207,7 +207,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
       const generator = await TrieTestGenerator.fromAccounts({
         accounts: [
           {
-            address: precompile,
+            address: predeploy,
             nonce: 0,
             balance: 0,
             codeHash: keccak256('0x1234'),
@@ -221,7 +221,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
         stateRoot: toHexString(generator._trie.root),
         stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
         stateRootProof: DUMMY_BATCH_PROOFS[0],
-        stateTrieWitness: (await generator.makeAccountProofTest(precompile))
+        stateTrieWitness: (await generator.makeAccountProofTest(predeploy))
           .accountTrieWitness,
         storageTrieWitness: (
           await storageGenerator.makeInclusionProofTest(storageKey)

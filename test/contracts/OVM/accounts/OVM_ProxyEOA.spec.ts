@@ -14,25 +14,25 @@ import {
 } from '../../../helpers'
 import { getContractInterface } from '../../../../src'
 
-const callPrecompile = async (
-  Helper_PrecompileCaller: Contract,
-  precompile: Contract,
+const callPredeploy = async (
+  Helper_PredeployCaller: Contract,
+  predeploy: Contract,
   functionName: string,
   functionParams?: any[],
   ethCall: boolean = false
 ): Promise<any> => {
   if (ethCall) {
-    return Helper_PrecompileCaller.callStatic.callPrecompileAbi(
-      precompile.address,
-      precompile.interface.encodeFunctionData(
+    return Helper_PredeployCaller.callStatic.callPredeployAbi(
+      predeploy.address,
+      predeploy.interface.encodeFunctionData(
         functionName,
         functionParams || []
       )
     )
   }
-  return Helper_PrecompileCaller.callPrecompile(
-    precompile.address,
-    precompile.interface.encodeFunctionData(functionName, functionParams || [])
+  return Helper_PredeployCaller.callPredeploy(
+    predeploy.address,
+    predeploy.interface.encodeFunctionData(functionName, functionParams || [])
   )
 }
 
@@ -49,17 +49,17 @@ describe('OVM_ProxyEOA', () => {
 
   let Mock__OVM_ExecutionManager: MockContract
   let Mock__OVM_ECDSAContractAccount: MockContract
-  let Helper_PrecompileCaller: Contract
+  let Helper_PredeployCaller: Contract
   before(async () => {
     Mock__OVM_ExecutionManager = smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 
-    Helper_PrecompileCaller = await (
-      await ethers.getContractFactory('Helper_PrecompileCaller')
+    Helper_PredeployCaller = await (
+      await ethers.getContractFactory('Helper_PredeployCaller')
     ).deploy()
 
-    Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
+    Helper_PredeployCaller.setTarget(Mock__OVM_ExecutionManager.address)
 
     Mock__OVM_ECDSAContractAccount = smockit(
       await ethers.getContractFactory('OVM_ECDSAContractAccount')
@@ -84,13 +84,13 @@ describe('OVM_ProxyEOA', () => {
   })
 
   describe('getImplementation()', () => {
-    it(`should be created with implementation at precompile address`, async () => {
+    it(`should be created with implementation at predeploy address`, async () => {
       const eoaDefaultAddrBytes32 = addrToBytes32(eoaDefaultAddr)
       Mock__OVM_ExecutionManager.smocked.ovmSLOAD.will.return.with(
         eoaDefaultAddrBytes32
       )
-      const implAddrBytes32 = await callPrecompile(
-        Helper_PrecompileCaller,
+      const implAddrBytes32 = await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ProxyEOA,
         'getImplementation',
         [],
@@ -105,7 +105,7 @@ describe('OVM_ProxyEOA', () => {
     it(`should upgrade the proxy implementation`, async () => {
       const newImpl = `0x${'81'.repeat(20)}`
       const newImplBytes32 = addrToBytes32(newImpl)
-      await callPrecompile(Helper_PrecompileCaller, OVM_ProxyEOA, 'upgrade', [
+      await callPredeploy(Helper_PredeployCaller, OVM_ProxyEOA, 'upgrade', [
         newImpl,
       ])
       const ovmSSTORE: any =
@@ -118,7 +118,7 @@ describe('OVM_ProxyEOA', () => {
         await wallet.getAddress()
       )
       const newImpl = `0x${'81'.repeat(20)}`
-      await callPrecompile(Helper_PrecompileCaller, OVM_ProxyEOA, 'upgrade', [
+      await callPredeploy(Helper_PredeployCaller, OVM_ProxyEOA, 'upgrade', [
         newImpl,
       ])
       const ovmREVERT: any =
@@ -138,7 +138,7 @@ describe('OVM_ProxyEOA', () => {
         '0x1234',
       ])
       const calldata = '0xdeadbeef'
-      await Helper_PrecompileCaller.callPrecompile(
+      await Helper_PredeployCaller.callPredeploy(
         OVM_ProxyEOA.address,
         calldata
       )
