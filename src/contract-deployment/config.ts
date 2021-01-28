@@ -126,10 +126,6 @@ export const makeContractDeployConfig = async (
             : await sequencer.getAddress()
         await _sendTx(
           AddressManager.setAddress(
-             // @temp note, do not merge:
-             // this was probably the SequencerEntrypoint's old name. 
-             // having these different names all over the place feels dangerous. 
-             // at some point we need to finalize on consistent names, even if they are not perfect.
             'OVM_DecompressionPrecompileAddress',
             '0x4200000000000000000000000000000000000005'
           )
