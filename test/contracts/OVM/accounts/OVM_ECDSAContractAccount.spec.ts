@@ -15,8 +15,8 @@ import {
 } from '../../../helpers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 
-const callPrecompile = async (
-  Helper_PrecompileCaller: Contract,
+const callPredeploy = async (
+  Helper_PredeployCaller: Contract,
   precompile: Contract,
   functionName: string,
   functionParams?: any[],

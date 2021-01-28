@@ -110,7 +110,7 @@ contract OVM_SafetyChecker is iOVM_SafetyChecker {
                         secondOps := shr(216, mload(add(_pc, 0x20)))
                     }
 
-                    // Call identity precompile
+                    // Call identity predeploy
                     // CALLER POP PUSH1 0x00 PUSH1 0x04 GAS CALL
                     // 32 - 8 bytes = 24 bytes = 192
                     if ((firstOps >> 192) == 0x3350600060045af1) {
