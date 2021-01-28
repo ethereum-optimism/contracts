@@ -11,11 +11,12 @@ import { iOVM_BaseCrossDomainMessenger } from "../../iOVM/bridge/iOVM_BaseCrossD
 
 /**
  * @title OVM_ETH
- * @dev L2 CONTRACT (COMPILED)
- * @todo: header comment
+ * @dev The ETH predeploy provides an ERC20 interface for ETH deposited to Layer 2. Note that 
+ * unlike on Layer 1, Layer 2 accounts do not have a balance field.
  * 
- * This contract compiles to __
- * It is (only) deployed on Layer ...
+ * Compiler used: optimistic-solc
+ * Runtime target: OVM
+ * Execution environment: Layer 2
  */
 contract OVM_ETH is iOVM_ERC20, Lib_AddressResolver {
 

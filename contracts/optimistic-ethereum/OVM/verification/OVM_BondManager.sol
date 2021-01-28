@@ -10,10 +10,14 @@ import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.s
 
 /**
  * @title OVM_BondManager
- * @dev @todo: header comment
+ * @dev The Bond Manager contract handles deposits in the form of an ERC20 token from bonded 
+ * Proposers. It also handles the accounting of gas costs spent by a Verifier during the course of a
+ * fraud proof. In the event of a successful fraud proof, the fraudulent Proposer's bond is slashed, 
+ * and the Verifier's gas costs are refunded.
  * 
- * This contract compiles to __
- * It is (only) deployed on Layer ...
+ * Compiler used: solc
+ * Runtime target: EVM
+ * Execution environment: Layer 1
  */
 contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
 

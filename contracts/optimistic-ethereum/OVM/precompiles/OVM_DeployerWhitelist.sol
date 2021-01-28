@@ -10,11 +10,14 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 
 /**
  * @title OVM_DeployerWhitelist
- * @dev L2 CONTRACT (NOT COMPILED)
- * @todo: header comment
+ * @dev The Deployer Whitelist is a temporary predeploy used to provide additional safety during the
+ * initial phases of our mainnet roll out. It is owned by the Optimism team, and defines accounts
+ * which are allowed to deploy contracts on Layer2. The Execution Manager will only allow an 
+ * ovmCREATE or ovmCREATE2 operation to proceed if the deployer's address whitelisted.
  * 
- * This contract compiles to __
- * It is (only) deployed on Layer ...
+ * Compiler used: solc
+ * Runtime target: OVM
+ * Execution environment: Layer 2
  */
 contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
 

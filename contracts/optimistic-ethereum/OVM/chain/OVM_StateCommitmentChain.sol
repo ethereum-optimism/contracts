@@ -19,16 +19,14 @@ import '@openzeppelin/contracts/math/SafeMath.sol';
 
 /**
  * @title OVM_StateCommitmentChain
- * @dev A list of proposed state roots which Proposers assert to be a result of each transaction
- * in the Canonical Transaction Chain. 
- * 
- * This contract compiles to EVM bytecode.
- * It is only deployed on Layer 1.
+ * @dev The State Commitment Chain (SCC) contract contains a list of proposed state roots which
+ * Proposers assert to be a result of each transaction in the Canonical Transaction Chain (CTC). 
+ * Elements here have a 1:1 correspondence with transactions in the CTC, and should be the unique
+ * state root calculated off-chain by applying the canonical transactions one by one.
  *
- * Key Functionality: 
- * Elements here have a 1:1 correspondence with transactions in the Canonical Transaction Chain,
- * and should be the unique state root calculated off-chain by applying the canonical transactions one
- * by one.
+ * Compiler used: solc
+ * Runtime target: EVM
+ * Execution environment: Layer 1
  */
 contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResolver {
 

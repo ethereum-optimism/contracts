@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// +build ovm
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -11,10 +10,13 @@ import { Lib_ReentrancyGuard } from "../../libraries/utils/Lib_ReentrancyGuard.s
 
 /**
  * @title OVM_BaseCrossDomainMessenger
- * @todo: header comment
- * 
- * This contract compiles to __
- * It is (only) deployed on Layer ...
+ * @dev The Base Cross Domain Messenger is an abstract contract providing the interface and common functionality used in the
+ * L1 and L2 Cross Domain Messengers. It can also serve as a template for developers wishing to implement a custom bridge 
+ * contract to suit their needs.
+ *
+ * Compiler used: defined by child contract
+ * Runtime target: defined by child contract
+ * Execution environment: defined by child contract
  */
 abstract contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger, Lib_ReentrancyGuard {
 

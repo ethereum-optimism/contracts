@@ -21,13 +21,13 @@ import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
 
 /**
  * @title OVM_FraudVerifier
- * @dev Implementation of the Fraud Verifier contract.
- * @todo: header comment
- * This contract compiles to EVM bytecode.
- * It is only deployed on Layer 1.
+ * @dev The Fraud Verifier contract coordinates the entire fraud proof verification process. 
+ * If the fraud proof was successful it prunes any state batches from State Commitment Chain
+ * which were published after the fraudulent state root.
  * 
- * The Fraud Verifier contract is the entrty point contract that a verifier will call to initiate 
- * a fraud proof.
+ * Compiler used: solc
+ * Runtime target: EVM
+ * Execution environment: Layer 1
  */
 contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_FraudVerifier {
 

@@ -10,10 +10,12 @@ import { OVM_StateManager } from "./OVM_StateManager.sol";
 
 /**
  * @title OVM_StateManagerFactory
- * @todo: header comment
+ * @dev The State Manager Factory is called by a State Transitioner's init code, to create a new 
+ * State Manager for use in the Fraud Verification process.
  * 
- * This contract compiles to __
- * It is (only) deployed on Layer ...
+ * Compiler used: solc
+ * Runtime target: EVM
+ * Execution environment: Layer 1
  */
 contract OVM_StateManagerFactory is iOVM_StateManagerFactory {
 

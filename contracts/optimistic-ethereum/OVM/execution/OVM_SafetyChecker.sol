@@ -11,10 +11,12 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
  * are specific to the environment (ie. L1 or L2) in which it is executed, as this could be used
  * to "escape the sandbox" of the OVM, resulting in non-deterministic fraud proofs. 
  * That is, an attacker would be able to "prove fraud" on an honestly applied transaction.
- * Note that a "safe" contract requires opcodes to appear in a particular pattern; omission of "unsafe" opcodes is necessary, but not sufficient.
+ * Note that a "safe" contract requires opcodes to appear in a particular pattern;
+ * omission of "unsafe" opcodes is necessary, but not sufficient.
  *
- * This contract compiles to EVM bytecode.
- * It is only deployed on both Layer 1 and Layer 2. 
+ * Compiler used: solc
+ * Runtime target: EVM
+ * Execution environment: Layers 1 and 2
  */
 contract OVM_SafetyChecker is iOVM_SafetyChecker {
 
