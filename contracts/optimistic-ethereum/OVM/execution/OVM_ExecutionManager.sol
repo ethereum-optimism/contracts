@@ -26,7 +26,7 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
  * transaction on L2. 
  * For each context-dependent EVM operation the EM has a function which implements a corresponding 
  * OVM operation, which will read state from the State Manager contract.
- * The EM relies on the Safety Checker to verify that code running on Layer 2 does not contain any 
+ * The EM relies on the Safety Checker to verify that code deployed to Layer 2 does not contain any 
  * context-dependent operations.
  * 
  * Compiler used: solc
