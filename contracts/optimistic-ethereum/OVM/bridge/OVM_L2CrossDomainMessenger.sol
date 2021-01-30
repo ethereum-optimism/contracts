@@ -17,7 +17,7 @@ import { OVM_BaseCrossDomainMessenger } from "./OVM_BaseCrossDomainMessenger.sol
 
 /**
  * @title OVM_L2CrossDomainMessenger
- * @dev The L2 Cross Domain Messenger contract sends messages from L2 to L1, and relays messages from L1 onto L1.
+ * @dev The L2 Cross Domain Messenger contract sends messages from L2 to L1, and is the entry point for L2 messages sent via the L1 Cross Domain Messenger.
  * 
  * Compiler used: optimistic-solc
  * Runtime target: OVM
