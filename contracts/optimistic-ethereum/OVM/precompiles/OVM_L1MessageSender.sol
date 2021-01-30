@@ -12,7 +12,7 @@ import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManage
  * contract) which sent the message to L2 via the Canonical Transaction Chain's `enqueue()` 
  * function.
  * 
- * This contract can be thought of as a getter for the ovmL1TXORIGIN operation. This is necessary 
+ * This contract exclusively serves as a getter for the ovmL1TXORIGIN operation. This is necessary 
  * because there is no corresponding operation in the EVM which the the optimistic solidity compiler 
  * can be replaced with a call to the ExecutionManager's ovmL1TXORIGIN() function.
  *
