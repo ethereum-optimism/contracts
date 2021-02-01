@@ -19,10 +19,5 @@
     "typeRoots": [
       "node_modules/@types"
     ]
-  },
-  "include": [
-    "src/**/*.ts",
-    "plugins/**/*.ts",
-    "artifacts/*.json",
-  ]
+  }
 }
