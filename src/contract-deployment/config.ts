@@ -111,9 +111,9 @@ export const makeContractDeployConfig = async (
       },
     },
     OVM_MultiRelay: {
-      factory: getContractFactory('OVM_MultiRelay'),
+      factory: getContractFactory('OVM_L1MultiMessageRelayer'),
       params: [
-        await AddressManager.getAddress('Proxy__OVM_L1CrossDomainMessenger'),
+        AddressManager.address,
       ],
     },
     OVM_CanonicalTransactionChain: {

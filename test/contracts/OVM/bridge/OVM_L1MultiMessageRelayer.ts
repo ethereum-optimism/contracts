@@ -16,7 +16,7 @@ import {
 } from '../../../helpers'
 import { sign } from 'crypto'
 
-describe.only('OVM_L1MultiMessageRelayer', () => {
+describe('OVM_L1MultiMessageRelayer', () => {
   let signer: Signer
   before(async () => {
     ;[signer] = await ethers.getSigners()
