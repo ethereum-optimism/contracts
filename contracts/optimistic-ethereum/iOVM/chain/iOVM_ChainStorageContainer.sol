@@ -103,6 +103,22 @@ interface iOVM_ChainStorageContainer {
         returns (
             bytes32
         );
+    
+    /**
+     * Retrieves two consecutive objects from the container.
+     * @param _index Index of the first object to access. Second will be at index+1.
+     * @return 32 byte first object value.
+     * @return 32 byte second object value.
+     */
+    function get2(
+        uint256 _index
+    )
+        external
+        view
+        returns (
+            bytes32,
+            bytes32
+        );
 
     /**
      * Removes all objects after and including a given index.

@@ -724,63 +724,6 @@ describe('OVM_CanonicalTransactionChain', () => {
       )
     })
 
-    it('should allow for a lower bound per-tx gas usage of <400 gas [GAS BENCHMARK]', async () => {
-      const timestamp = (await getEthTime(ethers.provider)) - 100
-      const blockNumber = await getNextBlockNumber(ethers.provider)
-
-      // do two batch appends for no reason
-      await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-        shouldStartAtElement: 0,
-        totalElementsToAppend: 1,
-        contexts: [
-          {
-            numSequencedTransactions: 1,
-            numSubsequentQueueTransactions: 0,
-            timestamp,
-            blockNumber,
-          },
-        ],
-        transactions: ['0x1234'],
-      })
-      await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-        shouldStartAtElement: 1,
-        totalElementsToAppend: 1,
-        contexts: [
-          {
-            numSequencedTransactions: 1,
-            numSubsequentQueueTransactions: 0,
-            timestamp,
-            blockNumber,
-          },
-        ],
-        transactions: ['0x1234'],
-      })
-
-      console.log('\n~~~~ BEGINNGING TRASACTION IN QUESTION ~~~~')
-      const transactions = []
-      const numTxs = 200
-      for (let i = 0; i < numTxs; i++) {
-        transactions.push(
-          '0x' + '1080111111111111111111111111111111111111111111'.repeat(20)
-        )
-      }
-      const res = await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-        shouldStartAtElement: 2,
-        totalElementsToAppend: numTxs,
-        contexts: [
-          {
-            numSequencedTransactions: numTxs,
-            numSubsequentQueueTransactions: 0,
-            timestamp,
-            blockNumber,
-          },
-        ],
-        transactions,
-      })
-      const receipt = await res.wait()
-      console.log('Benchmark complete. Gas used:', receipt.gasUsed)
-    }).timeout(100000000)
-
     it('should revert if expected start does not match current total batches', async () => {
       await expect(
         appendSequencerBatch(OVM_CanonicalTransactionChain, {

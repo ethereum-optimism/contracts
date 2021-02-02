@@ -16,6 +16,8 @@ import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageCo
 /* Contract Imports */
 import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
+import { console } from "hardhat/console.sol";
+
 
 /**
  * @title OVM_CanonicalTransactionChain
@@ -160,22 +162,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             Lib_OVMCodec.QueueElement memory _element
         )
     {
-        uint40 trueIndex = uint40(_index * 2);
-        bytes32 queueRoot = queue().get(trueIndex);
-        bytes32 timestampAndBlockNumber = queue().get(trueIndex + 1);
-
-        uint40 elementTimestamp;
-        uint40 elementBlockNumber;
-        assembly {
-            elementTimestamp   :=         and(timestampAndBlockNumber, 0x000000000000000000000000000000000000000000000000000000FFFFFFFFFF)
-            elementBlockNumber := shr(40, and(timestampAndBlockNumber, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000))
-        }
-
-        return Lib_OVMCodec.QueueElement({
-            queueRoot: queueRoot,
-            timestamp: elementTimestamp,
-            blockNumber: elementBlockNumber
-        });
+        return _getQueueElement(
+            _index,
+            queue()
+        );
     }
 
     /**
@@ -384,6 +374,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         // Get queue length for future comparison/
+        iOVM_ChainStorageContainer queueRef = queue();
         uint40 queueLength = getQueueLength();
 
         // Initialize the array of canonical chain leaves that we will append.
@@ -400,10 +391,18 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         for (uint32 i = 0; i < numContexts; i++) {
             BatchContext memory nextContext = _getBatchContext(i);
+
             if (i == 0) {
                 _validateFirstBatchContext(nextContext);
             }
-            _validateNextBatchContext(curContext, nextContext, nextQueueIndex);
+
+            _validateNextBatchContext(
+                curContext,
+                nextContext,
+                nextQueueIndex,
+                queueLength,
+                queueRef
+            );
 
             curContext = nextContext;
 
@@ -420,7 +419,11 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             }
 
             for (uint32 j = 0; j < curContext.numSubsequentQueueTransactions; j++) {
-                require(nextQueueIndex < queueLength, "Not enough queued transactions to append.");
+                require(
+                    nextQueueIndex < queueLength,
+                    "Not enough queued transactions to append."
+                );
+
                 leaves[leafIndex] = _getQueueLeafHash(nextQueueIndex);
                 nextQueueIndex++;
                 leafIndex++;
@@ -449,7 +452,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             blockNumber = uint40(curContext.blockNumber);
         } else {
             // The last element is a queue tx, therefore pull timestamp and block number from the queue element.
-            Lib_OVMCodec.QueueElement memory lastElement = getQueueElement(nextQueueIndex - 1);
+            Lib_OVMCodec.QueueElement memory lastElement = _getQueueElement(nextQueueIndex - 1, queueRef);
             timestamp = lastElement.timestamp;
             blockNumber = lastElement.blockNumber;
         }
@@ -612,6 +615,41 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
+     * Returns the queue element at a given index.
+     * @param _index Index of the queue element to access.
+     * @param _queue Address of the queue storage container.
+     * @return Queue element at the given index.
+     */
+    function _getQueueElement(
+        uint256 _index,
+        iOVM_ChainStorageContainer _queue
+    )
+        internal
+        view
+        returns (
+            Lib_OVMCodec.QueueElement memory
+        )
+    {
+        (
+            bytes32 queueRoot,
+            bytes32 timestampAndBlockNumber
+        ) = _queue.get2(uint40(_index * 2));
+
+        uint40 elementTimestamp;
+        uint40 elementBlockNumber;
+        assembly {
+            elementTimestamp   :=         and(timestampAndBlockNumber, 0x000000000000000000000000000000000000000000000000000000FFFFFFFFFF)
+            elementBlockNumber := shr(40, and(timestampAndBlockNumber, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000))
+        }
+
+        return Lib_OVMCodec.QueueElement({
+            queueRoot: queueRoot,
+            timestamp: elementTimestamp,
+            blockNumber: elementBlockNumber
+        });
+    }
+
+    /**
      * Retrieves the hash of a queue element.
      * @param _index Index of the queue element to retrieve a hash for.
      * @return Hash of the queue element.
@@ -620,7 +658,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint256 _index
     )
         internal
-        view
+        pure
         returns (
             bytes32
         )
@@ -666,35 +704,42 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint256 _txDataLength
     )
         internal
-        pure
+        view
         returns (
             bytes32
         )
     {
-
-        bytes memory chainElement = new bytes(BYTES_TILL_TX_DATA + _txDataLength);
         uint256 ctxTimestamp = _context.timestamp;
         uint256 ctxBlockNumber = _context.blockNumber;
 
-        bytes32 leafHash;
+        bytes32 leafhash;
         assembly {
+            // We don't update the free memory pointer so that we can reuse this memory space.
+            // Something to be careful of.
+            let chainElement := mload(0x40)
             let chainElementStart := add(chainElement, 0x20)
+
+            // Store the length.
+            mstore(chainElement, add(BYTES_TILL_TX_DATA, _txDataLength))
 
             // Set the first byte equal to `1` to indicate this is a sequencer chain element.
             // This distinguishes sequencer ChainElements from queue ChainElements because
             // all queue ChainElements are ABI encoded and the first byte of ABI encoded
             // elements is always zero
-            mstore8(chainElementStart, 1)
+            mstore8(chainElementStart, 0x01)
 
-            mstore(add(chainElementStart, 1), ctxTimestamp)
-            mstore(add(chainElementStart, 33), ctxBlockNumber)
+            // Store timestamp and block number.
+            mstore(add(chainElementStart, 0x01), ctxTimestamp)
+            mstore(add(chainElementStart, 0x21), ctxBlockNumber)
 
+            // Copy in transaction data from calldata.
             calldatacopy(add(chainElementStart, BYTES_TILL_TX_DATA), add(_nextTransactionPtr, 3), _txDataLength)
 
-            leafHash := keccak256(chainElementStart, add(BYTES_TILL_TX_DATA, _txDataLength))
+            // Hash it and return the result.
+            leafhash := keccak256(chainElementStart, add(BYTES_TILL_TX_DATA, _txDataLength))
         }
 
-        return leafHash;
+        return leafhash;
     }
 
     /**
@@ -756,7 +801,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     )
         internal
     {
-        (uint40 totalElements, uint40 nextQueueIndex, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
+        (uint40 totalElements, uint40 nextQueueIndex,,) = _getBatchExtraData();
 
         Lib_OVMCodec.ChainBatchHeader memory header = Lib_OVMCodec.ChainBatchHeader({
             batchIndex: batches().length(),
@@ -811,11 +856,17 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @param _prevContext The previously validated batch context.
      * @param _nextContext The batch context to validate with this call.
      * @param _nextQueueIndex Index of the next queue element to process for the _nextContext's subsequentQueueElements.
+     * @param _queueLength Total length of the queue. Since we need a STATICCALL to get this, it's
+     * better to only make the call once and pass around the value. It won't change during
+     * execution since this method is only called during `appendSequencerBatch`.
+     * @param _queue Address of the queue storage container.
      */
     function _validateNextBatchContext(
         BatchContext memory _prevContext,
         BatchContext memory _nextContext,
-        uint40 _nextQueueIndex
+        uint40 _nextQueueIndex,
+        uint40 _queueLength,
+        iOVM_ChainStorageContainer _queue
     )
         internal
         view
@@ -832,8 +883,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         // If there are some queue elements pending:
-        if (getQueueLength() - _nextQueueIndex > 0) {
-            Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_nextQueueIndex);
+        if (_queueLength - _nextQueueIndex > 0) {
+            Lib_OVMCodec.QueueElement memory nextQueueElement = _getQueueElement(_nextQueueIndex, _queue);
 
             // If the force inclusion period has passed for an enqueued transaction, it MUST be the next chain element.
             require(
