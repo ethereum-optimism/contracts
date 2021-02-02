@@ -67,7 +67,6 @@ describe.only('OVM_L1MultiMessageRelayer', () => {
       sender: "0x2200000000000000000000000000000000000000",
       messageNonce: 1,
       proof: dummyProof,
-      calldata: "0xaabbccddeeff"
     }
     let m2 = {
       target: "0x1100000000000000000000000000000000000000",
@@ -75,7 +74,6 @@ describe.only('OVM_L1MultiMessageRelayer', () => {
       sender: "0x2200000000000000000000000000000000000000",
       messageNonce: 2,
       proof: dummyProof,
-      calldata: "0xaabbccddeeff"
     }
     let m3 = {
       target: "0x1100000000000000000000000000000000000000",
@@ -83,7 +81,6 @@ describe.only('OVM_L1MultiMessageRelayer', () => {
       sender: "0x2200000000000000000000000000000000000000",
       messageNonce: 2,
       proof: dummyProof,
-      calldata: "0xaabbccddeeff"
     }
     messages = [m1, m2, m3]
   }
