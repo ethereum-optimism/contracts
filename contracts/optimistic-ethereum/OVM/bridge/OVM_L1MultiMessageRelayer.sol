@@ -18,7 +18,6 @@ import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolve
  *
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1
  */
 contract OVM_L1MultiMessageRelayer is iOVM_L1MultiMessageRelayer, Lib_AddressResolver {
 

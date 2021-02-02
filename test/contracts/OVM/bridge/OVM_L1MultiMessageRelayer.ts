@@ -9,7 +9,12 @@ import { smockit, MockContract } from '@eth-optimism/smock'
 import {
   makeAddressManager,
   NON_ZERO_ADDRESS,
+  NON_NULL_BYTES32,
+  DUMMY_BATCH_HEADERS,
+  DUMMY_BATCH_PROOFS,
+  toHexString
 } from '../../../helpers'
+import { sign } from 'crypto'
 
 describe.only('OVM_L1MultiMessageRelayer', () => {
   let signer: Signer
@@ -23,13 +28,14 @@ describe.only('OVM_L1MultiMessageRelayer', () => {
   let messages: any[]
   
   before(async () => {
+
     AddressManager = await makeAddressManager()
 
     Factory__OVM_L1MultiMessageRelayer = await ethers.getContractFactory(
       'OVM_L1MultiMessageRelayer'
     )
-    
-    Mock__OVM_L1CrossDomainMessenger = smockit(
+
+    Mock__OVM_L1CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L1CrossDomainMessenger')
     )
 
@@ -39,26 +45,44 @@ describe.only('OVM_L1MultiMessageRelayer', () => {
       Mock__OVM_L1CrossDomainMessenger.address
     )
 
+    // set the signer as the address required by access control
+    await AddressManager.setAddress(
+      'OVM_L2BatchMessageRelayer',
+      signer.getAddress()
+    )
+
+    // define a dummy proof to satisfy the abi
+    let dummyProof = {
+      stateRoot: NON_NULL_BYTES32,
+      stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
+      stateRootProof: DUMMY_BATCH_PROOFS[0],
+      stateTrieWitness: toHexString("some bytes"),
+      storageTrieWitness: toHexString("some more bytes")
+    } 
+
     // create a few dummy messages to relay
     let m1 = {
       target: "0x1100000000000000000000000000000000000000",
-      message: "message1",
+      message: NON_NULL_BYTES32,
       sender: "0x2200000000000000000000000000000000000000",
-      proof: "Please believe me",
+      messageNonce: 1,
+      proof: dummyProof,
       calldata: "0xaabbccddeeff"
     }
     let m2 = {
       target: "0x1100000000000000000000000000000000000000",
-      message: "message2",
+      message: NON_NULL_BYTES32,
       sender: "0x2200000000000000000000000000000000000000",
-      proof: "Please believe me",
+      messageNonce: 2,
+      proof: dummyProof,
       calldata: "0xaabbccddeeff"
     }
     let m3 = {
       target: "0x1100000000000000000000000000000000000000",
-      message: "message3",
+      message: NON_NULL_BYTES32,
       sender: "0x2200000000000000000000000000000000000000",
-      proof: "Please believe me",
+      messageNonce: 2,
+      proof: dummyProof,
       calldata: "0xaabbccddeeff"
     }
     messages = [m1, m2, m3]
@@ -71,41 +95,40 @@ describe.only('OVM_L1MultiMessageRelayer', () => {
     OVM_L1MultiMessageRelayer = await Factory__OVM_L1MultiMessageRelayer.deploy(
       AddressManager.address
     )
-    
+
     // set the address of the OVM_L1MultiMessageRelayer, which the OVM_L1CrossDomainMessenger will
     // check in its onlyRelayer modifier
     await AddressManager.setAddress(
       'OVM_L2MessageRelayer', // This is the string currently used in the AddressManager
       OVM_L1MultiMessageRelayer.address
     )
-    // setup the mock return value
+    // set the mock return value
     Mock__OVM_L1CrossDomainMessenger.smocked.relayMessage.will.return()
   })
 
   describe('batchRelayMessages', () => {
-
-    it('should revert if called by the wrong account', async () => {
-      // set the wrong address to use for ACL
-      await AddressManager.setAddress(
-        'OVM_BatchRelayer',
-        NON_ZERO_ADDRESS
-      )
-
-      await expect(
-        await OVM_L1MultiMessageRelayer.batchRelayMessages(
-          messages
-        )
-      ).to.be.revertedWith('OVM_L1MultiMessageRelayer: Function can only be called by the OVM_L2BatchMessageRelayer')
-    })
-
     it('Successfully relay multiple messages', async () => {
-      Mock__OVM_L1CrossDomainMessenger.smocked.relayMessage.will.return()
       await OVM_L1MultiMessageRelayer.batchRelayMessages(
         messages
       )
       await expect(
         Mock__OVM_L1CrossDomainMessenger.smocked.relayMessage.calls.length
       ).to.deep.equal(messages.length)
+    })
+
+
+    it('should revert if called by the wrong account', async () => {
+      // set the wrong address to use for ACL
+      await AddressManager.setAddress(
+        'OVM_L2BatchMessageRelayer',
+        NON_ZERO_ADDRESS
+      )
+
+      await expect(
+        OVM_L1MultiMessageRelayer.batchRelayMessages(
+          messages
+        )
+      ).to.be.revertedWith('OVM_L1MultiMessageRelayer: Function can only be called by the OVM_L2BatchMessageRelayer')
     })
   })
 })
