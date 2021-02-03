@@ -110,7 +110,7 @@ export const makeContractDeployConfig = async (
         )
       },
     },
-    OVM_MultiRelay: {
+    OVM_L1MultiMessageRelayer: {
       factory: getContractFactory('OVM_L1MultiMessageRelayer'),
       params: [
         AddressManager.address,

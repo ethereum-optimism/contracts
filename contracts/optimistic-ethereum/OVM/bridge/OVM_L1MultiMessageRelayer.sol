@@ -55,8 +55,7 @@ contract OVM_L1MultiMessageRelayer is iOVM_L1MultiMessageRelayer, Lib_AddressRes
         external
         onlyBatchRelayer 
     {
-        // @todo: confirm correct string (this or proxy?)
-        iOVM_L1CrossDomainMessenger messenger = iOVM_L1CrossDomainMessenger(resolve("OVM_L1CrossDomainMessenger"));
+        iOVM_L1CrossDomainMessenger messenger = iOVM_L1CrossDomainMessenger(resolve("Proxy__OVM_L1CrossDomainMessenger"));
         for (uint256 i = 0; i < _messages.length; i++) {
             L2ToL1Message memory message = _messages[i];
             messenger.relayMessage(
