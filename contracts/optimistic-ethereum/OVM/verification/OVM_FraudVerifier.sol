@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -47,6 +47,7 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
     constructor(
         address _libAddressManager
     )
+        public
         Lib_AddressResolver(_libAddressManager)
     {}
 
