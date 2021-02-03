@@ -31,7 +31,6 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
  * 
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1 and Layer 2
  */
 contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 

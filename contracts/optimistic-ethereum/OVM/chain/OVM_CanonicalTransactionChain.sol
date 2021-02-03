@@ -28,7 +28,6 @@ import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
  *
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1
  */
 contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_AddressResolver {
 

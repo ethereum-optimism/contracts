@@ -16,7 +16,6 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
  *
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layers 1 and 2
  */
 contract OVM_SafetyChecker is iOVM_SafetyChecker {
 

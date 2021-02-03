@@ -19,7 +19,6 @@ import { OVM_StateTransitioner } from "./OVM_StateTransitioner.sol";
  * 
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1
  */
 contract OVM_StateTransitionerFactory is iOVM_StateTransitionerFactory, Lib_AddressResolver {
 

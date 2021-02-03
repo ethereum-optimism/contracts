@@ -25,7 +25,6 @@ import { OVM_BaseCrossDomainMessenger } from "./OVM_BaseCrossDomainMessenger.sol
  *
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1
  */
 contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, OVM_BaseCrossDomainMessenger, Lib_AddressResolver {
 

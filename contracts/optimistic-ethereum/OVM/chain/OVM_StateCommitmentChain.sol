@@ -26,7 +26,6 @@ import '@openzeppelin/contracts/math/SafeMath.sol';
  *
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1
  */
 contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResolver {
 

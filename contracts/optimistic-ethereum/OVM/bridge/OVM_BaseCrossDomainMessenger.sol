@@ -16,7 +16,6 @@ import { Lib_ReentrancyGuard } from "../../libraries/utils/Lib_ReentrancyGuard.s
  *
  * Compiler used: defined by child contract
  * Runtime target: defined by child contract
- * Execution environment: defined by child contract
  */
 abstract contract OVM_BaseCrossDomainMessenger is iOVM_BaseCrossDomainMessenger, Lib_ReentrancyGuard {
 

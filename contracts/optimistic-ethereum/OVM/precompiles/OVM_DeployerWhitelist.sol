@@ -17,7 +17,6 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
  * 
  * Compiler used: solc
  * Runtime target: OVM
- * Execution environment: Layer 2
  */
 contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
 

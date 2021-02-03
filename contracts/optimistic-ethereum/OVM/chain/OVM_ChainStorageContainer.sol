@@ -20,7 +20,6 @@ import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageCo
  *
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1
  */
 contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressResolver {
 

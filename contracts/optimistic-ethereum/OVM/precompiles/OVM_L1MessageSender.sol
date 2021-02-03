@@ -19,7 +19,6 @@ import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManage
  * 
  * Compiler used: solc
  * Runtime target: OVM
- * Execution environment: Layer 2
  */
 contract OVM_L1MessageSender is iOVM_L1MessageSender {
 

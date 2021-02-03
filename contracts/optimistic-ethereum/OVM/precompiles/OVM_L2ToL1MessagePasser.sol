@@ -14,7 +14,6 @@ import { iOVM_L2ToL1MessagePasser } from "../../iOVM/precompiles/iOVM_L2ToL1Mess
  * 
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1 and Layer 2
  */
 contract OVM_L2ToL1MessagePasser is iOVM_L2ToL1MessagePasser {
 

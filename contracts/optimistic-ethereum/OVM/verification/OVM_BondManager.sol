@@ -17,7 +17,6 @@ import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.s
  * 
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1
  */
 contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
 

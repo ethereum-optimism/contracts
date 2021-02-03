@@ -16,7 +16,6 @@ import { iOVM_BaseCrossDomainMessenger } from "../../iOVM/bridge/iOVM_BaseCrossD
  * 
  * Compiler used: optimistic-solc
  * Runtime target: OVM
- * Execution environment: Layer 2
  */
 contract OVM_ETH is iOVM_ERC20, Lib_AddressResolver {
 

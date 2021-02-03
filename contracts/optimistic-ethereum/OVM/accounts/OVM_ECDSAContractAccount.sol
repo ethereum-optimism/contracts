@@ -18,7 +18,6 @@ import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrappe
  *
  * Compiler used: solc
  * Runtime target: OVM
- * Execution environment: Layer 2
  */
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 

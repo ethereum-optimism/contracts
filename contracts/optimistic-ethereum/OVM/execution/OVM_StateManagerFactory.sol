@@ -15,7 +15,6 @@ import { OVM_StateManager } from "./OVM_StateManager.sol";
  * 
  * Compiler used: solc
  * Runtime target: EVM
- * Execution environment: Layer 1
  */
 contract OVM_StateManagerFactory is iOVM_StateManagerFactory {
 
