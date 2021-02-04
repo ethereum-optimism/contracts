@@ -10,8 +10,8 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
  * Sequencer Entrypoint. This will enable the Optimism team to upgrade the Sequencer Entrypoint 
  * contract.
  * 
- * This contract compiles to __
- * It is (only) deployed on Layer ...
+ * Compiler used: solc
+ * Runtime target: OVM
  */
 contract OVM_ProxySequencerEntrypoint {
 
