@@ -71,7 +71,7 @@ contract OVM_StateManager is iOVM_StateManager {
 
     /**
      * Simple authentication, this contract should only be accessible to the owner (which is expected to be the State Transitioner during `PRE_EXECUTION` 
-     * or to theOVM_ExecutionManager during the transaction execution process.
+     * or the OVM_ExecutionManager during transaction execution.
      */
     modifier authenticated() {
         // owner is the State Transitioner
