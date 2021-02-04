@@ -323,7 +323,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /**
-     * @notice Specifies which L1 account, if any, sent this transaction.
+     * @notice Specifies which L1 account, if any, sent this transaction by calling enqueue().
      * @return _l1TxOrigin Address of the account which sent the tx into L2 from L1.
      */
     function ovmL1TXORIGIN()
