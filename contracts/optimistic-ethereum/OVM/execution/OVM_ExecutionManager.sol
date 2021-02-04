@@ -167,7 +167,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // OVM_StateManager (expected to be an OVM_StateTransitioner). We can revert here because
         // this would make the `run` itself invalid.
         require(
-            // This method always returns true in the L2 State Manager precompile
+            // This method may return false during fraud proofs, but always returns true in L2 nodes' State Manager precompile.
             ovmStateManager.isAuthenticated(msg.sender),
             "Only authenticated addresses in ovmStateManager can call this function"
         );
