@@ -61,6 +61,17 @@ interface iOVM_CanonicalTransactionChain {
      ********************/
 
     /**
+     * Accesses the queue storage container.
+     * @return Reference to the queue storage container.
+     */
+    function queue()
+        public
+        view
+        returns (
+            iOVM_ChainStorageContainer
+        );
+
+    /**
      * Retrieves the total number of elements submitted.
      * @return _totalElements Total submitted elements.
      */
@@ -94,6 +105,20 @@ interface iOVM_CanonicalTransactionChain {
         );
 
     /**
+     * Gets the queue element at a particular index.
+     * @param _index Index of the queue element to access.
+     * @return _element Queue element at the given index.
+     */
+    function getQueueElement(
+        uint256 _index
+    )
+        external
+        view
+        returns (
+            Lib_OVMCodec.QueueElement memory _element
+        );
+
+    /**
      * Get the number of queue elements which have not yet been included.
      * @return Length of the queue.
      */
@@ -116,19 +141,6 @@ interface iOVM_CanonicalTransactionChain {
             uint40
         );
 
-    /**
-     * Gets the queue element at a particular index.
-     * @param _index Index of the queue element to access.
-     * @return _element Queue element at the given index.
-     */
-    function getQueueElement(
-        uint256 _index
-    )
-        external
-        view
-        returns (
-            Lib_OVMCodec.QueueElement memory _element
-        );
 
     /**
      * Adds a transaction to the queue.
