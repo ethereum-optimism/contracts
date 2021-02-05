@@ -5,6 +5,9 @@ pragma experimental ABIEncoderV2;
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 
+/* Interface Imports */
+import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageContainer.sol";
+
 /**
  * @title iOVM_CanonicalTransactionChain
  */
@@ -65,7 +68,7 @@ interface iOVM_CanonicalTransactionChain {
      * @return Reference to the queue storage container.
      */
     function queue()
-        public
+        external
         view
         returns (
             iOVM_ChainStorageContainer
