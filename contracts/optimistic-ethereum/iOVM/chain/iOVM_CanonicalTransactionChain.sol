@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 
 /* Interface Imports */
-import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageContainer.sol";
+import { iOVM_ChainStorageContainer } from "./iOVM_ChainStorageContainer.sol";
 
 /**
  * @title iOVM_CanonicalTransactionChain
@@ -67,12 +67,14 @@ interface iOVM_CanonicalTransactionChain {
      * Accesses the queue storage container.
      * @return Reference to the queue storage container.
      */
-    function queue()
-        external
-        view
-        returns (
-            iOVM_ChainStorageContainer
-        );
+     // @todo: uncommenting this line breaks `yarn build`, but not `solc`. 
+     // must be something in the ovm-compiler, but why?
+    // function queue()
+    //     external
+    //     view
+    //     returns (
+    //         iOVM_ChainStorageContainer
+    //     );
 
     /**
      * Retrieves the total number of elements submitted.
