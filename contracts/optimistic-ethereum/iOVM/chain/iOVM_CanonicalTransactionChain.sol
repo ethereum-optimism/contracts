@@ -63,18 +63,28 @@ interface iOVM_CanonicalTransactionChain {
      * Public Functions *
      ********************/
 
+
+    /**
+     * Accesses the batch storage container.
+     * @return Reference to the batch storage container.
+     */
+    function batches()
+        external
+        view
+        returns (
+            iOVM_ChainStorageContainer
+        );
+
     /**
      * Accesses the queue storage container.
      * @return Reference to the queue storage container.
      */
-     // @todo: uncommenting this line breaks `yarn build`, but not `solc`. 
-     // must be something in the ovm-compiler, but why?
-    // function queue()
-    //     external
-    //     view
-    //     returns (
-    //         iOVM_ChainStorageContainer
-    //     );
+    function queue()
+        external
+        view
+        returns (
+            iOVM_ChainStorageContainer
+        );
 
     /**
      * Retrieves the total number of elements submitted.

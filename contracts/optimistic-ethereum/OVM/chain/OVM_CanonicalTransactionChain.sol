@@ -86,6 +86,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @return Reference to the batch storage container.
      */
     function batches()
+        override
         public
         view
         returns (
@@ -102,6 +103,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @return Reference to the queue storage container.
      */
     function queue()
+        override
         public
         view
         returns (
