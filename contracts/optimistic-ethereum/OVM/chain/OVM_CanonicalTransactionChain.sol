@@ -229,8 +229,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
     /**
      * Adds a transaction to the queue.
-     * @param _target Target contract to send the transaction to.
-     * @param _gasLimit Gas limit for the given transaction.
+     * @param _target Target L2 contract to send the transaction to.
+     * @param _gasLimit Gas limit for the enqueued L2 transaction.
      * @param _data Transaction data.
      */
     function enqueue(
