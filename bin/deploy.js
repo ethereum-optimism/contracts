@@ -103,6 +103,9 @@ const RELAYER_PRIVATE_KEY = env.RELAYER_PRIVATE_KEY;
     },
     waitForReceipts: WAIT_FOR_RECEIPTS,
     addressManager: ADDRESS_MANAGER_ADDRESS,
+    dependencies: [
+      'OVM_L1MultiMessageRelayer',
+    ]
   });
 
   const { failedDeployments, AddressManager } = result;
