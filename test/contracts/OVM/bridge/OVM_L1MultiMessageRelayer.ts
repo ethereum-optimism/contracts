@@ -28,19 +28,22 @@ describe('OVM_L1MultiMessageRelayer', () => {
   let messages: any[]
 
   before(async () => {
+    // We do all the 'reusable setup' in here, ie. creating factories, mocks and setting addresses
+    // for everything but the contract under test
     AddressManager = await makeAddressManager()
 
-    Factory__OVM_L1MultiMessageRelayer = await ethers.getContractFactory(
-      'OVM_L1MultiMessageRelayer'
-    )
-
+    // create a mock for the L1CrossDomainMessenger implementation
     Mock__OVM_L1CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L1CrossDomainMessenger')
     )
 
     // set the address of the mock contract to target
     await AddressManager.setAddress(
-      'OVM_L1CrossDomainMessenger',
+      // 'Proxy__OVM_L1CrossDomainMessenger' is the string used by the contract under test to lookup 
+      // the target contract. On mainnet the target is a proxy which points to the implementation of
+      // the L1CrossDomainMessenger. 
+      // In order to keep the tests simple, we skip the proxy here, and point directly to the impl.
+      'Proxy__OVM_L1CrossDomainMessenger',
       Mock__OVM_L1CrossDomainMessenger.address
     )
 
@@ -87,14 +90,19 @@ describe('OVM_L1MultiMessageRelayer', () => {
   let OVM_L1MultiMessageRelayer: Contract
 
   beforeEach(async () => {
+    // setup a factory and deploy a new test-contract for each unit test
+    Factory__OVM_L1MultiMessageRelayer = await ethers.getContractFactory(
+      'OVM_L1MultiMessageRelayer'
+    )
     OVM_L1MultiMessageRelayer = await Factory__OVM_L1MultiMessageRelayer.deploy(
       AddressManager.address
     )
 
     // set the address of the OVM_L1MultiMessageRelayer, which the OVM_L1CrossDomainMessenger will
-    // check in its onlyRelayer modifier
+    // check in its onlyRelayer modifier.
+    // The string currently used in the AddressManager is 'OVM_L2MessageRelayer'
     await AddressManager.setAddress(
-      'OVM_L2MessageRelayer', // This is the string currently used in the AddressManager
+      'OVM_L2MessageRelayer', 
       OVM_L1MultiMessageRelayer.address
     )
     // set the mock return value
