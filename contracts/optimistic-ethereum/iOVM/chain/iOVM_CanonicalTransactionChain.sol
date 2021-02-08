@@ -125,7 +125,7 @@ interface iOVM_CanonicalTransactionChain {
 
     /**
      * Get the number of queue elements which have not yet been included.
-     * @return Length of the queue.
+     * @return Number of pending queue elements.
      */
     function getNumPendingQueueElements()
         external

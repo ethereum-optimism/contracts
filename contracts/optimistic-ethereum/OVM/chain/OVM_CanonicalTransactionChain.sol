@@ -195,7 +195,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
     /**
      * Get the number of queue elements which have not yet been included.
-     * @return Length of the queue.
+     * @return Number of pending queue elements.
      */
     function getNumPendingQueueElements()
         override
