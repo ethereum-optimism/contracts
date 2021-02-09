@@ -1,6 +1,5 @@
 // TODO: clean this up and move elsewhere?
 import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/iAbs_BaseCrossDomainMessenger.sol";
-import "hardhat/console.sol";
 
 contract OVM_CrossChainEnabled {
     iAbs_BaseCrossDomainMessenger messenger;
@@ -31,9 +30,6 @@ contract OVM_CrossChainEnabled {
         bytes memory _data,
         uint32 _gasLimit
     ) internal {
-        console.log("sending message to ");
-        console.logAddress(address(messenger));
         messenger.sendMessage(_crossDomainTarget, _data, _gasLimit);
-        console.log("sendmessage successful");
     }
 }

@@ -11,10 +11,6 @@ import { iOVM_L2CrossDomainMessenger } from "../../../iOVM/bridge/iOVM_L2CrossDo
 import { OVM_CrossChainEnabled } from "../OVM_CrossChainEnabled.sol";
 import { ERC20 } from "./tempERC20.sol";
 
-import "hardhat/console.sol";
-
-
-
 /**
  * @title OVM_L2ERC20Gateway
  */
@@ -52,7 +48,7 @@ contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, ERC20, OVM_CrossChainEnabled
      * @param _amount Amount of the ERC20 to withdraw
      */
     function withdraw(uint _amount) external override onlyInitialized() {
-        _doWithdrawal(msg.sender, _amount);
+        _initiateWithdrawal(msg.sender, _amount);
     }
     /**
      * @dev initiate a withdraw of some ERC20 to a recipient's account on L1
@@ -60,11 +56,10 @@ contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, ERC20, OVM_CrossChainEnabled
      * @param _amount Amount of the ERC20 to withdraw
      */
     function withdrawTo(address _to, uint _amount) external override onlyInitialized() {
-        _doWithdrawal(_to, _amount);
+        _initiateWithdrawal(_to, _amount);
     }
 
-    // what to name this?
-    function _doWithdrawal(address _to, uint _amount) internal {
+    function _initiateWithdrawal(address _to, uint _amount) internal {
         _burn(msg.sender, _amount);
 
          bytes memory data = abi.encodeWithSelector(
@@ -73,8 +68,6 @@ contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, ERC20, OVM_CrossChainEnabled
             _amount
         );
 
-        console.log("attemptoing send./..");
-        console.logAddress(address(messenger));
         sendCrossDomainMessage(
             address(l1ERC20Gateway),
             data,

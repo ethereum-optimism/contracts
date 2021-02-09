@@ -7,7 +7,6 @@ import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/iAbs_BaseCrossD
 
 /* Library Imports */
 import { Lib_ReentrancyGuard } from "../../libraries/utils/Lib_ReentrancyGuard.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Abs_BaseCrossDomainMessenger
@@ -50,7 +49,6 @@ abstract contract Abs_BaseCrossDomainMessenger is iAbs_BaseCrossDomainMessenger,
         override
         public
     {
-        console.log("!!IN SENDEMESSAGE");
         bytes memory xDomainCalldata = _getXDomainCalldata(
             _target,
             msg.sender,

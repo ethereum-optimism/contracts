@@ -35,27 +35,28 @@ describe.only('OVM_L2ERC20Gateway', () => {
   let Mock__OVM_L2CrossDomainMessenger: MockContract
   let OVM_L2ERC20Gateway: Contract
 
-  beforeEach(async () => {
-    let signer
-    ;[signer, alice, bob] = await ethers.getSigners()
-    mockL2CrossDomainMessengerAddress = await signer.getAddress() // though we don't keep track of the signer here, it needs to have come from an ethers signer so that {from: mockL2...} will work.
-
-    Mock__OVM_L2CrossDomainMessenger = await smockit(
-      await ethers.getContractFactory('OVM_L2CrossDomainMessenger'),
-      { address: mockL2CrossDomainMessengerAddress }
-    )
-    OVM_L2ERC20Gateway = await(
-      await ethers.getContractFactory('OVM_L2ERC20Gateway')
-    ).deploy(
-      Mock__OVM_L2CrossDomainMessenger.address,
-      'ovmWETH',
-      decimals
-    )
-
-    await OVM_L2ERC20Gateway.init(mockL1ERC20Gateway)
-  })
 
   describe('finalizeDeposit', () => {
+    beforeEach(async () => {
+      let signer
+      ;[signer, alice, bob] = await ethers.getSigners()
+      mockL2CrossDomainMessengerAddress = await signer.getAddress() // though we don't keep track of the signer here, it needs to have come from an ethers signer so that {from: mockL2...} will work.
+  
+      Mock__OVM_L2CrossDomainMessenger = await smockit(
+        await ethers.getContractFactory('OVM_L2CrossDomainMessenger'),
+        { address: mockL2CrossDomainMessengerAddress }
+      )
+      OVM_L2ERC20Gateway = await(
+        await ethers.getContractFactory('OVM_L2ERC20Gateway')
+      ).deploy(
+        Mock__OVM_L2CrossDomainMessenger.address,
+        'ovmWETH',
+        decimals
+      )
+  
+      await OVM_L2ERC20Gateway.init(mockL1ERC20Gateway)
+    })
+
     it.skip('should revert on calls from a non-crossDomainMessenger L1 account', async () => {
       // TODO
     })
@@ -80,9 +81,28 @@ describe.only('OVM_L2ERC20Gateway', () => {
   })
 
   describe('withdrawals', () => {
-    const INITIAL_BALANCE_ALICE = 50_000
+    const ALICE_INITIAL_BALANCE = 50_000
+    const withdrawAmount = 1_000
     let SmoddedL2Gateway: ModifiableContract
     beforeEach(async () => {
+      ;[alice, bob] = await ethers.getSigners()
+
+      Mock__OVM_L2CrossDomainMessenger = await smockit(
+        await ethers.getContractFactory('OVM_L2CrossDomainMessenger')
+      )
+      Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.will.return()
+
+      OVM_L2ERC20Gateway = await(
+        await ethers.getContractFactory('OVM_L2ERC20Gateway')
+      ).deploy(
+        Mock__OVM_L2CrossDomainMessenger.address,
+        'ovmWETH',
+        decimals
+      )
+  
+      await OVM_L2ERC20Gateway.init(mockL1ERC20Gateway)
+
+      
       SmoddedL2Gateway = await (await smoddit('OVM_L2ERC20Gateway', alice)).deploy(
         Mock__OVM_L2CrossDomainMessenger.address,
         'ovmWETH',
@@ -95,26 +115,32 @@ describe.only('OVM_L2ERC20Gateway', () => {
       const aliceAddress = await alice.getAddress()
       SmoddedL2Gateway.smodify.put({
         balances: {
-          [aliceAddress] : INITIAL_BALANCE_ALICE
+          [aliceAddress] : ALICE_INITIAL_BALANCE
         }
       })
     })
 
-    it.only('withdraw() burns and sends the correct withdrawal message', async () => {
-      Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.will.return()
+
+    it('withdraw() burns and sends the correct withdrawal message', async () => { 
+      await SmoddedL2Gateway.withdraw(withdrawAmount)
+      const withdrawalCallToMessenger = Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
+
+      // TODO: assert these
       console.log(await SmoddedL2Gateway.balanceOf(await alice.getAddress()))
+      console.log(withdrawalCallToMessenger._target)
+      console.log(withdrawalCallToMessenger._message)
+      console.log(withdrawalCallToMessenger._gasLimit)
+    })
 
-      const withdraw1Amount = 1_000
-      await SmoddedL2Gateway.withdraw(withdraw1Amount)
+    it('withdraw() burns and sends the correct withdrawal message', async () => { 
+      await SmoddedL2Gateway.withdrawTo(await bob.getAddress(), withdrawAmount)
+      const withdrawalCallToMessenger = Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
 
-      console.log(await SmoddedL2Gateway.balanceOf(await alice.getAddress())) // TODO assert this
-      // withdraw() 1/2 initial balance assert half left
-      console.log('heres mockovm address')
-      console.log(Mock__OVM_L2CrossDomainMessenger.address)
-      console.log(Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0])
-
-
-      // withdrawTo() the rest, assert none left
+      // TODO: assert these
+      console.log(await SmoddedL2Gateway.balanceOf(await alice.getAddress()))
+      console.log(withdrawalCallToMessenger._target)
+      console.log(withdrawalCallToMessenger._message)
+      console.log(withdrawalCallToMessenger._gasLimit)
     })
   })
 

@@ -34,7 +34,7 @@ contract OVM_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossChainEnabled {
      * @param _amount Amount of the ERC20 to deposit
      */
     function deposit(uint _amount) external override {
-        _doDeposit(msg.sender, msg.sender, _amount);
+        _initiateDeposit(msg.sender, msg.sender, _amount);
     }
     /**
      * @dev deposit an amount of ERC20 to a recipients's balance on L2
@@ -42,11 +42,10 @@ contract OVM_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossChainEnabled {
      * @param _amount Amount of the ERC20 to deposit
      */
     function depositTo(address _to, uint _amount) external override {
-        _doDeposit(msg.sender, _to, _amount);
+        _initiateDeposit(msg.sender, _to, _amount);
     }
 
-    // what to call this?
-    function _doDeposit(
+    function _initiateDeposit(
         address _from,
         address _to,
         uint _amount
