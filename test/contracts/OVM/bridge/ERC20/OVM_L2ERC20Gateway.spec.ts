@@ -7,13 +7,16 @@ import { smockit, MockContract, smoddit, ModifiableContract } from '@eth-optimis
 
 /* Internal Imports */
 import {
-  getXDomainCalldata
+  getXDomainCalldata, NON_ZERO_ADDRESS, ZERO_ADDRESS
 } from '../../../../helpers'
 import { getContractInterface } from '../../../../../src'
 import { keccak256 } from 'ethers/lib/utils'
 
 const HARDCODED_GASLIMIT = 420069
 const decimals = 1 // what to set this to?
+
+const INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
+const INVALID_X_DOMAIN_MSG_SENDER = 'OVM_XCHAIN: wrong sender of cross-domain message'
 
 describe.only('OVM_L2ERC20Gateway', () => {
   let alice: Signer
@@ -50,14 +53,28 @@ describe.only('OVM_L2ERC20Gateway', () => {
 
 
   describe('finalizeDeposit', () => {
-    
+    it('should revert on calls from a non-crossDomainMessenger L1 account', async () => {
+      // Deploy new gateway, initialize with random messenger
+      OVM_L2ERC20Gateway = await(
+        await ethers.getContractFactory('OVM_L2ERC20Gateway')
+      ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', decimals)
+      await OVM_L2ERC20Gateway.init(NON_ZERO_ADDRESS)
 
-    it.skip('should revert on calls from a non-crossDomainMessenger L1 account', async () => {
-      // TODO
+      await expect(
+        OVM_L2ERC20Gateway.finalizeDeposit(ZERO_ADDRESS, 0)
+      ).to.be.revertedWith(INVALID_MESSENGER)
     })
 
-    it.skip('should revert on calls from the right crossDomainMessenger, but wrong xDomainMessageSender', async () => {
-      // TODO, see below for approach, just smock return val to something else
+    it('should revert on calls from the right crossDomainMessenger, but wrong xDomainMessageSender', async () => {
+      Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => NON_ZERO_ADDRESS)
+
+      await expect(
+        OVM_L2ERC20Gateway.finalizeDeposit(
+          ZERO_ADDRESS,
+          0,
+          { from: mockL2CrossDomainMessengerAddress }
+          )
+      ).to.be.revertedWith(INVALID_X_DOMAIN_MSG_SENDER)
     })
 
     const depositAmount = 100
@@ -90,6 +107,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
         mockL1ERC20Gateway
       )
 
+      // Populate the initial state with a total supply and some money in alice's balance
       const aliceAddress = await alice.getAddress()
       SmoddedL2Gateway.smodify.put({
         totalSupply: INITIAL_TOTAL_SUPPLY,
