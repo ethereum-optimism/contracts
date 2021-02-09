@@ -19,20 +19,9 @@ import {
   toHexString,
   getNextBlockNumber,
   remove0x,
+  getXDomainCalldata
 } from '../../../helpers'
-import { getContractInterface } from '../../../../src'
 import { keccak256 } from 'ethers/lib/utils'
-
-const getXDomainCalldata = (
-  sender: string,
-  target: string,
-  message: string,
-  messageNonce: number
-): string => {
-  return getContractInterface(
-    'OVM_L2CrossDomainMessenger'
-  ).encodeFunctionData('relayMessage', [target, sender, message, messageNonce])
-}
 
 const deployProxyXDomainMessenger = async (
   addressManager: Contract,

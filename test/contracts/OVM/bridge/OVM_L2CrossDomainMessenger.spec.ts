@@ -12,19 +12,8 @@ import {
   NON_NULL_BYTES32,
   ZERO_ADDRESS,
   NON_ZERO_ADDRESS,
+  getXDomainCalldata
 } from '../../../helpers'
-import { getContractInterface } from '../../../../src'
-
-const getXDomainCalldata = (
-  sender: string,
-  target: string,
-  message: string,
-  messageNonce: number
-): string => {
-  return getContractInterface(
-    'OVM_L2CrossDomainMessenger'
-  ).encodeFunctionData('relayMessage', [target, sender, message, messageNonce])
-}
 
 describe('OVM_L2CrossDomainMessenger', () => {
   let signer: Signer
