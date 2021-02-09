@@ -90,6 +90,14 @@ contract OVM_ETH is iOVM_ERC20, Lib_AddressResolver {
     }
 
     function mint(address _account, uint256 _amount) external onlyOVMETHBridge returns (bool success) {
+        return _mint(_account, _amount);
+    }
+
+    function burn(address _account, uint256 _amount) external onlyOVMETHBridge returns (bool success) {
+        return _burn(_account, _amount);
+    }
+
+    function _mint(address _account, uint256 _amount) internal returns (bool success) {
         uint256 newTotalSupply = totalSupply + _amount;
         require(newTotalSupply >= totalSupply, "SafeMath: addition overflow");
         totalSupply = newTotalSupply;
@@ -99,7 +107,9 @@ contract OVM_ETH is iOVM_ERC20, Lib_AddressResolver {
         return true;
     }
 
-    function burn(address _account, uint256 _amount) external onlyOVMETHBridge returns (bool success) {
+    function _burn(
+        address _account, uint256 _amount
+    ) internal returns(bool) {
         require(balances[_account] >= _amount, "Unable to burn due to insufficient balance");
         balances[_account] -= _amount;
         totalSupply -= _amount;
