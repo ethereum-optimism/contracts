@@ -13,9 +13,9 @@ import {
 const HARDCODED_GASLIMIT = 420069
 const decimals = 1
 
-const INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
-const INVALID_X_DOMAIN_MSG_SENDER = 'OVM_XCHAIN: wrong sender of cross-domain message'
-const MOCK_L1_ERC20_ADDRESS: string = '0x1234123412341234123412341234123412341234'
+const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
+const ERR_INVALID_X_DOMAIN_MSG_SENDER = 'OVM_XCHAIN: wrong sender of cross-domain message'
+const MOCK_L1GATEWAY_ADDRESS: string = '0x1234123412341234123412341234123412341234'
 
 describe.only('OVM_L2ERC20Gateway', () => {
   let alice: Signer
@@ -43,8 +43,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
       'ovmWETH',
       decimals
     )
-
-    await OVM_L2ERC20Gateway.init(MOCK_L1_ERC20_ADDRESS)
+    await OVM_L2ERC20Gateway.init(MOCK_L1GATEWAY_ADDRESS)
   })
 
 
@@ -58,7 +57,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
 
       await expect(
         OVM_L2ERC20Gateway.finalizeDeposit(ZERO_ADDRESS, 0)
-      ).to.be.revertedWith(INVALID_MESSENGER)
+      ).to.be.revertedWith(ERR_INVALID_MESSENGER)
     })
 
     it('should revert on calls from the right crossDomainMessenger, but wrong xDomainMessageSender', async () => {
@@ -70,12 +69,12 @@ describe.only('OVM_L2ERC20Gateway', () => {
           0,
           { from: Mock__OVM_L2CrossDomainMessenger.address }
         )
-      ).to.be.revertedWith(INVALID_X_DOMAIN_MSG_SENDER)
+      ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
     })
 
     const depositAmount = 100
     it('should credit funds to the depositor', async () => {
-      Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => MOCK_L1_ERC20_ADDRESS)
+      Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => MOCK_L1GATEWAY_ADDRESS)
 
       await OVM_L2ERC20Gateway.finalizeDeposit(
         await alice.getAddress(),
@@ -101,7 +100,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
         decimals
       )
       await SmoddedL2Gateway.init(
-        MOCK_L1_ERC20_ADDRESS
+        MOCK_L1GATEWAY_ADDRESS
       )
 
       // Populate the initial state with a total supply and some money in alice's balance
@@ -128,7 +127,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
 
       // Assert the correct cross-chain call was sent:
       // Message should be sent to the L1ERC20Gateway on L1
-      expect(withdrawalCallToMessenger._target).to.equal(MOCK_L1_ERC20_ADDRESS)
+      expect(withdrawalCallToMessenger._target).to.equal(MOCK_L1GATEWAY_ADDRESS)
       // Message data should be a call telling the L1ERC20Gateway to finalize the withdrawal
       expect(withdrawalCallToMessenger._message).to.equal(
         await Factory__OVM_L1ERC20Gateway.interface.encodeFunctionData(
@@ -154,7 +153,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
 
       // Assert the correct cross-chain call was sent.
       // Message should be sent to the L1ERC20Gateway on L1
-      expect(withdrawalCallToMessenger._target).to.equal(MOCK_L1_ERC20_ADDRESS)
+      expect(withdrawalCallToMessenger._target).to.equal(MOCK_L1GATEWAY_ADDRESS)
       // The message data should be a call telling the L1ERC20Gateway to finalize the withdrawal
       expect(withdrawalCallToMessenger._message).to.equal(
         await Factory__OVM_L1ERC20Gateway.interface.encodeFunctionData(

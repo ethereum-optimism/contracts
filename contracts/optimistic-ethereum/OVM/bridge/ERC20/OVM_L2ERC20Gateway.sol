@@ -87,7 +87,7 @@ contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, ERC20, OVM_CrossChainEnabled
      * @param _amount Amount of the ERC20 to withdraw
      */
     function finalizeDeposit(address _to, uint _amount) external override onlyInitialized()
-        onlyFromCrossChainContract(address(l1ERC20Gateway))
+        onlyFromCrossDomainAccount(address(l1ERC20Gateway))
     {
         _mint(_to, _amount);
         emit DepositFinalized(_to, _amount);
