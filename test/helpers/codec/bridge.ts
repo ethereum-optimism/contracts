@@ -1,4 +1,4 @@
-import { getContractInterface } from '../../../'
+import { getContractInterface } from '../../../src/contract-defs'
 
 export const getXDomainCalldata = (
     sender: string,
