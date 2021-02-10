@@ -1,11 +1,39 @@
-// TODO: clean this up and move elsewhere?
+// SPDX-License-Identifier: MIT
+// @unsupported: ovm
+pragma solidity >0.5.0 <0.8.0;
+
+/* Contract Imports */
 import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/iAbs_BaseCrossDomainMessenger.sol";
 
+/**
+ * @title OVM_CrossChainEnabled
+ * @dev Helper contract for contracts performing cross-domain communications
+ *
+ * Compiler used: defined by inheriting contract
+ * Runtime target: defined by inheriting contract
+ */
 contract OVM_CrossChainEnabled {
     iAbs_BaseCrossDomainMessenger messenger;
 
-    modifier onlyFromCrossChainContract(
-        address _accountOnOtherChain
+    /***************
+     * Constructor *
+     ***************/    
+    constructor(
+        iAbs_BaseCrossDomainMessenger _messenger
+    ) public {
+        messenger = _messenger;
+    }
+
+    /**********************
+     * Function Modifiers *
+     **********************/
+
+    /**
+     * @notice Enforces that the modified function is only callable by a specific cross-domain account.
+     * @param _sourceDomainAccount The only account on the originating domain which is authenticated to call this function.
+     */
+    modifier onlyFromCrossDomainAccount(
+        address _sourceDomainAccount
     ) {
         require(
             msg.sender == address(messenger),
@@ -13,18 +41,23 @@ contract OVM_CrossChainEnabled {
         );
 
         require(
-            messenger.xDomainMessageSender() == _accountOnOtherChain,
+            messenger.xDomainMessageSender() == _sourceDomainAccount,
             "OVM_XCHAIN: wrong sender of cross-domain message"
-        );        
+        );
+
         _;
     }
     
-    constructor(
-        iAbs_BaseCrossDomainMessenger _messenger
-    ) public {
-        messenger = _messenger;
-    }
+    /**********************
+     * Internal Functions *
+     **********************/
 
+    /**
+     * @notice Sends a message to an account on another domain
+     * @param _crossDomainTarget The intended recipient on the destination domain
+     * @param _data The data to send to the target (usually calldata to a function with `onlyFromCrossDomainAccount()`)
+     * @param _gasLimit The gasLimit for the receipt of the message on the target domain.
+     */
     function sendCrossDomainMessage(
         address _crossDomainTarget,
         bytes memory _data,
