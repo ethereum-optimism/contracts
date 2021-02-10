@@ -7,22 +7,15 @@ import { smockit, MockContract } from '@eth-optimism/smock'
 
 /* Internal Imports */
 import {
-  makeAddressManager,
-  setProxyTarget,
-  NON_NULL_BYTES32,
-  ZERO_ADDRESS,
-  NON_ZERO_ADDRESS,
-  NULL_BYTES32,
-  DUMMY_BATCH_HEADERS,
-  DUMMY_BATCH_PROOFS,
-  TrieTestGenerator,
-  toHexString,
-  getNextBlockNumber,
-  remove0x,
+  NON_ZERO_ADDRESS, ZERO_ADDRESS
 } from '../../../../helpers'
-import { getContractInterface } from '../../../../../src'
-import { keccak256 } from 'ethers/lib/utils'
 
+const HARDCODED_GASLIMIT = 420069
+const decimals = 1
+
+const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
+const ERR_INVALID_X_DOMAIN_MSG_SENDER = 'OVM_XCHAIN: wrong sender of cross-domain message'
+const MOCK_L1GATEWAY_ADDRESS: string = '0x1234123412341234123412341234123412341234'
 
 const HARDCODED_GASLIMIT = 420069
 const decimals = 1 // what to set this to?
@@ -36,12 +29,15 @@ describe.only('OVM_L1ERC20Gateway', () => {
   const mockL2ERC20Gateway: string = '0x1234123412341234123412341234123412341234'
 
 
-  let Factory__OVM_L2ERC20Gateway: ContractFactory
-  let Factory__WETH: ContractFactory // or Mock contract? 
+  let Mock__OVM_L2ERC20Gateway: MockContract
+  let Mock__WETH: MockContract // or Mock contract? 
   before(async () => {
-    Factory__OVM_L2ERC20Gateway = await ethers.getContractFactory('OVM_L2ERC20Gateway')
-    Factory__WETH = await ethers.getContractFactory('WETH') // https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2#code
-
+    Mock__OVM_L2ERC20Gateway = await smockit(
+      await ethers.getContractFactory('OVM_L2ERC20Gateway')
+    )
+    Mock__WETH = await smockit(
+      await ethers.getContractFactory('OMV_ETH')
+    )
   })
 
   let mockL1CrossDomainMessengerAddress: string
@@ -62,20 +58,19 @@ describe.only('OVM_L1ERC20Gateway', () => {
     )
   
     // create a mock WETH contract on L1 (just using OVM_ETH)
-    Mock__OVM_ETH = await smockit(
-      await ethers.getContractFactory('OVM_ETH')
-    )
+    // Mock__WETH = await smockit(
+    //   await ethers.getContractFactory('OVM_ETH')
+    // )
 
     // Deploy the contract under test: 
     OVM_L1ERC20Gateway = await(
       await ethers.getContractFactory('OVM_L1ERC20Gateway')
     ).deploy(
-      WETH.address,
-      _l2ERC20Gateway,
-      iAbs_BaseCrossDomainMessenger _messenger 
+      Mock__WETH.address,
+      Mock__OVM_L2ERC20Gateway.address,
+      Mock__OVM_L1CrossDomainMessenger.address
     )
 
-    await OVM_L2ERC20Gateway.init(mockL1ERC20Gateway)
   })
 
   it('works', async () => {
