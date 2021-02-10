@@ -7,39 +7,35 @@ import { smockit, MockContract, smoddit, ModifiableContract } from '@eth-optimis
 
 /* Internal Imports */
 import {
-  getXDomainCalldata, NON_ZERO_ADDRESS, ZERO_ADDRESS
+  NON_ZERO_ADDRESS, ZERO_ADDRESS
 } from '../../../../helpers'
-import { getContractInterface } from '../../../../../src'
-import { keccak256 } from 'ethers/lib/utils'
 
 const HARDCODED_GASLIMIT = 420069
-const decimals = 1 // what to set this to?
+const decimals = 1
 
 const INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const INVALID_X_DOMAIN_MSG_SENDER = 'OVM_XCHAIN: wrong sender of cross-domain message'
+const MOCK_L1_ERC20_ADDRESS: string = '0x1234123412341234123412341234123412341234'
 
 describe.only('OVM_L2ERC20Gateway', () => {
   let alice: Signer
   let bob: Signer
-  const mockL1ERC20Gateway: string = '0x1234123412341234123412341234123412341234'
-
   let Factory__OVM_L1ERC20Gateway: ContractFactory
   before(async () => {
+    [alice, bob] = await ethers.getSigners()
     Factory__OVM_L1ERC20Gateway = await ethers.getContractFactory('OVM_L1ERC20Gateway')
   })
 
-  let mockL2CrossDomainMessengerAddress: string
-  let Mock__OVM_L2CrossDomainMessenger: MockContract
   let OVM_L2ERC20Gateway: Contract
+  let Mock__OVM_L2CrossDomainMessenger: MockContract
   beforeEach(async () => {
-    let signer
-    ;[signer, alice, bob] = await ethers.getSigners()
-    mockL2CrossDomainMessengerAddress = await signer.getAddress() // though we don't keep track of the signer here, it needs to have come from an ethers signer so that {from: mockL2...} will work.
-
+    let l2MessengerImpersonator: Signer
+    ;[l2MessengerImpersonator] = await ethers.getSigners()
     Mock__OVM_L2CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L2CrossDomainMessenger'),
-      { address: mockL2CrossDomainMessengerAddress }
+      { address: await l2MessengerImpersonator.getAddress() } // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
     )
+    
     OVM_L2ERC20Gateway = await(
       await ethers.getContractFactory('OVM_L2ERC20Gateway')
     ).deploy(
@@ -48,7 +44,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
       decimals
     )
 
-    await OVM_L2ERC20Gateway.init(mockL1ERC20Gateway)
+    await OVM_L2ERC20Gateway.init(MOCK_L1_ERC20_ADDRESS)
   })
 
 
@@ -72,19 +68,19 @@ describe.only('OVM_L2ERC20Gateway', () => {
         OVM_L2ERC20Gateway.finalizeDeposit(
           ZERO_ADDRESS,
           0,
-          { from: mockL2CrossDomainMessengerAddress }
-          )
+          { from: Mock__OVM_L2CrossDomainMessenger.address }
+        )
       ).to.be.revertedWith(INVALID_X_DOMAIN_MSG_SENDER)
     })
 
     const depositAmount = 100
     it('should credit funds to the depositor', async () => {
-      Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => mockL1ERC20Gateway)
+      Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => MOCK_L1_ERC20_ADDRESS)
 
       await OVM_L2ERC20Gateway.finalizeDeposit(
         await alice.getAddress(),
         depositAmount,
-        { from: mockL2CrossDomainMessengerAddress }
+        { from: Mock__OVM_L2CrossDomainMessenger.address }
       )
 
       const aliceBalance = await OVM_L2ERC20Gateway.balanceOf(await alice.getAddress())
@@ -98,13 +94,14 @@ describe.only('OVM_L2ERC20Gateway', () => {
     const withdrawAmount = 1_000
     let SmoddedL2Gateway: ModifiableContract
     beforeEach(async () => {
+      // Deploy a smodded gateway so we can give some balances to withdraw
       SmoddedL2Gateway = await (await smoddit('OVM_L2ERC20Gateway', alice)).deploy(
         Mock__OVM_L2CrossDomainMessenger.address,
         'ovmWETH',
         decimals
       )
       await SmoddedL2Gateway.init(
-        mockL1ERC20Gateway
+        MOCK_L1_ERC20_ADDRESS
       )
 
       // Populate the initial state with a total supply and some money in alice's balance
@@ -129,10 +126,10 @@ describe.only('OVM_L2ERC20Gateway', () => {
       const newTotalSupply = await SmoddedL2Gateway.totalSupply()
       expect(newTotalSupply).to.deep.equal(ethers.BigNumber.from(INITIAL_TOTAL_SUPPLY - withdrawAmount))
 
-      // Assert the correct cross-chain call was sent.
+      // Assert the correct cross-chain call was sent:
       // Message should be sent to the L1ERC20Gateway on L1
-      expect(withdrawalCallToMessenger._target).to.equal(mockL1ERC20Gateway)
-      // The message data should be a call telling the L1ERC20Gateway to finalize the withdrawal
+      expect(withdrawalCallToMessenger._target).to.equal(MOCK_L1_ERC20_ADDRESS)
+      // Message data should be a call telling the L1ERC20Gateway to finalize the withdrawal
       expect(withdrawalCallToMessenger._message).to.equal(
         await Factory__OVM_L1ERC20Gateway.interface.encodeFunctionData(
           'finalizeWithdrawal',
@@ -157,7 +154,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
 
       // Assert the correct cross-chain call was sent.
       // Message should be sent to the L1ERC20Gateway on L1
-      expect(withdrawalCallToMessenger._target).to.equal(mockL1ERC20Gateway)
+      expect(withdrawalCallToMessenger._target).to.equal(MOCK_L1_ERC20_ADDRESS)
       // The message data should be a call telling the L1ERC20Gateway to finalize the withdrawal
       expect(withdrawalCallToMessenger._message).to.equal(
         await Factory__OVM_L1ERC20Gateway.interface.encodeFunctionData(
