@@ -1,4 +1,3 @@
-
 // TODO: replace this with the unmodified L1 WETH contract in a new file.  where to put this? some "standards" folder?
 contract ERC20 {
 

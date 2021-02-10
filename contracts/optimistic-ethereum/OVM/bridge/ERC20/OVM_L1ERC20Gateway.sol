@@ -7,6 +7,8 @@ import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/ERC20/iOVM_L1ERC20Gate
 import { iOVM_L2ERC20Gateway } from "../../../iOVM/bridge/ERC20/iOVM_L2ERC20Gateway.sol";
 import { iAbs_BaseCrossDomainMessenger } from "../../../iOVM/bridge/iAbs_BaseCrossDomainMessenger.sol";
 import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
+
+/* Library Imports */
 import { OVM_CrossChainEnabled } from "../OVM_CrossChainEnabled.sol";
 
 /**
@@ -129,7 +131,12 @@ contract OVM_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossChainEnabled {
      * @param _to L1 address to credit the withdrawal to
      * @param _amount Amount of the ERC20 to withdraw
      */
-    function finalizeWithdrawal(address _to, uint _amount) external override 
+    function finalizeWithdrawal(
+        address _to,
+        uint _amount
+    )
+        external
+        override 
         onlyFromCrossDomainAccount(l2ERC20Gateway) 
     {
         l1ERC20.transfer(_to, _amount);
