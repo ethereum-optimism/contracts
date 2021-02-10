@@ -48,7 +48,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
 
 
   describe('finalizeDeposit', () => {
-    it('should revert on calls from a non-crossDomainMessenger L1 account', async () => {
+    it('onlyFromCrossDomainAccount: should revert on calls from a non-crossDomainMessenger L2 account', async () => {
       // Deploy new gateway, initialize with random messenger
       OVM_L2ERC20Gateway = await(
         await ethers.getContractFactory('OVM_L2ERC20Gateway')
@@ -60,7 +60,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
       ).to.be.revertedWith(ERR_INVALID_MESSENGER)
     })
 
-    it('should revert on calls from the right crossDomainMessenger, but wrong xDomainMessageSender', async () => {
+    it('onlyFromCrossDomainAccount: should revert on calls from the right crossDomainMessenger, but wrong xDomainMessageSender (ie. not the L1ERC20Gateway)', async () => {
       Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => NON_ZERO_ADDRESS)
 
       await expect(
@@ -139,7 +139,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
       expect(withdrawalCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)
     })
 
-    it('withdraw() burns and sends the correct withdrawal message', async () => { 
+    it('withdrawTo() burns and sends the correct withdrawal message', async () => { 
       await SmoddedL2Gateway.withdrawTo(await bob.getAddress(), withdrawAmount)
       const withdrawalCallToMessenger = Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
 
