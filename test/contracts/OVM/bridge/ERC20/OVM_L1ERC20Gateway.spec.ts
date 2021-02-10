@@ -32,37 +32,53 @@ describe.only('OVM_L1ERC20Gateway', () => {
   let alice: Signer
   let bob: Signer
 
-  // we can just 
+  // we can just make up this string since it's on the "other" Layer
   const mockL2ERC20Gateway: string = '0x1234123412341234123412341234123412341234'
+
+
+  let Factory__OVM_L2ERC20Gateway: ContractFactory
+  let Factory__WETH: ContractFactory // or Mock contract? 
+  before(async () => {
+    Factory__OVM_L2ERC20Gateway = await ethers.getContractFactory('OVM_L2ERC20Gateway')
+    Factory__WETH = await ethers.getContractFactory('WETH') // https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2#code
+
+  })
 
   let mockL1CrossDomainMessengerAddress: string
   let Mock__OVM_L1CrossDomainMessenger: MockContract
-  let OVM_L2ERC20Gateway: Contract
-
-  let Factory__OVM_L1ERC20Gateway: ContractFactory
-  before(async () => {
-    Factory__OVM_L1ERC20Gateway = await ethers.getContractFactory('OVM_L1ERC20Gateway')
-  })
-
-
-
+  
+  // The contract under test. Everything else is a mock.
+  let OVM_L1ERC20Gateway: Contract
   beforeEach(async () => {
     let signer
     ;[signer, alice, bob] = await ethers.getSigners()
-    mockL2CrossDomainMessengerAddress = await signer.getAddress() // though we don't keep track of the signer here, it needs to have come from an ethers signer so that {from: mockL2...} will work.
+    // though we don't keep track of the signer here, it needs to have come from an ethers signer so that {from: mockL2...} will work.
+    mockL1CrossDomainMessengerAddress = await signer.getAddress() 
 
-    Mock__OVM_L2CrossDomainMessenger = await smockit(
+    // get a mock L1 messenger
+    Mock__OVM_L1CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L2CrossDomainMessenger'),
-      { address: mockL2CrossDomainMessengerAddress }
+      { address: mockL1CrossDomainMessengerAddress }
     )
-    OVM_L2ERC20Gateway = await(
-      await ethers.getContractFactory('OVM_L2ERC20Gateway')
+  
+    // create a mock WETH contract on L1 (just using OVM_ETH)
+    Mock__OVM_ETH = await smockit(
+      await ethers.getContractFactory('OVM_ETH')
+    )
+
+    // Deploy the contract under test: 
+    OVM_L1ERC20Gateway = await(
+      await ethers.getContractFactory('OVM_L1ERC20Gateway')
     ).deploy(
-      Mock__OVM_L2CrossDomainMessenger.address,
-      'ovmWETH',
-      decimals
+      WETH.address,
+      _l2ERC20Gateway,
+      iAbs_BaseCrossDomainMessenger _messenger 
     )
 
     await OVM_L2ERC20Gateway.init(mockL1ERC20Gateway)
   })
 
+  it('works', async () => {
+    expect(true);
+  })
+})

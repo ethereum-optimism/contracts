@@ -96,7 +96,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
       // Deploy a smodded gateway so we can give some balances to withdraw
       SmoddedL2Gateway = await (await smoddit('OVM_L2ERC20Gateway', alice)).deploy(
         Mock__OVM_L2CrossDomainMessenger.address,
-        'ovmWETH',
+        'ovmWETH', // here: https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2#code
         decimals
       )
       await SmoddedL2Gateway.init(
