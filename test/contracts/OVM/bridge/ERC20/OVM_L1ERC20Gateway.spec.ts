@@ -110,7 +110,7 @@ describe.only('OVM_L1ERC20Gateway', () => {
         Mock__OVM_L2ERC20Gateway.address
       )
 
-      await L1ERC20.transfer(OVM_L1ERC20Gateway.address, depositAmount)      
+      await L1ERC20.transfer(OVM_L1ERC20Gateway.address, withdrawalAmount)      
 
       await OVM_L1ERC20Gateway.finalizeWithdrawal(
         NON_ZERO_ADDRESS,
@@ -118,8 +118,8 @@ describe.only('OVM_L1ERC20Gateway', () => {
         { from: Mock__OVM_L1CrossDomainMessenger.address }
       )
       
-      expect(
-        L1ERC20.balanceOf(NON_ZERO_ADDRESS)
+      await expect (
+        await L1ERC20.balanceOf(NON_ZERO_ADDRESS)
       ).to.be.equal(withdrawalAmount)
 
     })
