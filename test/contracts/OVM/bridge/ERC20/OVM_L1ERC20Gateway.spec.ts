@@ -127,16 +127,21 @@ describe.only('OVM_L1ERC20Gateway', () => {
     let aliceAddress;
     const depositAmount = 1_000
     let SmoddedL1ERC20: ModifiableContract
+
     beforeEach(async () => {
       // Deploy a smodded ERC20 on L1 so we can give some balances to withdraw
-      SmoddedL1ERC20 = await (await smoddit('OVM_ETH')).deploy(
+      const Factory__L1ERC20 = await ethers.getContractFactory('OVM_ETH')
+      Factory__L1ERC20.connect(alice)
+
+
+      // Deploy the L1 ERC20 token, Alice will receive the full initialSupply
+      L1ERC20 = await Factory__L1ERC20.deploy(
         ZERO_ADDRESS, // temp: address manager 
         initialSupply,
         'L1ERC20', // token name
         18, // decimals
         'ERC' // temp: token symbol
       )
-      SmoddedL1ERC20.connect(alice)
 
       // get a new mock L1 messenger
       Mock__OVM_L1CrossDomainMessenger = await smockit(
@@ -152,26 +157,12 @@ describe.only('OVM_L1ERC20Gateway', () => {
         Mock__OVM_L1CrossDomainMessenger.address
       )
 
-      aliceAddress = await alice.getAddress();
-      SmoddedL1ERC20.smodify.put({
-        totalSupply: INITIAL_TOTAL_SUPPLY,
-        balances: {
-          [aliceAddress] : ALICE_INITIAL_BALANCE
-        },
-        // seems I'm setting this value incorrectly
-        // allowed: {
-        //   [aliceAddress]: {
-        //     [OVM_L1ERC20Gateway.address]: depositAmount
-        //   }
-        // }
-      })
+      await L1ERC20.approve(OVM_L1ERC20Gateway.address, depositAmount)
+      
     })
 
-    it('deposit() escrows the deposit amount and sends the correct deposit message', async () => { 
-      // depositor calls approve
-      await SmoddedL1ERC20.approve(OVM_L1ERC20Gateway.address, depositAmount)
-      
-      // depositor calls deposit on the gateway and the L1 gateway calls transferFrom on the token
+    it.only('deposit() escrows the deposit amount and sends the correct deposit message', async () => { 
+      // alice calls deposit on the gateway and the L1 gateway calls transferFrom on the token
       await OVM_L1ERC20Gateway.deposit(depositAmount)
       const depositCallToMessenger = Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
       
