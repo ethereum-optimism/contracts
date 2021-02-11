@@ -29,13 +29,18 @@ describe.only('OVM_L2ERC20Gateway', () => {
   let OVM_L2ERC20Gateway: Contract
   let Mock__OVM_L2CrossDomainMessenger: MockContract
   beforeEach(async () => {
+    // Create a special signer which will enable us to send messages from the L2Messenger contract
     let l2MessengerImpersonator: Signer
     ;[l2MessengerImpersonator] = await ethers.getSigners()
+
+    // Get a new mock L2 messenger
     Mock__OVM_L2CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L2CrossDomainMessenger'),
-      { address: await l2MessengerImpersonator.getAddress() } // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
+      // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
+      { address: await l2MessengerImpersonator.getAddress() } 
     )
     
+    // Deploy the contract under test
     OVM_L2ERC20Gateway = await(
       await ethers.getContractFactory('OVM_L2ERC20Gateway')
     ).deploy(
@@ -43,10 +48,12 @@ describe.only('OVM_L2ERC20Gateway', () => {
       'ovmWETH',
       decimals
     )
+
+    // initialize the L2 Gateway with the L1G ateway addrss
     await OVM_L2ERC20Gateway.init(MOCK_L1GATEWAY_ADDRESS)
   })
 
-
+  // test the transfer flow of moving a token from L2 to L1
   describe('finalizeDeposit', () => {
     it('onlyFromCrossDomainAccount: should revert on calls from a non-crossDomainMessenger L2 account', async () => {
       // Deploy new gateway, initialize with random messenger
@@ -54,14 +61,14 @@ describe.only('OVM_L2ERC20Gateway', () => {
         await ethers.getContractFactory('OVM_L2ERC20Gateway')
       ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', decimals)
       await OVM_L2ERC20Gateway.init(NON_ZERO_ADDRESS)
-
+      
       await expect(
         OVM_L2ERC20Gateway.finalizeDeposit(ZERO_ADDRESS, 0)
       ).to.be.revertedWith(ERR_INVALID_MESSENGER)
     })
 
     it('onlyFromCrossDomainAccount: should revert on calls from the right crossDomainMessenger, but wrong xDomainMessageSender (ie. not the L1ERC20Gateway)', async () => {
-      Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => NON_ZERO_ADDRESS)
+      Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(NON_ZERO_ADDRESS)
 
       await expect(
         OVM_L2ERC20Gateway.finalizeDeposit(
