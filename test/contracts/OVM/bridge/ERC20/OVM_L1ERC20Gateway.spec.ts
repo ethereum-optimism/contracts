@@ -19,6 +19,7 @@ const ERR_INVALID_X_DOMAIN_MSG_SENDER = 'OVM_XCHAIN: wrong sender of cross-domai
 describe.only('OVM_L1ERC20Gateway', () => {
   // init signers
   let alice: Signer
+  
   let bob: Signer
 
   // we can just make up this string since it's on the "other" Layer
@@ -52,7 +53,6 @@ describe.only('OVM_L1ERC20Gateway', () => {
         // Create a special signer which will enable us to send messages from the L1Messenger contract
     let l1MessengerImpersonator: Signer
     ;[l1MessengerImpersonator, alice, bob] = await ethers.getSigners()
-
     // Get a new mock L1 messenger
     Mock__OVM_L1CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L1CrossDomainMessenger'),
@@ -100,8 +100,8 @@ describe.only('OVM_L1ERC20Gateway', () => {
       ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
     })
 
-    const withdrawalAmount = 100
     it('should credit funds to the withdrawer', async () => {
+      const withdrawalAmount = 100
       Mock__OVM_L1CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => 
         Mock__OVM_L2ERC20Gateway.address
       )
@@ -117,27 +117,28 @@ describe.only('OVM_L1ERC20Gateway', () => {
       await expect (
         await L1ERC20.balanceOf(NON_ZERO_ADDRESS)
       ).to.be.equal(withdrawalAmount)
+    })
 
+    it('finalizeWithdrawalAndCall(): should should credit funds to the withdrawer, and forward from and data', async () => {
+      expect.fail()
     })
   })
 
   describe('deposits', () => {
     const INITIAL_TOTAL_SUPPLY = 100_000
     const ALICE_INITIAL_BALANCE = 50_000
-    let aliceAddress;
+    let signerAddress;
     const depositAmount = 1_000
-    let SmoddedL1ERC20: ModifiableContract
+    let L1ERC20: Contract
 
     beforeEach(async () => {
       // Deploy a smodded ERC20 on L1 so we can give some balances to withdraw
       const Factory__L1ERC20 = await ethers.getContractFactory('OVM_ETH')
-      Factory__L1ERC20.connect(alice)
-
-
+      
       // Deploy the L1 ERC20 token, Alice will receive the full initialSupply
       L1ERC20 = await Factory__L1ERC20.deploy(
         ZERO_ADDRESS, // temp: address manager 
-        initialSupply,
+        INITIAL_TOTAL_SUPPLY,
         'L1ERC20', // token name
         18, // decimals
         'ERC' // temp: token symbol
@@ -147,44 +148,44 @@ describe.only('OVM_L1ERC20Gateway', () => {
       Mock__OVM_L1CrossDomainMessenger = await smockit(
         await ethers.getContractFactory('OVM_L1CrossDomainMessenger')
       )
-
+      
       // Deploy the contract under test: 
       OVM_L1ERC20Gateway = await (
         await ethers.getContractFactory('OVM_L1ERC20Gateway')
       ).deploy(
-        SmoddedL1ERC20.address,
+        L1ERC20.address,
         Mock__OVM_L2ERC20Gateway.address,
         Mock__OVM_L1CrossDomainMessenger.address
       )
 
+      // the Signer sets approve for the L1 Gateway
       await L1ERC20.approve(OVM_L1ERC20Gateway.address, depositAmount)
+      signerAddress = await L1ERC20.signer.getAddress()
       
     })
 
-    it.only('deposit() escrows the deposit amount and sends the correct deposit message', async () => { 
+    it('deposit() escrows the deposit amount and sends the correct deposit message', async () => { 
       // alice calls deposit on the gateway and the L1 gateway calls transferFrom on the token
       await OVM_L1ERC20Gateway.deposit(depositAmount)
       const depositCallToMessenger = Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
       
-      // Check L1 token actions:
-      // alice's balance is reduced
-      const aliceBalance = await SmoddedL1ERC20.balanceOf(aliceAddress)
-      expect(aliceBalance).to.equal(ALICE_INITIAL_BALANCE - depositAmount)
+      const signerBalance = await L1ERC20.balanceOf(signerAddress)
+      expect(signerBalance).to.equal(INITIAL_TOTAL_SUPPLY - depositAmount)
 
       // gateway's balance is increased
-      const gatewayBalance = await SmoddedL1ERC20.balanceOf(OVM_L1ERC20Gateway.address)
+      const gatewayBalance = await L1ERC20.balanceOf(OVM_L1ERC20Gateway.address)
       expect(gatewayBalance).to.equal(depositAmount)
 
       // Check the correct cross-chain call was sent:
-        // Message should be sent to the L2ERC20Gateway on L2
-        expect(depositCallToMessenger._target).to.equal(Mock__OVM_L2ERC20Gateway.address)  
-        // Message data should be a call telling the L2ERC20Gateway to finalize the deposit
+      // Message should be sent to the L2ERC20Gateway on L2
+      expect(depositCallToMessenger._target).to.equal(Mock__OVM_L2ERC20Gateway.address)  
+      // Message data should be a call telling the L2ERC20Gateway to finalize the deposit
 
       // the L1 gateway sends the correct message to the L1 messenger
       expect(depositCallToMessenger._message).to.equal(
         await Mock__OVM_L2ERC20Gateway.interface.encodeFunctionData(
           'finalizeDeposit',
-          [aliceAddress, depositAmount]
+          [signerAddress, depositAmount] 
         )
       )
       expect(depositCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)
@@ -192,20 +193,17 @@ describe.only('OVM_L1ERC20Gateway', () => {
     })
 
     it('depositTo() escrows the deposit amount and sends the correct deposit message', async () => { 
-      // depositor calls approve
-      await SmoddedL1ERC20.approve(OVM_L1ERC20Gateway.address, depositAmount)
-      
+
       // depositor calls deposit on the gateway and the L1 gateway calls transferFrom on the token
-      await OVM_L1ERC20Gateway.depositTo(await bob.getAddress(), depositAmount)
+      const bobsAddress = await bob.getAddress()
+      await OVM_L1ERC20Gateway.depositTo(bobsAddress, depositAmount)
       const depositCallToMessenger = Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
-      
-      // Check L1 token actions:
-      // alice's balance is reduced
-      const aliceBalance = await SmoddedL1ERC20.balanceOf(aliceAddress)
-      expect(aliceBalance).to.equal(ALICE_INITIAL_BALANCE - depositAmount)
+    
+      const signerBalance = await L1ERC20.balanceOf(signerAddress)
+      expect(signerBalance).to.equal(INITIAL_TOTAL_SUPPLY - depositAmount)
 
       // gateway's balance is increased
-      const gatewayBalance = await SmoddedL1ERC20.balanceOf(OVM_L1ERC20Gateway.address)
+      const gatewayBalance = await L1ERC20.balanceOf(OVM_L1ERC20Gateway.address)
       expect(gatewayBalance).to.equal(depositAmount)
 
       // Check the correct cross-chain call was sent:
@@ -217,7 +215,7 @@ describe.only('OVM_L1ERC20Gateway', () => {
       expect(depositCallToMessenger._message).to.equal(
         await Mock__OVM_L2ERC20Gateway.interface.encodeFunctionData(
           'finalizeDeposit',
-          [aliceAddress, depositAmount]
+          [bobsAddress, depositAmount]
         )
       )
       expect(depositCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)

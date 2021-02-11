@@ -79,8 +79,8 @@ describe.only('OVM_L2ERC20Gateway', () => {
       ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
     })
 
-    const depositAmount = 100
     it('should credit funds to the depositor', async () => {
+      const depositAmount = 100
       Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => 
         MOCK_L1GATEWAY_ADDRESS
       )
@@ -105,7 +105,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
       // Deploy a smodded gateway so we can give some balances to withdraw
       SmoddedL2Gateway = await (await smoddit('OVM_L2ERC20Gateway', alice)).deploy(
         Mock__OVM_L2CrossDomainMessenger.address,
-        'ovmWETH', // here: https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2#code
+        'ovmWETH',
         decimals
       )
       await SmoddedL2Gateway.init(
