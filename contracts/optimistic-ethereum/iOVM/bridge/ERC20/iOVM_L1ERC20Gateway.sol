@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
+
 /**
  * @title iOVM_L1ERC20Gateway
  */
@@ -11,7 +12,6 @@ interface iOVM_L1ERC20Gateway {
      **********/
     event DepositInitiated(address indexed _from, address _to, uint256 _amount);    
     event WithdrawalFinalized(address indexed _to, uint256 _amount);
-
 
     /********************
      * Public Functions *
