@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: MIT
-// @unsupported: ovm 
-// @todo remove this
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
