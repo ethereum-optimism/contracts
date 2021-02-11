@@ -34,61 +34,98 @@ describe.only('OVM_L1ERC20Gateway', () => {
     Mock__OVM_L2ERC20Gateway = await smockit(
       await ethers.getContractFactory('OVM_L2ERC20Gateway')
     )
-    // deploy an actual ERC20 contract on L1
-    // @todo: use the actual implementation
-    Factory__L1ERC20 = await (
-      await ethers.getContractFactory('ERC20')
-    ).connect(alice)
+    // // deploy an actual ERC20 contract on L1
+    // // @todo: use the actual implementation
+    Factory__L1ERC20 = (
+      await ethers.getContractFactory('OVM_ETH')
+    )
     
-
-    await L1ERC20.deploy(
+    L1ERC20 = await Factory__L1ERC20.deploy(
+      ZERO_ADDRESS, // temp: address manager 
       initialSupply,
       'L1ERC20',
-      18
+      18,
+      'ERC' // temp: 
     )
   })
 
+  let OVM_L1ERC20Gateway: Contract
   let mockL1CrossDomainMessengerAddress: string
   let Mock__OVM_L1CrossDomainMessenger: MockContract
-  
-  // The contract under test. Everything else is a mock.
-  let OVM_L1ERC20Gateway: Contract
   beforeEach(async () => {
     let l1MessengerImpersonator: Signer
     ;[l1MessengerImpersonator, alice, bob] = await ethers.getSigners()
 
-    // get a mock L1 messenger
+    // get a mock new L1 messenger
     Mock__OVM_L1CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L1CrossDomainMessenger'),
       { address: await l1MessengerImpersonator.getAddress() } // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
     )
+    mockL1CrossDomainMessengerAddress = Mock__OVM_L1CrossDomainMessenger.address;
 
     // Deploy the contract under test: 
-    OVM_L1ERC20Gateway = await(
+    OVM_L1ERC20Gateway = await (
       await ethers.getContractFactory('OVM_L1ERC20Gateway')
     ).deploy(
       L1ERC20.address,
       Mock__OVM_L2ERC20Gateway.address,
       Mock__OVM_L1CrossDomainMessenger.address
     )
-
+  
   })
 
   describe('finalizeWithdrawal', () => {
     it('onlyFromCrossDomainAccount: should revert on calls from a non-crossDomainMessenger L1 account', async () => {
-      expect(false)
+         // Deploy new gateway, initialize with random messenger
+        OVM_L1ERC20Gateway = await (
+          await ethers.getContractFactory('OVM_L1ERC20Gateway')
+        ).deploy(
+          L1ERC20.address,
+          Mock__OVM_L2ERC20Gateway.address,
+          NON_ZERO_ADDRESS
+        )
+
+      await expect(
+        OVM_L1ERC20Gateway.finalizeWithdrawal(ZERO_ADDRESS, 1)
+      ).to.be.revertedWith(ERR_INVALID_MESSENGER)
     })
 
     it('onlyFromCrossDomainAccount: should revert on calls from the right crossDomainMessenger, but wrong xDomainMessageSender (ie. not the L2ERC20Gateway)', async () => {
-      
+      Mock__OVM_L1CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => 
+        NON_ZERO_ADDRESS
+      )
+
+      await expect (
+        OVM_L1ERC20Gateway.finalizeWithdrawal(
+          ZERO_ADDRESS,
+          1, 
+          { from: Mock__OVM_L1CrossDomainMessenger.address }
+        )
+      ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
     })
 
-    const depositAmount = 100
+    const withdrawalAmount = 100
     it('should credit funds to the withdrawer', async () => {
+      Mock__OVM_L1CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => 
+        Mock__OVM_L2ERC20Gateway.address
+      )
+
+      await L1ERC20.transfer(OVM_L1ERC20Gateway.address, depositAmount)      
+
+      await OVM_L1ERC20Gateway.finalizeWithdrawal(
+        NON_ZERO_ADDRESS,
+        withdrawalAmount, 
+        { from: Mock__OVM_L1CrossDomainMessenger.address }
+      )
+      
+      expect(
+        L1ERC20.balanceOf(NON_ZERO_ADDRESS)
+      ).to.be.equal(withdrawalAmount)
+
     })
   })
 
-  describe('deposits', () => {
+  describe.skip('deposits', () => {
     const INITIAL_TOTAL_SUPPLY = 100_000
     const ALICE_INITIAL_BALANCE = 50_000
     const withdrawAmount = 1_000
@@ -115,11 +152,11 @@ describe.only('OVM_L1ERC20Gateway', () => {
     })
 
     it('deposit() escrows the deposit amount and sends the correct deposit message', async () => { 
-      
+      expect.fail()
     })
 
     it('depositTo() escrows the deposit amount and sends the correct deposit message', async () => { 
-      
+      expect.fail()
     })
   })
 })

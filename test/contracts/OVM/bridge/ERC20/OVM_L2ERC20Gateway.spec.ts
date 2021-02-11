@@ -17,7 +17,7 @@ const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER = 'OVM_XCHAIN: wrong sender of cross-domain message'
 const MOCK_L1GATEWAY_ADDRESS: string = '0x1234123412341234123412341234123412341234'
 
-describe.only('OVM_L2ERC20Gateway', () => {
+describe('OVM_L2ERC20Gateway', () => {
   let alice: Signer
   let bob: Signer
   let Factory__OVM_L1ERC20Gateway: ContractFactory
@@ -74,7 +74,9 @@ describe.only('OVM_L2ERC20Gateway', () => {
 
     const depositAmount = 100
     it('should credit funds to the depositor', async () => {
-      Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => MOCK_L1GATEWAY_ADDRESS)
+      Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(() => 
+        MOCK_L1GATEWAY_ADDRESS
+      )
 
       await OVM_L2ERC20Gateway.finalizeDeposit(
         await alice.getAddress(),

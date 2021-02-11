@@ -58,6 +58,8 @@ contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, ERC20, OVM_CrossChainEnabled
     // Should we be inheriting this initialization logic?
     /**
      * @dev Initialize this gateway with the L1 gateway address
+     * The assumed flow is that this contract is deployed, then the L1 gateway,
+     * then init is called on L2.
      * @param _l1ERC20Gateway Address of the corresponding L1 gateway deployed to the main chain
      */
     function init(
@@ -119,7 +121,7 @@ contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, ERC20, OVM_CrossChainEnabled
         _burn(msg.sender, _amount);
 
         // Construct calldata for l1ERC20Gateway.finalizeWithdrawal(_to, _amount)
-         bytes memory data = abi.encodeWithSelector(
+        bytes memory data = abi.encodeWithSelector(
             iOVM_L1ERC20Gateway.finalizeWithdrawal.selector,
             _to,
             _amount
