@@ -3,13 +3,13 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import { iOVM_ERC20 } from "../../precompiles/iOVM_ERC20.sol";
+import { IUniswapV2ERC20 } from "../../precompiles/IUniswapV2ERC20.sol";
 
 /**
  * @title iOVM_L2ERC20Gateway
  */
 // TODO: add `is iOVM_ERC20` -- the types are messing with my tempERC20
-interface iOVM_L2ERC20Gateway {
+interface iOVM_L2ERC20Gateway is IUniswapV2ERC20 {
 
     /**********
      * Events *

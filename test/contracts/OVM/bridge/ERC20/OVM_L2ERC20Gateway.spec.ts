@@ -45,8 +45,9 @@ describe.only('OVM_L2ERC20Gateway', () => {
       await ethers.getContractFactory('OVM_L2ERC20Gateway')
     ).deploy(
       Mock__OVM_L2CrossDomainMessenger.address,
+      decimals,
       'ovmWETH',
-      decimals
+      'oWETH'
     )
 
     // initialize the L2 Gateway with the L1G ateway addrss
@@ -59,7 +60,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
       // Deploy new gateway, initialize with random messenger
       OVM_L2ERC20Gateway = await(
         await ethers.getContractFactory('OVM_L2ERC20Gateway')
-      ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', decimals)
+      ).deploy(NON_ZERO_ADDRESS, decimals, 'ovmWETH', 'oWETH')
       await OVM_L2ERC20Gateway.init(NON_ZERO_ADDRESS)
       
       await expect(
@@ -105,8 +106,9 @@ describe.only('OVM_L2ERC20Gateway', () => {
       // Deploy a smodded gateway so we can give some balances to withdraw
       SmoddedL2Gateway = await (await smoddit('OVM_L2ERC20Gateway', alice)).deploy(
         Mock__OVM_L2CrossDomainMessenger.address,
+        decimals,
         'ovmWETH',
-        decimals
+        'oWETH'
       )
       await SmoddedL2Gateway.init(
         MOCK_L1GATEWAY_ADDRESS
@@ -116,7 +118,7 @@ describe.only('OVM_L2ERC20Gateway', () => {
       const aliceAddress = await alice.getAddress()
       SmoddedL2Gateway.smodify.put({
         totalSupply: INITIAL_TOTAL_SUPPLY,
-        balances: {
+        balanceOf: {
           [aliceAddress] : ALICE_INITIAL_BALANCE
         }
       })

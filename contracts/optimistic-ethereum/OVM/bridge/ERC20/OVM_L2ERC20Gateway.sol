@@ -7,9 +7,9 @@ import { iOVM_L2ERC20Gateway } from "../../../iOVM/bridge/ERC20/iOVM_L2ERC20Gate
 import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/ERC20/iOVM_L1ERC20Gateway.sol";
 import { iOVM_L2CrossDomainMessenger } from "../../../iOVM/bridge/iOVM_L2CrossDomainMessenger.sol";
 
-
+/* Contract Imports */
 import { OVM_CrossChainEnabled } from "../OVM_CrossChainEnabled.sol";
-import { ERC20 } from "./tempERC20.sol";
+import { UniswapV2ERC20 } from "../../precompiles/UniswapV2ERC20.sol";
 
 /**
  * @title OVM_L2ERC20Gateway
@@ -20,7 +20,7 @@ import { ERC20 } from "./tempERC20.sol";
  * Compiler used: optimistic-solc
  * Runtime target: OVM
  */
-contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, ERC20, OVM_CrossChainEnabled {
+contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, UniswapV2ERC20, OVM_CrossChainEnabled {
     
     /******************
      * Contract Events*
@@ -40,17 +40,19 @@ contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, ERC20, OVM_CrossChainEnabled
 
     /**
      * @param _l2CrossDomainMessenger L1 Messenger address being used for cross-chain communications.
+     * @param _decimals L2 ERC20 decimals
      * @param _name L2 ERC20 name
-     * @param _decimalUnits L2 ERC20 decimalUnits
+     * @param _symbol L2 ERC20 symbol
      */
     constructor(
         iOVM_L2CrossDomainMessenger _l2CrossDomainMessenger,
+        uint8 _decimals,
         string memory _name,
-        uint8 _decimalUnits
+        string memory _symbol
     )
         public
         OVM_CrossChainEnabled(_l2CrossDomainMessenger)
-        ERC20(0, _name, _decimalUnits)
+        UniswapV2ERC20(_decimals, _name, _symbol)
     {}
 
     // Should we be inheriting this initialization logic?

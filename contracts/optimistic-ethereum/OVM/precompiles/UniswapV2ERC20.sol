@@ -1,15 +1,15 @@
 pragma solidity >=0.5.16 <0.8.0;
 
-import './dependencies/IUniswapV2ERC20.sol';
+import '../../iOVM/precompiles/IUniswapV2ERC20.sol';
 import './dependencies/UniSafeMath.sol';
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
     using UniSafeMath for uint;
 
-    string public constant override name = 'Uniswap V2';
-    string public constant override symbol = 'UNI-V2';
-    uint8 public constant override decimals = 18;
-    uint  public override totalSupply;
+    string public override name;
+    string public override symbol;
+    uint8 public override immutable decimals;
+    uint public override totalSupply;
     mapping(address => uint) public override balanceOf;
     mapping(address => mapping(address => uint)) public override allowance;
 
@@ -18,7 +18,15 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     bytes32 public constant override PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
     mapping(address => uint) public override nonces;
 
-    constructor() public {
+    constructor(
+        uint8 _decimals,
+        string memory _name,
+        string memory _symbol
+    ) public {
+        decimals = _decimals;
+        name = _name;
+        symbol = _symbol;
+
         uint chainId;
         assembly {
             chainId := chainid()
