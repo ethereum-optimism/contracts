@@ -129,7 +129,7 @@ contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, ERC20, OVM_CrossChainEnabled
         sendCrossDomainMessage(
             address(l1ERC20Gateway),
             data,
-            420069 // TODO: meter and set with some buffer (actually I think its currently unused in this direction)
+            8999999 // TODO: meter and set with some buffer (actually I think its currently unused in this direction)
         );
 
         emit WithdrawalInitiated(msg.sender, _to, _amount);

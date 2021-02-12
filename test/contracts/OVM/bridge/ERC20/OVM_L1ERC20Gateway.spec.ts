@@ -10,7 +10,7 @@ import {
   NON_ZERO_ADDRESS, ZERO_ADDRESS
 } from '../../../../helpers'
 
-const HARDCODED_GASLIMIT = 420069
+const HARDCODED_GASLIMIT = 8999999
 const decimals = 1
 
 const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
