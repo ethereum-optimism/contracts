@@ -14,13 +14,15 @@ contract Lib_AddressManager is Ownable {
      **********/
 
     event AddressSet(
-        string _name,
-        address _newAddress
+        string indexed _name,
+        address _newAddress,
+        address _oldAddress
     );
 
-    /*******************************************
-     * Contract Variables: Internal Accounting *
-     *******************************************/
+
+    /*************
+     * Variables *
+     *************/
 
     mapping (bytes32 => address) private addresses;
 
@@ -36,8 +38,15 @@ contract Lib_AddressManager is Ownable {
         public
         onlyOwner
     {
-        emit AddressSet(_name, _address);
-        addresses[_getNameHash(_name)] = _address;
+        bytes32 nameHash = _getNameHash(_name);
+        address oldAddress = addresses[nameHash];
+        addresses[nameHash] = _address;
+
+        emit AddressSet(
+            _name,
+            _address,
+            oldAddress
+        );
     }
 
     function getAddress(
@@ -45,7 +54,9 @@ contract Lib_AddressManager is Ownable {
     )
         public
         view
-        returns (address)
+        returns (
+            address
+        )
     {
         return addresses[_getNameHash(_name)];
     }
@@ -61,7 +72,7 @@ contract Lib_AddressManager is Ownable {
         internal
         pure
         returns (
-            bytes32 _hash
+            bytes32
         )
     {
         return keccak256(abi.encodePacked(_name));

@@ -19,7 +19,10 @@ interface iOVM_StateCommitmentChain {
         bytes32 _batchRoot,
         uint256 _batchSize,
         uint256 _prevTotalElements,
-        bytes _extraData
+        bytes _extraData,
+        address _submitter,
+        uint256 _timestamp,
+        uint256 _blockNumber
     );
 
     event StateBatchDeleted(

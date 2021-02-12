@@ -348,7 +348,10 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
             batchHeader.batchRoot,
             batchHeader.batchSize,
             batchHeader.prevTotalElements,
-            batchHeader.extraData
+            batchHeader.extraData,
+            msg.sender,
+            block.timestamp,
+            block.number
         );
 
         batches().push(
