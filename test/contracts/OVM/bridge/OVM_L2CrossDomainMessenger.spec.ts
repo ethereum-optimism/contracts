@@ -12,7 +12,7 @@ import {
   NON_NULL_BYTES32,
   ZERO_ADDRESS,
   NON_ZERO_ADDRESS,
-  getXDomainCalldata
+  getXDomainCalldata,
 } from '../../../helpers'
 
 describe('OVM_L2CrossDomainMessenger', () => {

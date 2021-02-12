@@ -19,7 +19,7 @@ import {
   toHexString,
   getNextBlockNumber,
   remove0x,
-  getXDomainCalldata
+  getXDomainCalldata,
 } from '../../../helpers'
 import { keccak256 } from 'ethers/lib/utils'
 

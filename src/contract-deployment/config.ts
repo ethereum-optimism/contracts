@@ -34,6 +34,7 @@ export interface RollupDeployConfig {
     owner: string | Signer
     allowArbitraryContractDeployment: boolean
   }
+  l1WethAddress?: string
   addressManager?: string
   dependencies?: string[]
   deployOverrides: Overrides
@@ -106,6 +107,14 @@ export const makeContractDeployConfig = async (
           )
         )
       },
+    },
+    OVM_L1WETHGateway: {
+      factory: getContractFactory('OVM_L1WETHGateway'),
+      params: [
+        config.l1WethAddress,
+        '0x4200000000000000000000000000000000000006',
+        AddressManager.address,
+      ],
     },
     OVM_L1MultiMessageRelayer: {
       factory: getContractFactory('OVM_L1MultiMessageRelayer'),
@@ -212,16 +221,9 @@ export const makeContractDeployConfig = async (
     OVM_ETH: {
       factory: getContractFactory('OVM_ETH'),
       params: [
-        AddressManager.address,
+        '0x4200000000000000000000000000000000000007', // TODO: grab this from a config
+        '0x0000000000000000000000000000000000000000', // will be overridden by geth when state dump is ingested.  Storage key: 0x0000000000000000000000000000000000000000000000000000000000000008
       ],
-      afterDeploy: async (contracts): Promise<void> => {
-        console.log(contracts.OVM_L2CrossDomainMessenger.address)
-        await _sendTx(
-          contracts.OVM_ETH.init(
-            '0x2345234523452345234523452345234523452345'
-          )
-        )
-      },
     },
     'OVM_ChainStorageContainer:CTC:batches': {
       factory: getContractFactory('OVM_ChainStorageContainer'),

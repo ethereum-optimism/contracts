@@ -6,6 +6,7 @@ import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolve
 
 /* Interface Imports */
 import { iOVM_L2CrossDomainMessenger } from "../../iOVM/bridge/iOVM_L2CrossDomainMessenger.sol";
+import { iOVM_L1ERC20Gateway } from "../../iOVM/bridge/ERC20/iOVM_L1ERC20Gateway.sol";
 
 /* Contract Imports */
 import { OVM_L2ERC20Gateway } from "../bridge/ERC20/OVM_L2ERC20Gateway.sol";
@@ -18,19 +19,19 @@ import { OVM_L2ERC20Gateway } from "../bridge/ERC20/OVM_L2ERC20Gateway.sol";
  * Compiler used: optimistic-solc
  * Runtime target: OVM
  */
-contract OVM_ETH is Lib_AddressResolver, OVM_L2ERC20Gateway {
+contract OVM_ETH is OVM_L2ERC20Gateway {
     constructor(
-        address _libAddressManager
+        address _l2CrossDomainMessenger,
+        address _l1ERC20Gateway
     ) 
-        Lib_AddressResolver(_libAddressManager)
         OVM_L2ERC20Gateway(
-            iOVM_L2CrossDomainMessenger(resolve("OVM_L2CrossDomainMessenger")),
+            iOVM_L2CrossDomainMessenger(_l2CrossDomainMessenger),
             18, // WETH decimals
             "ovmWETH",
             "oWETH"
         )
         public 
     {
-        // require(address(messenger) != address(0), "ovmWETH must only be deployed after the OVM_L2CrossDomainMessenger");
+        init(iOVM_L1ERC20Gateway(_l1ERC20Gateway));
     }
 }

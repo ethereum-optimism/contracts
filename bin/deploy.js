@@ -30,6 +30,7 @@ const L2_CROSS_DOMAIN_MESSENGER_ADDRESS =
   env.L2_CROSS_DOMAIN_MESSENGER_ADDRESS || '0x4200000000000000000000000000000000000007';
 let RELAYER_ADDRESS = env.RELAYER_ADDRESS || '0x0000000000000000000000000000000000000000';
 const RELAYER_PRIVATE_KEY = env.RELAYER_PRIVATE_KEY;
+const L1_WETH_ADDRESS = env.L1_WETH_ADDRESS || '0x0000000000000000000000000000000000000000';
 
 (async () => {
   const provider = new JsonRpcProvider(web3Url);
@@ -91,12 +92,10 @@ const RELAYER_PRIVATE_KEY = env.RELAYER_PRIVATE_KEY;
       maxGasPerQueuePerEpoch: MAX_GAS_PER_QUEUE_PER_EPOCH,
       secondsPerEpoch: SECONDS_PER_EPOCH
     },
+    l1WethAddress: L1_WETH_ADDRESS,
     whitelistConfig: {
       owner: WHITELIST_OWNER,
       allowArbitraryContractDeployment: WHITELIST_ALLOW_ARBITRARY_CONTRACT_DEPLOYMENT
-    },
-    ethConfig: {
-      initialAmount: 0,
     },
     deployOverrides: {
       gasLimit: DEPLOY_TX_GAS_LIMIT
