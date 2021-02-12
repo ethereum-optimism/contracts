@@ -8,7 +8,6 @@ import { IUniswapV2ERC20 } from "../../precompiles/IUniswapV2ERC20.sol";
 /**
  * @title iOVM_L2ERC20Gateway
  */
-// TODO: add `is iOVM_ERC20` -- the types are messing with my tempERC20
 interface iOVM_L2ERC20Gateway is IUniswapV2ERC20 {
 
     /**********

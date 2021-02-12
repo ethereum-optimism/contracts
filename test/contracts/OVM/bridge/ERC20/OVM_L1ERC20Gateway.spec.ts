@@ -11,7 +11,7 @@ import {
 } from '../../../../helpers'
 
 const HARDCODED_GASLIMIT = 8999999
-const decimals = 1
+const INITIAL_TOTAL_L1_SUPPLY = 3000
 
 const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER = 'OVM_XCHAIN: wrong sender of cross-domain message'
@@ -19,7 +19,6 @@ const ERR_INVALID_X_DOMAIN_MSG_SENDER = 'OVM_XCHAIN: wrong sender of cross-domai
 describe.only('OVM_L1ERC20Gateway', () => {
   // init signers
   let alice: Signer
-  
   let bob: Signer
 
   // we can just make up this string since it's on the "other" Layer
@@ -28,23 +27,30 @@ describe.only('OVM_L1ERC20Gateway', () => {
   let L1ERC20: Contract
   const initialSupply = 1_000
   before(async () => {
+    [alice, bob] = await ethers.getSigners()
+
     Mock__OVM_L2ERC20Gateway = await smockit(
       await ethers.getContractFactory('OVM_L2ERC20Gateway')
     )
     
     // deploy an ERC20 contract on L1
-    // // @todo: use the actual implementation
     Factory__L1ERC20 = (
-      await ethers.getContractFactory('OVM_ETH')
+      await smoddit('UniswapV2ERC20')
     )
     
     L1ERC20 = await Factory__L1ERC20.deploy(
-      ZERO_ADDRESS, // temp: address manager 
-      initialSupply,
-      'L1ERC20',
       18,
-      'ERC' // temp: 
+      'L1ERC20',
+      'ERC' 
     )
+
+    const aliceAddress = await alice.getAddress()
+    L1ERC20.smodify.put({
+      totalSupply: INITIAL_TOTAL_L1_SUPPLY,
+      balanceOf: {
+        [aliceAddress] : INITIAL_TOTAL_L1_SUPPLY
+      }
+    })
   })
 
   let OVM_L1ERC20Gateway: Contract
@@ -131,23 +137,17 @@ describe.only('OVM_L1ERC20Gateway', () => {
   })
 
   describe('deposits', () => {
-    const INITIAL_TOTAL_SUPPLY = 100_000
-    const ALICE_INITIAL_BALANCE = 50_000
+    const INITIAL_DEPOSITER_BALANCE = 100_000
     let depositer: string
     const depositAmount = 1_000
     let L1ERC20: Contract
 
-    beforeEach(async () => {
-      // Deploy a smodded ERC20 on L1 so we can give some balances to withdraw
-      const Factory__L1ERC20 = await ethers.getContractFactory('OVM_ETH')
-      
+    beforeEach(async () => {      
       // Deploy the L1 ERC20 token, Alice will receive the full initialSupply
       L1ERC20 = await Factory__L1ERC20.deploy(
-        ZERO_ADDRESS, // temp: address manager 
-        INITIAL_TOTAL_SUPPLY,
-        'L1ERC20', // token name
-        18, // decimals
-        'ERC' // temp: token symbol
+        18,
+        'L1ERC20',
+        'ERC'
       )
 
       // get a new mock L1 messenger
@@ -168,6 +168,11 @@ describe.only('OVM_L1ERC20Gateway', () => {
       await L1ERC20.approve(OVM_L1ERC20Gateway.address, depositAmount)
       depositer = await L1ERC20.signer.getAddress()
       
+      await L1ERC20.smodify.put({
+        balanceOf: {
+          [depositer] : INITIAL_DEPOSITER_BALANCE
+        }
+      })
     })
 
     it('deposit() escrows the deposit amount and sends the correct deposit message', async () => { 
@@ -175,8 +180,8 @@ describe.only('OVM_L1ERC20Gateway', () => {
       await OVM_L1ERC20Gateway.deposit(depositAmount)
       const depositCallToMessenger = Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
       
-      const signerBalance = await L1ERC20.balanceOf(depositer)
-      expect(signerBalance).to.equal(INITIAL_TOTAL_SUPPLY - depositAmount)
+      const depositerBalance = await L1ERC20.balanceOf(depositer)
+      expect(depositerBalance).to.equal(INITIAL_DEPOSITER_BALANCE - depositAmount)
 
       // gateway's balance is increased
       const gatewayBalance = await L1ERC20.balanceOf(OVM_L1ERC20Gateway.address)
@@ -205,8 +210,8 @@ describe.only('OVM_L1ERC20Gateway', () => {
       await OVM_L1ERC20Gateway.depositTo(bobsAddress, depositAmount)
       const depositCallToMessenger = Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
     
-      const signerBalance = await L1ERC20.balanceOf(depositer)
-      expect(signerBalance).to.equal(INITIAL_TOTAL_SUPPLY - depositAmount)
+      const depositerBalance = await L1ERC20.balanceOf(depositer)
+      expect(depositerBalance).to.equal(INITIAL_DEPOSITER_BALANCE - depositAmount)
 
       // gateway's balance is increased
       const gatewayBalance = await L1ERC20.balanceOf(OVM_L1ERC20Gateway.address)

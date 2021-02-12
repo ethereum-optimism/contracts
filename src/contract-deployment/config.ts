@@ -30,9 +30,6 @@ export interface RollupDeployConfig {
   l1CrossDomainMessengerConfig: {
     relayerAddress?: string | Signer
   }
-  ethConfig: {
-    initialAmount: number
-  }
   whitelistConfig: {
     owner: string | Signer
     allowArbitraryContractDeployment: boolean
@@ -216,11 +213,15 @@ export const makeContractDeployConfig = async (
       factory: getContractFactory('OVM_ETH'),
       params: [
         AddressManager.address,
-        config.ethConfig.initialAmount,
-        'Ether',
-        18,
-        'ETH',
       ],
+      afterDeploy: async (contracts): Promise<void> => {
+        console.log(contracts.OVM_L2CrossDomainMessenger.address)
+        await _sendTx(
+          contracts.OVM_ETH.init(
+            '0x2345234523452345234523452345234523452345'
+          )
+        )
+      },
     },
     'OVM_ChainStorageContainer:CTC:batches': {
       factory: getContractFactory('OVM_ChainStorageContainer'),
