@@ -121,8 +121,6 @@ describe.only('OVM_L1ETHGateway', () => {
       Mock__OVM_L1CrossDomainMessenger = await smockit(
         await ethers.getContractFactory('OVM_L1CrossDomainMessenger')
       )
-
-      AddressManager = await makeAddressManager()
       await AddressManager.setAddress(L1CrossDomainMessengerName, Mock__OVM_L1CrossDomainMessenger.address)  
 
       // Deploy the contract under test:
