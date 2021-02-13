@@ -2,7 +2,7 @@ import { expect } from '../../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
+import { Signer, ContractFactory, Contract, BigNumber, providers } from 'ethers'
 import {
   smockit,
   MockContract,
@@ -125,8 +125,6 @@ describe.only('OVM_L1ETHGateway', () => {
     it('deposit() escrows the deposit amount and sends the correct deposit message', async () => {
       const depositer = await alice.getAddress();
       const initialBalance = await ethers.provider.getBalance(depositer);
-      console.log('depositAmount', depositAmount)
-      console.log('initialBalance', initialBalance);
 
       // alice calls deposit on the gateway and the L1 gateway calls transferFrom on the token
       await OVM_L1ETHGateway.connect(alice).deposit({value: depositAmount, gasPrice: 0})
@@ -136,7 +134,6 @@ describe.only('OVM_L1ETHGateway', () => {
 
       const depositerBalance = await ethers.provider.getBalance(depositer);
 
-      console.log('depositerBalance', depositerBalance)
       expect(depositerBalance).to.equal(
         initialBalance.sub(depositAmount)
       )
@@ -162,37 +159,40 @@ describe.only('OVM_L1ETHGateway', () => {
       expect(depositCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)
     })
 
-    // it('depositTo() escrows the deposit amount and sends the correct deposit message', async () => {
-    //   // depositor calls deposit on the gateway and the L1 gateway calls transferFrom on the token
-    //   const bobsAddress = await bob.getAddress()
-    //   await OVM_L1ETHGateway.depositTo(bobsAddress, depositAmount)
-    //   const depositCallToMessenger =
-    //     Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
+    it('depositTo() escrows the deposit amount and sends the correct deposit message', async () => {
+      // depositor calls deposit on the gateway and the L1 gateway calls transferFrom on the token
+      const bobsAddress = await bob.getAddress()
+      const aliceAddress = await alice.getAddress()
+      const initialBalance = await ethers.provider.getBalance(aliceAddress);
 
-    //   const depositerBalance = await L1ETH.balanceOf(depositer)
-    //   expect(depositerBalance).to.equal(
-    //     INITIAL_DEPOSITER_BALANCE - depositAmount
-    //   )
+      await OVM_L1ETHGateway.connect(alice).depositTo(bobsAddress, {value: depositAmount, gasPrice: 0})
+      const depositCallToMessenger =
+        Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
 
-    //   // gateway's balance is increased
-    //   const gatewayBalance = await L1ETH.balanceOf(OVM_L1ETHGateway.address)
-    //   expect(gatewayBalance).to.equal(depositAmount)
+      const depositerBalance = await ethers.provider.getBalance(aliceAddress)
+      expect(depositerBalance).to.equal(
+        initialBalance.sub(depositAmount)
+      )
 
-    //   // Check the correct cross-chain call was sent:
-    //   // Message should be sent to the L2ETHGateway on L2
-    //   expect(depositCallToMessenger._target).to.equal(
-    //     Mock__OVM_L2ERC20Gateway.address
-    //   )
-    //   // Message data should be a call telling the L2ETHGateway to finalize the deposit
+      // gateway's balance is increased
+      const gatewayBalance = await ethers.provider.getBalance(OVM_L1ETHGateway.address)
+      expect(gatewayBalance).to.equal(depositAmount)
 
-    //   // the L1 gateway sends the correct message to the L1 messenger
-    //   expect(depositCallToMessenger._message).to.equal(
-    //     await Mock__OVM_L2ERC20Gateway.interface.encodeFunctionData(
-    //       'finalizeDeposit',
-    //       [bobsAddress, depositAmount]
-    //     )
-    //   )
-    //   expect(depositCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)
-    // })
+      // Check the correct cross-chain call was sent:
+      // Message should be sent to the L2ETHGateway on L2
+      expect(depositCallToMessenger._target).to.equal(
+        Mock__OVM_L2ERC20Gateway.address
+      )
+      // Message data should be a call telling the L2ETHGateway to finalize the deposit
+
+      // the L1 gateway sends the correct message to the L1 messenger
+      expect(depositCallToMessenger._message).to.equal(
+        await Mock__OVM_L2ERC20Gateway.interface.encodeFunctionData(
+          'finalizeDeposit',
+          [bobsAddress, depositAmount]
+        )
+      )
+      expect(depositCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)
+    })
   })
 })

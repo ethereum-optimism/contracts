@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >0.5.0 <0.8.0;
-import { console } from "hardhat/console.sol";
 /* Interface Imports */
 import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/iAbs_BaseCrossDomainMessenger.sol";
 
@@ -19,7 +18,7 @@ contract OVM_CrossChainEnabled {
      ***************/    
     constructor(
         iAbs_BaseCrossDomainMessenger _messenger
-    ) public {
+    ) {
         messenger = _messenger;
     }
 
@@ -34,8 +33,6 @@ contract OVM_CrossChainEnabled {
     modifier onlyFromCrossDomainAccount(
         address _sourceDomainAccount
     ) {
-        console.log('message sender', msg.sender);
-        console.log('messenger', address(messenger));
         require(
             msg.sender == address(messenger),
             "OVM_XCHAIN: messenger contract unauthenticated"

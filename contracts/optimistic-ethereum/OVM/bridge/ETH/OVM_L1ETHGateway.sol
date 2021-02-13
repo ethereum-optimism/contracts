@@ -3,7 +3,6 @@
 // @todo: remove this
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
-import { console } from "hardhat/console.sol";
 
 /* Interface Imports */
 import {
@@ -78,8 +77,6 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled {
         address _from,
         address _to
     ) internal {
-        // Hold on to the newly deposited funds
-        _safeTransferETH(_to, msg.value);
 
         // Construct calldata for l2ERC20Gateway.finalizeDeposit(_to, _amount)
         bytes memory data =
