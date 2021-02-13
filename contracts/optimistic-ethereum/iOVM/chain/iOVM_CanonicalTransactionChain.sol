@@ -131,6 +131,7 @@ interface iOVM_CanonicalTransactionChain {
         view
         returns (
             Lib_OVMCodec.QueueElement memory _element
+        );
 
     /**
      * Returns the timestamp of the last transaction.
