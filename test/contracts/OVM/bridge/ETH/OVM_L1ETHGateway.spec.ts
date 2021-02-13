@@ -11,7 +11,7 @@ import {
 } from '@eth-optimism/smock'
 
 /* Internal Imports */
-import { NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../../helpers'
+import { makeAddressManager, NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../../helpers'
 
 const HARDCODED_GASLIMIT = 8999999
 const INITIAL_TOTAL_L1_SUPPLY = 3000
@@ -19,6 +19,8 @@ const INITIAL_TOTAL_L1_SUPPLY = 3000
 const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
   'OVM_XCHAIN: wrong sender of cross-domain message'
+
+const L1CrossDomainMessengerName = 'OVM_L1CrossDomainMessenger'
 
 describe.only('OVM_L1ETHGateway', () => {
   // init signers
@@ -28,6 +30,9 @@ describe.only('OVM_L1ETHGateway', () => {
 
   // we can just make up this string since it's on the "other" Layer
   let Mock__OVM_L2ERC20Gateway: MockContract
+
+  // We use an address manager to resolve messenger on L1
+  let AddressManager: Contract
   before(async () => {
     ;[l1MessengerImpersonator, alice, bob] = await ethers.getSigners()
 
@@ -45,12 +50,16 @@ describe.only('OVM_L1ETHGateway', () => {
       { address: await l1MessengerImpersonator.getAddress() } // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
     )
 
+    AddressManager = await makeAddressManager()
+    await AddressManager.setAddress(L1CrossDomainMessengerName, Mock__OVM_L1CrossDomainMessenger.address)
+
     // Deploy the contract under test
     OVM_L1ETHGateway = await (
       await ethers.getContractFactory('OVM_L1ETHGateway')
     ).deploy(
       Mock__OVM_L2ERC20Gateway.address,
-      Mock__OVM_L1CrossDomainMessenger.address
+      AddressManager.address,
+      L1CrossDomainMessengerName
     )
   })
 
@@ -113,12 +122,16 @@ describe.only('OVM_L1ETHGateway', () => {
         await ethers.getContractFactory('OVM_L1CrossDomainMessenger')
       )
 
+      AddressManager = await makeAddressManager()
+      await AddressManager.setAddress(L1CrossDomainMessengerName, Mock__OVM_L1CrossDomainMessenger.address)  
+
       // Deploy the contract under test:
       OVM_L1ETHGateway = await (
         await ethers.getContractFactory('OVM_L1ETHGateway')
       ).deploy(
         Mock__OVM_L2ERC20Gateway.address,
-        Mock__OVM_L1CrossDomainMessenger.address
+        AddressManager.address,
+        L1CrossDomainMessengerName
       )
     })
 
