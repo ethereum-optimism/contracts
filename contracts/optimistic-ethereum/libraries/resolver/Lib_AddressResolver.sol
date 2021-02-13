@@ -43,14 +43,14 @@ contract Lib_AddressResolver {
             address _contract
         )
     {
-        return resolveFrom(address(libAddressManager), _name);
+        return _resolveFrom(address(libAddressManager), _name);
     }
 
     /**********************
      * Internal Functions *
      **********************/
 
-    function resolveFrom(
+    function _resolveFrom(
         address _libAddressManager,
         string memory _name
     )

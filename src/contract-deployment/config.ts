@@ -108,12 +108,12 @@ export const makeContractDeployConfig = async (
         )
       },
     },
-    OVM_L1WETHGateway: {
-      factory: getContractFactory('OVM_L1WETHGateway'),
+    OVM_L1ETHGateway: {
+      factory: getContractFactory('OVM_L1ETHGateway'),
       params: [
-        config.l1WethAddress,
         '0x4200000000000000000000000000000000000006',
         AddressManager.address,
+        'Proxy__OVM_L1CrossDomainMessenger'
       ],
     },
     OVM_L1MultiMessageRelayer: {

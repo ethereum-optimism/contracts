@@ -14,10 +14,10 @@ import {
 import {
     iAbs_BaseCrossDomainMessenger
 } from "../../../iOVM/bridge/iAbs_BaseCrossDomainMessenger.sol";
-import {iOVM_ERC20} from "../../../iOVM/precompiles/iOVM_ERC20.sol";
 
 /* Library Imports */
-import {OVM_CrossChainEnabled} from "../OVM_CrossChainEnabled.sol";
+import { OVM_CrossChainEnabled } from "../OVM_CrossChainEnabled.sol";
+import { Lib_AddressResolver } from "../../../libraries/resolver";
 
 /**
  * @title OVM_L1ETHGateway
@@ -26,7 +26,7 @@ import {OVM_CrossChainEnabled} from "../OVM_CrossChainEnabled.sol";
  * Compiler used: solc
  * Runtime target: EVM
  */
-contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled {
+contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled, Lib_AddressResolver {
     /********************************
      * External Contract References *
      ********************************/
@@ -38,14 +38,24 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled {
      ***************/
 
     /**
-     * @param _l2ERC20Gateway L2 Gateway address on the chain being deposited into
-     * @param _l1messenger L1 Messenger address being used for cross-chain communications.
+     * @param _l2WETHGateway L2 Gateway address on the chain being deposited into
+     * @param _libAddressManager Address Manager to retrieve OVM_L1CrossChainMessenger
+     * @param _l1MessengerName Name of messenger to look for in _libAddressManager
      */
     constructor(
-        address _l2ERC20Gateway,
-        iAbs_BaseCrossDomainMessenger _l1messenger
-    ) OVM_CrossChainEnabled(_l1messenger) {
-        l2ERC20Gateway = _l2ERC20Gateway;
+        address _l2WETHGateway,
+        address _libAddressManager,
+        string memory _l1MessengerName
+    )
+        OVM_CrossChainEnabled(
+            iAbs_BaseCrossDomainMessenger(_resolveFrom(
+                _libAddressManager,
+                _l1MessengerName
+            ))
+        )
+        Lib_AddressResolver(_libAddressManager)
+    {
+        l2ERC20Gateway = _l2WETHGateway;
     }
 
     /**************
