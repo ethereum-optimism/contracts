@@ -17,7 +17,7 @@ import {
 
 /* Library Imports */
 import { OVM_CrossChainEnabled } from "../OVM_CrossChainEnabled.sol";
-import { Lib_AddressResolver } from "../../../libraries/resolver";
+import { Lib_AddressResolver } from "../../../libraries/resolver/Lib_AddressResolver.sol";
 
 /**
  * @title OVM_L1ETHGateway
