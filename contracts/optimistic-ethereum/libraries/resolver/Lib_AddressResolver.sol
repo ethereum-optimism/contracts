@@ -43,6 +43,23 @@ contract Lib_AddressResolver {
             address _contract
         )
     {
-        return libAddressManager.getAddress(_name);
+        return resolveFrom(address(libAddressManager), _name);
+    }
+
+    /**********************
+     * Internal Functions *
+     **********************/
+
+    function resolveFrom(
+        address _libAddressManager,
+        string memory _name
+    )
+        internal
+        view
+        returns (
+            address _contract
+        )
+    {
+        return Lib_AddressManager(_libAddressManager).getAddress(_name);
     }
 }
