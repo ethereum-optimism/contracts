@@ -19,6 +19,7 @@ contract OVM_CrossChainEnabled {
     constructor(
         iAbs_BaseCrossDomainMessenger _messenger
     ) {
+        require(address(messenger) != address(0), "Must specify a CrossDomainMessenger");
         messenger = _messenger;
     }
 
