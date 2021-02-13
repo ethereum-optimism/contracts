@@ -163,9 +163,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * Gets the queue element at a particular index.
-     * @param _index Index of the queue element to access.
-     * @return _element Queue element at the given index.
+     * Returns the timestamp of the last transaction.
+     * @return Timestamp for the last transaction.
      */
     function getLastTimestamp()
         override
@@ -180,7 +179,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Returns the blocknumber of the last transaction.
+     * @return Blocknumber for the last transaction.
      */
     function getLastBlockNumber()
         override
@@ -195,7 +195,9 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Gets the queue element at a particular index.
+     * @param _index Index of the queue element to access.
+     * @return _element Queue element at the given index.
      */
     function getQueueElement(
         uint256 _index
