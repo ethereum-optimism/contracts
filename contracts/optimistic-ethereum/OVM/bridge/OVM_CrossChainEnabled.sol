@@ -56,6 +56,7 @@ contract OVM_CrossChainEnabled {
      */
     function getCrossDomainMessenger()
         internal
+        virtual
         returns(
             iAbs_BaseCrossDomainMessenger
         )

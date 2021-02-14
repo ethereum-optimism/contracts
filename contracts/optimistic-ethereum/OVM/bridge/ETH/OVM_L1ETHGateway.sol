@@ -14,10 +14,11 @@ import {
 import {
     iAbs_BaseCrossDomainMessenger
 } from "../../../iOVM/bridge/iAbs_BaseCrossDomainMessenger.sol";
-import {iOVM_ERC20} from "../../../iOVM/precompiles/iOVM_ERC20.sol";
+import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
 
 /* Library Imports */
-import {OVM_CrossChainEnabled} from "../OVM_CrossChainEnabled.sol";
+import { OVM_CrossChainEnabled } from "../OVM_CrossChainEnabled.sol";
+import { Lib_AddressResolver } from "../../../libraries/resolver/Lib_AddressResolver.sol";
 
 /**
  * @title OVM_L1ETHGateway
@@ -26,7 +27,7 @@ import {OVM_CrossChainEnabled} from "../OVM_CrossChainEnabled.sol";
  * Compiler used: solc
  * Runtime target: EVM
  */
-contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled {
+contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled, Lib_AddressResolver {
     /********************************
      * External Contract References *
      ********************************/
@@ -38,13 +39,15 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled {
      ***************/
 
     /**
-     * @param _l2ERC20Gateway L2 Gateway address on the chain being deposited into
-     * @param _l1messenger L1 Messenger address being used for cross-chain communications.
+     * @param _libAddressManager Address manager for this OE deployment
      */
     constructor(
-        address _l2ERC20Gateway,
-        iAbs_BaseCrossDomainMessenger _l1messenger
-    ) OVM_CrossChainEnabled(_l1messenger) {
+        address _libAddressManager,
+        address _l2ERC20Gateway
+    )
+        OVM_CrossChainEnabled(iAbs_BaseCrossDomainMessenger(0))
+        Lib_AddressResolver(_libAddressManager)
+    {
         l2ERC20Gateway = _l2ERC20Gateway;
     }
 
@@ -96,9 +99,23 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled {
         emit DepositInitiated(_from, _to, msg.value);
     }
 
-    /*************************************
-     * Cross-chain Function: Withdrawing *
-     *************************************/
+    /*************************
+     * Cross-chain Functions *
+     *************************/
+
+    /**
+     * @dev Resolve the cross-domain messenger via the Address Resolver for native ETH.
+     */
+
+    function getCrossDomainMessenger()
+        internal
+        override
+        returns(
+            iAbs_BaseCrossDomainMessenger
+        )
+    {
+        return iAbs_BaseCrossDomainMessenger(resolve("Proxy__OVM_L1CrossDomainMessenger"));
+    }
 
     /**
      * @dev Complete a withdrawal from L2 to L1, and credit funds to the recipient's balance of the
