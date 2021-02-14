@@ -11,7 +11,7 @@ import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/iAbs_BaseCrossD
  * Runtime target: defined by inheriting contract
  */
 contract OVM_CrossChainEnabled {
-    iAbs_BaseCrossDomainMessenger messenger;
+    iAbs_BaseCrossDomainMessenger public messenger;
 
     /***************
      * Constructor *
