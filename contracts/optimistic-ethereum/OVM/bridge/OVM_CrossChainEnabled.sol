@@ -34,12 +34,12 @@ contract OVM_CrossChainEnabled {
         address _sourceDomainAccount
     ) {
         require(
-            msg.sender == address(messenger),
+            msg.sender == address(getCrossDomainMessenger()),
             "OVM_XCHAIN: messenger contract unauthenticated"
         );
 
         require(
-            messenger.xDomainMessageSender() == _sourceDomainAccount,
+            getCrossDomainMessenger().xDomainMessageSender() == _sourceDomainAccount,
             "OVM_XCHAIN: wrong sender of cross-domain message"
         );
 
@@ -49,6 +49,19 @@ contract OVM_CrossChainEnabled {
     /**********************
      * Internal Functions *
      **********************/
+
+    /**
+     * @notice Gets the messenger, usually from storage.  This function is exposed in case a child contract needs to override.
+     * @return The address of the cross-domain messenger contract which should be used. 
+     */
+    function getCrossDomainMessenger()
+        internal
+        returns(
+            iAbs_BaseCrossDomainMessenger
+        )
+    {
+        return messenger;
+    }
 
     /**
      * @notice Sends a message to an account on another domain
@@ -61,6 +74,6 @@ contract OVM_CrossChainEnabled {
         bytes memory _data,
         uint32 _gasLimit
     ) internal {
-        messenger.sendMessage(_crossDomainTarget, _data, _gasLimit);
+        getCrossDomainMessenger().sendMessage(_crossDomainTarget, _data, _gasLimit);
     }
 }
