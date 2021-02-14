@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// +build ovm
 pragma solidity >0.5.0 <0.8.0;
 
 /* Library Imports */
@@ -7,11 +6,14 @@ import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolve
 
 /* Interface Imports */
 import { iOVM_ERC20 } from "../../iOVM/precompiles/iOVM_ERC20.sol";
-import { iOVM_BaseCrossDomainMessenger } from "../../iOVM/bridge/iOVM_BaseCrossDomainMessenger.sol";
 
 /**
  * @title OVM_ETH
- * @dev L2 CONTRACT (COMPILED)
+ * @dev The ETH predeploy provides an ERC20 interface for ETH deposited to Layer 2. Note that 
+ * unlike on Layer 1, Layer 2 accounts do not have a balance field.
+ * 
+ * Compiler used: optimistic-solc
+ * Runtime target: OVM
  */
 contract OVM_ETH is iOVM_ERC20, Lib_AddressResolver {
 

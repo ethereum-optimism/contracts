@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+// @unsupported: ovm
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -18,6 +19,16 @@ import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
 
 /**
  * @title OVM_CanonicalTransactionChain
+ * @dev The Canonical Transaction Chain (CTC) contract is an append-only log of transactions
+ * which must be applied to the rollup state. It defines the ordering of rollup transactions by
+ * writing them to the 'CTC:batches' instance of the Chain Storage Container.
+ * The CTC also allows any account to 'enqueue' an L2 transaction, which will require that the Sequencer
+ * will eventually append it to the rollup state.
+ * If the Sequencer does not include an enqueued transaction within the 'force inclusion period',
+ * then any account may force it to be included by calling appendQueueBatch().
+ *
+ * Compiler used: solc
+ * Runtime target: EVM
  */
 contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_AddressResolver {
 
@@ -57,6 +68,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint256 _forceInclusionPeriodBlocks,
         uint256 _maxTransactionGasLimit
     )
+        public
         Lib_AddressResolver(_libAddressManager)
     {
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
@@ -74,6 +86,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @return Reference to the batch storage container.
      */
     function batches()
+        override
         public
         view
         returns (
@@ -90,6 +103,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @return Reference to the queue storage container.
      */
     function queue()
+        override
         public
         view
         returns (
@@ -102,7 +116,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Retrieves the total number of elements submitted.
+     * @return _totalElements Total submitted elements.
      */
     function getTotalElements()
         override
@@ -117,7 +132,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Retrieves the total number of batches submitted.
+     * @return _totalBatches Total submitted batches.
      */
     function getTotalBatches()
         override
@@ -131,7 +147,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Returns the index of the next element to be enqueued.
+     * @return Index for the next queue element.
      */
     function getNextQueueIndex()
         override
@@ -146,7 +163,9 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Gets the queue element at a particular index.
+     * @param _index Index of the queue element to access.
+     * @return _element Queue element at the given index.
      */
     function getQueueElement(
         uint256 _index
@@ -179,7 +198,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Get the number of queue elements which have not yet been included.
+     * @return Number of pending queue elements.
      */
     function getNumPendingQueueElements()
         override
@@ -192,8 +212,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         return getQueueLength() - getNextQueueIndex();
     }
 
-    /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+   /**
+     * Retrieves the length of the queue, including
+     * both pending and canonical transactions.
+     * @return Length of the queue.
      */
     function getQueueLength()
         override
@@ -210,7 +232,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Adds a transaction to the queue.
+     * @param _target Target L2 contract to send the transaction to.
+     * @param _gasLimit Gas limit for the enqueued L2 transaction.
+     * @param _data Transaction data.
      */
     function enqueue(
         address _target,
@@ -289,7 +314,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Appends a given number of queued transactions as a single batch.
+     * @param _numQueuedTransactions Number of transactions to append.
      */
     function appendQueueBatch(
         uint256 _numQueuedTransactions
@@ -339,7 +365,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Allows the sequencer to append a batch of transactions.
+     * @dev This function uses a custom encoding scheme for efficiency reasons.
+     * .param _shouldStartAtElement Specific batch we expect to start appending to.
+     * .param _totalElementsToAppend Total number of batch elements we expect to append.
+     * .param _contexts Array of batch contexts.
+     * .param _transactionDataFields Array of raw transaction data.
      */
     function appendSequencerBatch()
         override
@@ -472,7 +503,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
-     * @inheritdoc iOVM_CanonicalTransactionChain
+     * Verifies whether a transaction is included in the chain.
+     * @param _transaction Transaction to verify.
+     * @param _txChainElement Transaction chain element corresponding to the transaction.
+     * @param _batchHeader Header of the batch the transaction was included in.
+     * @param _inclusionProof Inclusion proof for the provided transaction chain element.
+     * @return True if the transaction exists in the CTC, false if not.
      */
     function verifyTransaction(
         Lib_OVMCodec.Transaction memory _transaction,

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+// @unsupported: ovm
+pragma solidity >0.5.0 <0.8.0;
 
 /* Library Imports */
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
@@ -14,11 +15,20 @@ import { OVM_StateTransitioner } from "./OVM_StateTransitioner.sol";
 
 /**
  * @title OVM_StateTransitionerFactory
+ * @dev The State Transitioner Factory is used by the Fraud Verifier to create a new State 
+ * Transitioner during the initialization of a fraud proof.
+ * 
+ * Compiler used: solc
+ * Runtime target: EVM
  */
 contract OVM_StateTransitionerFactory is iOVM_StateTransitionerFactory, Lib_AddressResolver {
 
-    constructor( address _libAddressManager)
-        Lib_AddressResolver(_libAddressManager){}
+    constructor(
+        address _libAddressManager
+    )
+        public
+        Lib_AddressResolver(_libAddressManager)
+    {}
 
     /***************************************
      * Public Functions: Contract Creation *

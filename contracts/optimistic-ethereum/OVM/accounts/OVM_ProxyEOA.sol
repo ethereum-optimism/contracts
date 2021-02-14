@@ -1,4 +1,5 @@
-pragma solidity ^0.7.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >0.5.0 <0.8.0;
 
 /* Library Imports */
 import { Lib_BytesUtils } from "../../libraries/utils/Lib_BytesUtils.sol";
@@ -8,6 +9,12 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 
 /**
  * @title OVM_ProxyEOA
+ * @dev The Proxy EOA contract uses a delegate call to execute the logic in an implementation contract.
+ * In combination with the logic implemented in the ECDSA Contract Account, this enables a form of upgradable 
+ * 'account abstraction' on layer 2. 
+ * 
+ * Compiler used: solc
+ * Runtime target: OVM
  */
 contract OVM_ProxyEOA {
 
@@ -19,7 +26,9 @@ contract OVM_ProxyEOA {
 
     constructor(
         address _implementation
-    ) {
+    )
+        public
+    {
         _setImplementation(_implementation);
     }
 

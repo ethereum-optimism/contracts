@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
@@ -13,6 +13,12 @@ import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrappe
 
 /**
  * @title OVM_ECDSAContractAccount
+ * @dev The ECDSA Contract Account can be used as the implementation for a ProxyEOA deployed by the
+ * ovmCREATEEOA operation. It enables backwards compatibility with Ethereum's Layer 1, by 
+ * providing eth_sign and EIP155 formatted transaction encodings.
+ *
+ * Compiler used: solc
+ * Runtime target: OVM
  */
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
