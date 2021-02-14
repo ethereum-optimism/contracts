@@ -111,8 +111,8 @@ export const makeContractDeployConfig = async (
     OVM_L1ETHGateway: {
       factory: getContractFactory('OVM_L1ETHGateway'),
       params: [
-        '0x4200000000000000000000000000000000000006',
-        await AddressManager.getAddress('OVM_L1CrossDomainMessenger'),
+        AddressManager.address,
+        '0x4200000000000000000000000000000000000006'
       ],
     },
     OVM_L1MultiMessageRelayer: {

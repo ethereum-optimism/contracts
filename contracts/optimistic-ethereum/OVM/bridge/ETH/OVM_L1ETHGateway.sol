@@ -45,7 +45,7 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled, Lib_Addre
         address _libAddressManager,
         address _l2ERC20Gateway
     )
-        OVM_CrossChainEnabled(iAbs_BaseCrossDomainMessenger(0))
+        OVM_CrossChainEnabled(iAbs_BaseCrossDomainMessenger(0)) // overridden
         Lib_AddressResolver(_libAddressManager)
     {
         l2ERC20Gateway = _l2ERC20Gateway;
