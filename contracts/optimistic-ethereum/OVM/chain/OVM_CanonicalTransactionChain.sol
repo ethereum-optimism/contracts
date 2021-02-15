@@ -57,6 +57,9 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     uint256 public forceInclusionPeriodBlocks;
     uint256 public maxTransactionGasLimit;
 
+    iOVM_ChainStorageContainer private batches_;
+    iOVM_ChainStorageContainer private queue_;
+    address private ovmSequencer;
 
     /***************
      * Constructor *
@@ -74,8 +77,15 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
         forceInclusionPeriodBlocks = _forceInclusionPeriodBlocks;
         maxTransactionGasLimit = _maxTransactionGasLimit;
+        updateAddresses();
     }
 
+    // anyone can call this
+    function updateAddresses() public {
+        queue_ = queue();
+        batches_ = batches();
+        ovmSequencer = resolve("OVM_Sequencer");
+    }
 
     /********************
      * Public Functions *
@@ -87,7 +97,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      */
     function batches()
         override
-        public
+        external
         view
         returns (
             iOVM_ChainStorageContainer
@@ -104,7 +114,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      */
     function queue()
         override
-        public
+        external
         view
         returns (
             iOVM_ChainStorageContainer
@@ -143,7 +153,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint256 _totalBatches
         )
     {
-        return batches().length();
+        return batches_.length();
     }
 
     /**
@@ -177,8 +187,19 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             Lib_OVMCodec.QueueElement memory _element
         )
     {
-        iOVM_ChainStorageContainer queue = queue();
+        _getQueueElement(queue_, _index);
+    }
 
+    function _getQueueElement(
+        iOVM_ChainStorageContainer queue,
+        uint256 _index
+    )
+        private
+        view
+        returns (
+            Lib_OVMCodec.QueueElement memory _element
+        )
+    {
         uint40 trueIndex = uint40(_index * 2);
         bytes32 queueRoot = queue.get(trueIndex);
         bytes32 timestampAndBlockNumber = queue.get(trueIndex + 1);
@@ -385,13 +406,21 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             numContexts           := shr(232, calldataload(12))
         }
 
+        // cache the queue and batches
+        iOVM_ChainStorageContainer _batches = batches_;
+        iOVM_ChainStorageContainer _queue = queue_;
+
+        // We will sequentially append leaves which are pointers to the queue.
+        // The initial queue index is what is currently in storage.
+        (uint40 totalElements, uint40 nextQueueIndex, uint40 lastTimestamp, uint40 lastBlockNumber) = __getBatchExtraData(_batches);
+
         require(
-            shouldStartAtElement == getTotalElements(),
+            shouldStartAtElement == totalElements,
             "Actual batch start index does not match expected start index."
         );
 
         require(
-            msg.sender == resolve("OVM_Sequencer"),
+            msg.sender == ovmSequencer,
             "Function can only be called by the Sequencer."
         );
 
@@ -417,7 +446,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         // Get queue length for future comparison/
-        uint40 queueLength = getQueueLength();
+        uint40 queueLength = uint40(_queue.length() / 2);
 
         // Initialize the array of canonical chain leaves that we will append.
         bytes32[] memory leaves = new bytes32[](totalElementsToAppend);
@@ -425,18 +454,15 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint32 leafIndex = 0;
         // Counter for number of sequencer transactions appended so far.
         uint32 numSequencerTransactions = 0;
-        // We will sequentially append leaves which are pointers to the queue.
-        // The initial queue index is what is currently in storage.
-        uint40 nextQueueIndex = getNextQueueIndex();
 
         BatchContext memory curContext;
 
         for (uint32 i = 0; i < numContexts; i++) {
             BatchContext memory nextContext = _getBatchContext(i);
             if (i == 0) {
-                _validateFirstBatchContext(nextContext);
+                _validateFirstBatchContext(nextContext, totalElements, lastTimestamp, lastBlockNumber);
             }
-            _validateNextBatchContext(curContext, nextContext, nextQueueIndex);
+            _validateNextBatchContext(curContext, nextContext, nextQueueIndex, _queue, queueLength);
 
             curContext = nextContext;
 
@@ -482,7 +508,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             blockNumber = uint40(curContext.blockNumber);
         } else {
             // The last element is a queue tx, therefore pull timestamp and block number from the queue element.
-            Lib_OVMCodec.QueueElement memory lastElement = getQueueElement(nextQueueIndex - 1);
+            Lib_OVMCodec.QueueElement memory lastElement = _getQueueElement(_queue, nextQueueIndex - 1);
             timestamp = lastElement.timestamp;
             blockNumber = lastElement.blockNumber;
         }
@@ -595,7 +621,20 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             uint40
         )
     {
-        bytes27 extraData = batches().getGlobalMetadata();
+        __getBatchExtraData(batches());
+    }
+
+    function __getBatchExtraData(iOVM_ChainStorageContainer batches)
+        internal
+        view
+        returns (
+            uint40,
+            uint40,
+            uint40,
+            uint40
+        )
+    {
+        bytes27 extraData = batches.getGlobalMetadata();
 
         uint40 totalElements;
         uint40 nextQueueIndex;
@@ -828,14 +867,16 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @param _firstContext The batch context to validate.
      */
     function _validateFirstBatchContext(
-        BatchContext memory _firstContext
+        BatchContext memory _firstContext,
+        uint40 totalElements,
+        uint40 lastTimestamp,
+        uint40 lastBlockNumber
     )
         internal
         view
     {
         // If there are existing elements, this batch must come later.
-        if (getTotalElements() > 0) {
-            (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
+        if (totalElements > 0) {
             require(_firstContext.blockNumber >= lastBlockNumber, "Context block number is lower than last submitted.");
             require(_firstContext.timestamp >= lastTimestamp, "Context timestamp is lower than last submitted.");
         }
@@ -853,7 +894,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     function _validateNextBatchContext(
         BatchContext memory _prevContext,
         BatchContext memory _nextContext,
-        uint40 _nextQueueIndex
+        uint40 _nextQueueIndex,
+        iOVM_ChainStorageContainer _queue,
+        uint40 queueLength
+
     )
         internal
         view
@@ -870,8 +914,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         // If there are some queue elements pending:
-        if (getQueueLength() - _nextQueueIndex > 0) {
-            Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_nextQueueIndex);
+        if (queueLength - _nextQueueIndex > 0) {
+            Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_queue, _nextQueueIndex);
 
             // If the force inclusion period has passed for an enqueued transaction, it MUST be the next chain element.
             require(
