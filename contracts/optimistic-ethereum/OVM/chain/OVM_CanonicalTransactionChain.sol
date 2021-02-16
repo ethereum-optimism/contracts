@@ -97,7 +97,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      */
     function batches()
         override
-        external
+        // external
+        public
         view
         returns (
             iOVM_ChainStorageContainer
@@ -114,7 +115,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      */
     function queue()
         override
-        external
+        // external
+        public
         view
         returns (
             iOVM_ChainStorageContainer
