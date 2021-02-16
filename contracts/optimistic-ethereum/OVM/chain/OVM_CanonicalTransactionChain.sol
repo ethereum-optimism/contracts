@@ -48,7 +48,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     uint256 constant internal TX_DATA_HEADER_SIZE = 3;
     uint256 constant internal BYTES_TILL_TX_DATA = 65;
 
-
+    // Optimization to avoid stack too deep
     struct BatchExtraData{
         uint40 totalElements;
         uint40 nextQueueIndex;
