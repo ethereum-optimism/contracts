@@ -24,13 +24,13 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
      * Constants and Parameters *
      ****************************/
 
-    /// The period to find the earliest fraud proof for a publisher
+    /// The period to find the earliest fraud proof for a publisher.
     uint256 public constant multiFraudProofPeriod = 7 days;
 
-    /// The dispute period
+    /// The dispute period.
     uint256 public constant disputePeriodSeconds = 7 days;
 
-    /// The minimum collateral a sequencer must post
+    /// The minimum collateral a sequencer must post.
     uint256 public constant requiredCollateral = 1 ether;
 
 
@@ -38,7 +38,7 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
      * Contract Variables: Contract References *
      *******************************************/
 
-    /// The bond token
+    /// The bond token.
     ERC20 immutable public token;
 
 
@@ -46,11 +46,11 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
      * Contract Variables: Internal Accounting  *
      *******************************************/
 
-    /// The bonds posted by each proposer
+    /// The bonds posted by each proposer.
     mapping(address => Bond) public bonds;
 
     /// For each pre-state root, there's an array of witnessProviders that must be rewarded
-    /// for posting witnesses
+    /// for posting witnesses.
     mapping(bytes32 => Rewards) public witnessProviders;
 
 
@@ -58,8 +58,12 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
      * Constructor *
      ***************/
 
-    /// Initializes with a ERC20 token to be used for the fidelity bonds
-    /// and with the Address Manager
+    /**
+     * Initializes with a ERC20 token to be used for the fidelity bonds
+     * and with the Address Manager.
+     * @param _token Address of the token accepted as bond.
+     * @param _libAddressManager Address of the Address Manager contract.
+     */
     constructor(
         ERC20 _token,
         address _libAddressManager
@@ -75,7 +79,13 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
      * Public Functions *
      ********************/
 
-    /// Adds `who` to the list of witnessProviders for the provided `preStateRoot`.
+    /**
+     * Adds `who` to the list of witnessProviders for the provided `preStateRoot`.
+     * @param _preStateRoot The preStateRoot on which fraud is being proven.
+     * @param _txHash The txHash  on which fraud is being proven.
+     * @param who The address of the fraud prover.
+     * @param gasSpent The amount of gas to record.
+     */
     function recordGasSpent(bytes32 _preStateRoot, bytes32 _txHash, address who, uint256 gasSpent) override public {
         // The sender must be the transitioner that corresponds to the claimed pre-state root
         address transitioner = address(iOVM_FraudVerifier(resolve("OVM_FraudVerifier")).getStateTransitioner(_preStateRoot, _txHash));
@@ -85,13 +95,18 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         witnessProviders[_preStateRoot].gasSpent[who] += gasSpent;
     }
 
-    /// Slashes + distributes rewards or frees up the sequencer's bond, only called by
-    /// `FraudVerifier.finalizeFraudVerification`
+    /**
+     * Slashes + distributes rewards or frees up the sequencer's bond, only called by
+     * `FraudVerifier.finalizeFraudVerification`
+     * @param _preStateRoot The preStateRoot on which fraud was proven
+     * @param publisher The address of the fraudulent publisher
+     * @param timestamp The timestamp that... that what???? 
+     */
     function finalize(bytes32 _preStateRoot, address publisher, uint256 timestamp) override public {
         require(msg.sender == resolve("OVM_FraudVerifier"), Errors.ONLY_FRAUD_VERIFIER);
         require(witnessProviders[_preStateRoot].canClaim == false, Errors.ALREADY_FINALIZED);
 
-        // allow users to claim from that state root's
+        // Allow users to claim from that state root's
         // pool of collateral (effectively slashing the sequencer)
         witnessProviders[_preStateRoot].canClaim = true;
 
@@ -101,21 +116,21 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
             bond.earliestDisputedStateRoot = _preStateRoot;
             bond.earliestTimestamp = timestamp;
         } else if (
-            // only update the disputed state root for the publisher if it's within
+            // Only update the disputed state root for the publisher if it's within
             // the dispute period _and_ if it's before the previous one
             block.timestamp < bond.firstDisputeAt + multiFraudProofPeriod &&
             timestamp < bond.earliestTimestamp
         ) {
             bond.earliestDisputedStateRoot = _preStateRoot;
-            bond.earliestTimestamp = timestamp;
+            bond.earliestTimestamp = timestamp; // @note: this value is never read or acted upon
         }
 
-        // if the fraud proof's dispute period does not intersect with the 
+        // If the fraud proof's dispute period does not intersect with the 
         // withdrawal's timestamp, then the user should not be slashed
         // e.g if a user at day 10 submits a withdrawal, and a fraud proof
         // from day 1 gets published, the user won't be slashed since day 8 (1d + 7d)
-        // is before the user started their withdrawal. on the contrary, if the user
-        // had started their withdrawal at, say, day 6, they would be slashed
+        // is before the user started their withdrawal. On the contrary, if the user
+        // had started their withdrawal at day 6, they would be slashed.
         if (
             bond.withdrawalTimestamp != 0 && 
             uint256(bond.withdrawalTimestamp) > timestamp + disputePeriodSeconds &&
@@ -124,23 +139,26 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
             return;
         }
 
-        // slash!
+        // Slash!
         bond.state = State.NOT_COLLATERALIZED;
     }
 
-    /// Sequencers call this function to post collateral which will be used for
-    /// the `appendBatch` call
+    /**
+     * Sequencers call this function to post collateral which will be used for
+     * the `appendBatch` call.
+     */
     function deposit() override public {
         require(
             token.transferFrom(msg.sender, address(this), requiredCollateral),
             Errors.ERC20_ERR
         );
 
-        // This cannot overflow
         bonds[msg.sender].state = State.COLLATERALIZED;
     }
 
-    /// Starts the withdrawal for a publisher
+    /**
+     * Starts the withdrawal for a publisher.
+     */
     function startWithdrawal() override public {
         Bond storage bond = bonds[msg.sender];
         require(bond.withdrawalTimestamp == 0, Errors.WITHDRAWAL_PENDING);
@@ -150,7 +168,9 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         bond.withdrawalTimestamp = uint32(block.timestamp);
     }
 
-    /// Finalizes a pending withdrawal from a publisher
+    /**
+     * Finalizes a pending withdrawal for a publisher.
+     */
     function finalizeWithdrawal() override public {
         Bond storage bond = bonds[msg.sender];
 
@@ -160,7 +180,7 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         );
         require(bond.state == State.WITHDRAWING, Errors.SLASHED);
         
-        // refunds!
+        //Refunds!
         bond.state = State.NOT_COLLATERALIZED;
         bond.withdrawalTimestamp = 0;
         
@@ -170,8 +190,11 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         );
     }
 
-    /// Claims the user's reward for the witnesses they provided for the earliest
-    /// disputed state root of the designated publisher
+    /**
+     * Claims the user's reward for the witnesses they provided for the earliest
+     * disputed state root of the designated publisher.
+     * @param who The address of the fraudulent publisher.
+     */
     function claim(address who) override public {
         Bond storage bond = bonds[who];
         require(
@@ -179,15 +202,17 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
             Errors.WAIT_FOR_DISPUTES
         );
 
-        // reward the earliest state root for this publisher
+        // Reward the earliest state root for this publisher.
         bytes32 _preStateRoot = bond.earliestDisputedStateRoot;
         Rewards storage rewards = witnessProviders[_preStateRoot];
 
-        // only allow claiming if fraud was proven in `finalize`
+        // Only allow claiming if fraud was proven in `finalize`.
         require(rewards.canClaim, Errors.CANNOT_CLAIM);
 
-        // proportional allocation - only reward 50% (rest gets locked in the
-        // contract forever
+        // The total amount paid out as a reward for fraud proving is half of the bond.
+        // Rewards are allocated to each fraud prover based on the amount of gas they spent  
+        // relative to the total amount spent by all fraud provers. 
+        // The other half of the bond is permanently locked in the contract.
         uint256 amount = (requiredCollateral * rewards.gasSpent[msg.sender]) / (2 * rewards.total);
 
         // reset the user's spent gas so they cannot double claim
@@ -197,12 +222,19 @@ contract OVM_BondManager is iOVM_BondManager, Lib_AddressResolver {
         require(token.transfer(msg.sender, amount), Errors.ERC20_ERR);
     }
 
-    /// Checks if the user is collateralized
+    /**
+     * Checks if the user is collateralized.
+     * @param who
+     */
     function isCollateralized(address who) override public view returns (bool) {
         return bonds[who].state == State.COLLATERALIZED;
     }
 
-    /// Gets how many witnesses the user has provided for the state root
+    /**
+     * Gets how many witnesses the user has provided for the state root.
+     * @param preStateRoot
+     * @param who
+     */
     function getGasSpent(bytes32 preStateRoot, address who) override public view returns (uint256) {
         return witnessProviders[preStateRoot].gasSpent[who];
     }
