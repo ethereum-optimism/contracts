@@ -22,7 +22,7 @@ import { OVM_L2ERC20Gateway } from "../bridge/ERC20/OVM_L2ERC20Gateway.sol";
 contract OVM_ETH is OVM_L2ERC20Gateway {
     constructor(
         address _l2CrossDomainMessenger,
-        address _l1ERC20Gateway
+        address _l1ETHGateway
     ) 
         OVM_L2ERC20Gateway(
             iOVM_L2CrossDomainMessenger(_l2CrossDomainMessenger),
@@ -32,6 +32,6 @@ contract OVM_ETH is OVM_L2ERC20Gateway {
         )
         public 
     {
-        init(iOVM_L1ERC20Gateway(_l1ERC20Gateway));
+        init(iOVM_L1ERC20Gateway(_l1ETHGateway));
     }
 }
