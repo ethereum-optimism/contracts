@@ -49,6 +49,13 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     uint256 constant internal BYTES_TILL_TX_DATA = 65;
 
 
+    struct BatchExtraData{
+        uint40 totalElements;
+        uint40 nextQueueIndex;
+        uint40 lastTimestamp;
+        uint40 lastBlockNumber;
+    }
+
     /*************
      * Variables *
      *************/
@@ -414,10 +421,11 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         // We will sequentially append leaves which are pointers to the queue.
         // The initial queue index is what is currently in storage.
-        (uint40 totalElements, uint40 nextQueueIndex, uint40 lastTimestamp, uint40 lastBlockNumber) = __getBatchExtraData(_batches);
+        BatchExtraData memory bed;
+        (bed.totalElements, bed.nextQueueIndex, bed.lastTimestamp, bed.lastBlockNumber) = __getBatchExtraData(_batches);
 
         require(
-            shouldStartAtElement == totalElements,
+            shouldStartAtElement == bed.totalElements,
             "Actual batch start index does not match expected start index."
         );
 
@@ -462,11 +470,11 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         for (uint32 i = 0; i < numContexts; i++) {
             BatchContext memory nextContext = _getBatchContext(i);
             if (i == 0) {
-                _validateFirstBatchContext(nextContext, totalElements, lastTimestamp, lastBlockNumber);
+                _validateFirstBatchContext(nextContext, bed.totalElements, bed.lastTimestamp, bed.lastBlockNumber);
             }
-            _validateNextBatchContext(curContext, nextContext, nextQueueIndex, _queue, queueLength);
+            _validateNextBatchContext(curContext, nextContext, bed.nextQueueIndex, _queue, queueLength);
 
-            curContext = nextContext;
+                curContext = nextContext;
 
             for (uint32 j = 0; j < curContext.numSequencedTransactions; j++) {
                 uint256 txDataLength;
@@ -481,9 +489,9 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             }
 
             for (uint32 j = 0; j < curContext.numSubsequentQueueTransactions; j++) {
-                require(nextQueueIndex < queueLength, "Not enough queued transactions to append.");
-                leaves[leafIndex] = _getQueueLeafHash(nextQueueIndex);
-                nextQueueIndex++;
+                require(bed.nextQueueIndex < queueLength, "Not enough queued transactions to append.");
+                leaves[leafIndex] = _getQueueLeafHash(bed.nextQueueIndex);
+                bed.nextQueueIndex++;
                 leafIndex++;
             }
         }
@@ -510,7 +518,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             blockNumber = uint40(curContext.blockNumber);
         } else {
             // The last element is a queue tx, therefore pull timestamp and block number from the queue element.
-            Lib_OVMCodec.QueueElement memory lastElement = _getQueueElement(_queue, nextQueueIndex - 1);
+            Lib_OVMCodec.QueueElement memory lastElement = _getQueueElement(_queue, bed.nextQueueIndex - 1);
             timestamp = lastElement.timestamp;
             blockNumber = lastElement.blockNumber;
         }
@@ -524,7 +532,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         );
 
         emit SequencerBatchAppended(
-            nextQueueIndex - numQueuedTransactions,
+            bed.nextQueueIndex - numQueuedTransactions,
             numQueuedTransactions,
             getTotalElements()
         );
@@ -917,7 +925,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         // If there are some queue elements pending:
         if (queueLength - _nextQueueIndex > 0) {
-            Lib_OVMCodec.QueueElement memory nextQueueElement = getQueueElement(_queue, _nextQueueIndex);
+            Lib_OVMCodec.QueueElement memory nextQueueElement = _getQueueElement(_queue, _nextQueueIndex);
 
             // If the force inclusion period has passed for an enqueued transaction, it MUST be the next chain element.
             require(
