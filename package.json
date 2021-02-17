@@ -2,6 +2,10 @@
   "name": "@eth-optimism/contracts",
   "version": "0.1.5",
   "main": "build/src/index.js",
+  "engines": {
+    "npm": "please-use-yarn",
+    "yarn": ">= 1.22.10"
+  },
   "files": [
     "build/**/*.js",
     "build/contracts/*",
