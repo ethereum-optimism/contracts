@@ -16,7 +16,7 @@ import '@eth-optimism/smock/build/src/plugins/hardhat-storagelayout'
 const config: HardhatUserConfig = {
   paths: {
     deploy: './deploy',
-    deployments: './deployments'
+    deployments: './deployments',
   },
   networks: {
     hardhat: {
@@ -24,7 +24,7 @@ const config: HardhatUserConfig = {
       blockGasLimit: RUN_OVM_TEST_GAS * 2,
       live: true,
       saveDeployments: true,
-      tags: ["test", "local"]
+      tags: ['test', 'local'],
     },
   },
   mocha: {
@@ -43,8 +43,8 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: {
       default: 0,
-    }
-  }
+    },
+  },
 }
 
 export default config
