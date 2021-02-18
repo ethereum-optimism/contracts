@@ -2,9 +2,11 @@ import { expect } from '../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Signer, ContractFactory, Contract, BigNumber, providers } from 'ethers'
-import { TransactionResponse } from '@ethersproject/abstract-provider'
+import { Signer, ContractFactory, Contract } from 'ethers'
 import { smockit, MockContract } from '@eth-optimism/smock'
+import { AppendSequencerBatchParams, encodeAppendSequencerBatch } from '@eth-optimism/core-utils'
+import { TransactionResponse } from '@ethersproject/abstract-provider'
+import { keccak256 } from 'ethers/lib/utils'
 import _ from 'lodash'
 
 /* Internal Imports */
@@ -13,111 +15,15 @@ import {
   setProxyTarget,
   FORCE_INCLUSION_PERIOD_SECONDS,
   FORCE_INCLUSION_PERIOD_BLOCKS,
-  setEthTime,
-  NON_ZERO_ADDRESS,
-  remove0x,
   getEthTime,
   getNextBlockNumber,
-  increaseEthTime,
-  getBlockTime,
-  ZERO_ADDRESS,
 } from '../../../helpers'
-import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
 
-const ELEMENT_TEST_SIZES = [1, 2, 4, 8, 16]
+// Still have some duplication from OVM_CanonicalTransactionChain.spec.ts, but it's so minimal that
+// this is probably cleaner for now. Particularly since we're planning to move all of this out into
+// core-utils soon anyway.
 const DECOMPRESSION_ADDRESS = '0x4200000000000000000000000000000000000008'
 const MAX_GAS_LIMIT = 8_000_000
-
-const getQueueLeafHash = (index: number): string => {
-  return keccak256(
-    defaultAbiCoder.encode(
-      ['bool', 'uint256', 'uint256', 'uint256', 'bytes'],
-      [false, index, 0, 0, '0x']
-    )
-  )
-}
-
-const getSequencerLeafHash = (
-  timestamp: number,
-  blockNumber: number,
-  data: string
-): string => {
-  return keccak256(
-    '0x01' +
-      remove0x(BigNumber.from(timestamp).toHexString()).padStart(64, '0') +
-      remove0x(BigNumber.from(blockNumber).toHexString()).padStart(64, '0') +
-      remove0x(data)
-  )
-}
-
-const getTransactionHash = (
-  sender: string,
-  target: string,
-  gasLimit: number,
-  data: string
-): string => {
-  return keccak256(encodeQueueTransaction(sender, target, gasLimit, data))
-}
-
-const encodeQueueTransaction = (
-  sender: string,
-  target: string,
-  gasLimit: number,
-  data: string
-): string => {
-  return defaultAbiCoder.encode(
-    ['address', 'address', 'uint256', 'bytes'],
-    [sender, target, gasLimit, data]
-  )
-}
-
-interface BatchContext {
-  numSequencedTransactions: number
-  numSubsequentQueueTransactions: number
-  timestamp: number
-  blockNumber: number
-}
-
-interface AppendSequencerBatchParams {
-  shouldStartAtElement: number // 5 bytes -- starts at batch
-  totalElementsToAppend: number // 3 bytes -- total_elements_to_append
-  contexts: BatchContext[] // total_elements[fixed_size[]]
-  transactions: string[] // total_size_bytes[],total_size_bytes[]
-}
-
-const encodeAppendSequencerBatch = (b: AppendSequencerBatchParams): string => {
-  const encodedShouldStartAtElement = remove0x(
-    BigNumber.from(b.shouldStartAtElement).toHexString()
-  ).padStart(10, '0')
-
-  const encodedTotalElementsToAppend = remove0x(
-    BigNumber.from(b.totalElementsToAppend).toHexString()
-  ).padStart(6, '0')
-
-  const encodedContextsHeader = remove0x(
-    BigNumber.from(b.contexts.length).toHexString()
-  ).padStart(6, '0')
-
-  const encodedContexts =
-    encodedContextsHeader +
-    b.contexts.reduce((acc, cur) => acc + encodeBatchContext(cur), '')
-
-  const encodedTransactionData = b.transactions.reduce((acc, cur) => {
-    if (cur.length % 2 !== 0)
-      throw new Error('Unexpected uneven hex string value!')
-    const encodedTxDataHeader = remove0x(
-      BigNumber.from(remove0x(cur).length / 2).toHexString()
-    ).padStart(6, '0')
-    return acc + encodedTxDataHeader + remove0x(cur)
-  }, '')
-
-  return (
-    encodedShouldStartAtElement +
-    encodedTotalElementsToAppend +
-    encodedContexts +
-    encodedTransactionData
-  )
-}
 
 const appendSequencerBatch = async (
   OVM_CanonicalTransactionChain: Contract,
@@ -131,30 +37,10 @@ const appendSequencerBatch = async (
   })
 }
 
-const encodeBatchContext = (context: BatchContext): string => {
-  return (
-    remove0x(
-      BigNumber.from(context.numSequencedTransactions).toHexString()
-    ).padStart(6, '0') +
-    remove0x(
-      BigNumber.from(context.numSubsequentQueueTransactions).toHexString()
-    ).padStart(6, '0') +
-    remove0x(BigNumber.from(context.timestamp).toHexString()).padStart(
-      10,
-      '0'
-    ) +
-    remove0x(BigNumber.from(context.blockNumber).toHexString()).padStart(
-      10,
-      '0'
-    )
-  )
-}
-
 describe('[GAS BENCHMARK] OVM_CanonicalTransactionChain', () => {
-  let signer: Signer
   let sequencer: Signer
   before(async () => {
-    ;[signer, sequencer] = await ethers.getSigners()
+    ;[sequencer] = await ethers.getSigners()
   })
 
   let AddressManager: Contract
@@ -265,7 +151,7 @@ describe('[GAS BENCHMARK] OVM_CanonicalTransactionChain', () => {
         (transactionTemplate.slice(2).length / 2) * 16 * numTxs
 
       const res = await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-        shouldStartAtElement: 0,
+        shouldStartAtBatch: 0,
         totalElementsToAppend: numTxs,
         contexts: [
           {
@@ -305,7 +191,7 @@ describe('[GAS BENCHMARK] OVM_CanonicalTransactionChain', () => {
         (transactionTemplate.slice(2).length / 2) * 16 * numTxs
 
       const res = await appendSequencerBatch(OVM_CanonicalTransactionChain, {
-        shouldStartAtElement: 0,
+        shouldStartAtBatch: 0,
         totalElementsToAppend: numTxs,
         contexts: [...Array(numTxs)].map(() => {
           return {
