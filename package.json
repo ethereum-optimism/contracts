@@ -38,6 +38,7 @@
     "@ethersproject/contracts": "^5.0.5",
     "@ethersproject/hardware-wallets": "^5.0.8",
     "@openzeppelin/contracts": "^3.3.0",
+    "ethers": "^5.0.31",
     "ganache-core": "^2.12.1",
     "glob": "^7.1.6"
   },

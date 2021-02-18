@@ -4,7 +4,11 @@ import { expect } from '../../../setup'
 import { ethers } from 'hardhat'
 import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
 import { smockit, MockContract } from '@eth-optimism/smock'
-import { AppendSequencerBatchParams, encodeAppendSequencerBatch, remove0x } from '@eth-optimism/core-utils'
+import {
+  AppendSequencerBatchParams,
+  encodeAppendSequencerBatch,
+  remove0x,
+} from '@eth-optimism/core-utils'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { keccak256 } from 'ethers/lib/utils'
 import _ from 'lodash'
