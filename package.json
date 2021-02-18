@@ -29,8 +29,7 @@
     "lint:fix": "yarn run lint:fix:typescript",
     "lint:fix:typescript": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test}/**/*.ts\"",
     "clean": "rm -rf ./artifacts ./build ./cache",
-    "deploy": "./bin/deploy.js",
-    "serve": "./bin/serve_dump.sh"
+    "deploy:hardhat": "hardhat deploy --network hardhat"
   },
   "dependencies": {
     "@ethersproject/abstract-provider": "^5.0.8",
@@ -59,6 +58,7 @@
     "ethers": "^5.0.31",
     "fs-extra": "^9.0.1",
     "hardhat": "^2.0.8",
+    "hardhat-deploy": "^0.7.0-beta.44",
     "hardhat-typechain": "^0.3.4",
     "lodash": "^4.17.20",
     "merkle-patricia-tree": "^4.0.0",
