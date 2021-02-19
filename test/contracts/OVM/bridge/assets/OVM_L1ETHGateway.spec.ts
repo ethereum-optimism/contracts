@@ -75,6 +75,10 @@ describe('OVM_L1ETHGateway', () => {
         Mock__OVM_L1CrossDomainMessenger.address
       )
 
+      OVM_L1ETHGateway = await (
+        await ethers.getContractFactory('OVM_L1ETHGateway')
+      ).deploy(AddressManager.address, Mock__OVM_L2DepositedERC20.address)
+
       Mock__OVM_L1CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(
         NON_ZERO_ADDRESS
       )
