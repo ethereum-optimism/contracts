@@ -8,9 +8,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd )"
 
-# requires python3 for now
 PYTHON=${PYTHON:-python}
-
 HOST=${HOST:-0.0.0.0}
 PORT=${PORT:-8081}
 DIRECTORY=$DIR/../build/dumps
