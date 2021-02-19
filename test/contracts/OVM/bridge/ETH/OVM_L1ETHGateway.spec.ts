@@ -11,20 +11,30 @@ import {
 } from '@eth-optimism/smock'
 
 /* Internal Imports */
-import { NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../../helpers'
+import {
+  NON_ZERO_ADDRESS,
+  ZERO_ADDRESS,
+  makeAddressManager,
+} from '../../../../helpers'
 
-const HARDCODED_GASLIMIT = 8999999
+const L1_ETH_GATEWAY_NAME = 'Proxy__OVM_L1CrossDomainMessenger'
+const HARDCODED_GASLIMIT = 1000000
 const INITIAL_TOTAL_L1_SUPPLY = 3000
 
 const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
   'OVM_XCHAIN: wrong sender of cross-domain message'
 
-describe.only('OVM_L1ETHGateway', () => {
+describe('OVM_L1ETHGateway', () => {
   // init signers
   let l1MessengerImpersonator: Signer
   let alice: Signer
   let bob: Signer
+
+  let AddressManager: Contract
+  before(async () => {
+    AddressManager = await makeAddressManager()
+  })
 
   // we can just make up this string since it's on the "other" Layer
   let Mock__OVM_L2ERC20Gateway: MockContract
@@ -33,7 +43,7 @@ describe.only('OVM_L1ETHGateway', () => {
 
     Mock__OVM_L2ERC20Gateway = await smockit(
       await ethers.getContractFactory('OVM_L2ERC20Gateway')
-    )   
+    )
   })
 
   let OVM_L1ETHGateway: Contract
@@ -48,10 +58,7 @@ describe.only('OVM_L1ETHGateway', () => {
     // Deploy the contract under test
     OVM_L1ETHGateway = await (
       await ethers.getContractFactory('OVM_L1ETHGateway')
-    ).deploy(
-      Mock__OVM_L2ERC20Gateway.address,
-      Mock__OVM_L1CrossDomainMessenger.address
-    )
+    ).deploy(AddressManager.address, Mock__OVM_L2ERC20Gateway.address)
   })
 
   describe('finalizeWithdrawal', () => {
@@ -63,6 +70,11 @@ describe.only('OVM_L1ETHGateway', () => {
     })
 
     it('onlyFromCrossDomainAccount: should revert on calls from the right crossDomainMessenger, but wrong xDomainMessageSender (ie. not the L2ETHGateway)', async () => {
+      await AddressManager.setAddress(
+        L1_ETH_GATEWAY_NAME,
+        Mock__OVM_L1CrossDomainMessenger.address
+      )
+
       Mock__OVM_L1CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(
         NON_ZERO_ADDRESS
       )
@@ -74,7 +86,9 @@ describe.only('OVM_L1ETHGateway', () => {
 
     it('should credit funds to the withdrawer', async () => {
       // make sure no balance at start of test
-      await expect(await ethers.provider.getBalance(NON_ZERO_ADDRESS)).to.be.equal(0)
+      await expect(
+        await ethers.provider.getBalance(NON_ZERO_ADDRESS)
+      ).to.be.equal(0)
 
       const withdrawalAmount = 100
       Mock__OVM_L1CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(
@@ -84,8 +98,8 @@ describe.only('OVM_L1ETHGateway', () => {
       // thanks Alice
       await alice.sendTransaction({
         to: OVM_L1ETHGateway.address,
-        value: ethers.utils.parseEther("1.0")
-      });
+        value: ethers.utils.parseEther('1.0'),
+      })
 
       await OVM_L1ETHGateway.finalizeWithdrawal(
         NON_ZERO_ADDRESS,
@@ -93,7 +107,9 @@ describe.only('OVM_L1ETHGateway', () => {
         { from: Mock__OVM_L1CrossDomainMessenger.address }
       )
 
-      await expect(await ethers.provider.getBalance(NON_ZERO_ADDRESS)).to.be.equal(withdrawalAmount)
+      await expect(
+        await ethers.provider.getBalance(NON_ZERO_ADDRESS)
+      ).to.be.equal(withdrawalAmount)
     })
 
     it.skip('finalizeWithdrawalAndCall(): should should credit funds to the withdrawer, and forward from and data', async () => {
@@ -108,39 +124,44 @@ describe.only('OVM_L1ETHGateway', () => {
     beforeEach(async () => {
       // Deploy the L1 ETH token, Alice will receive the full initialSupply
 
-      // get a new mock L1 messenger
+      // get a new mock L1 messenger and set in AM
       Mock__OVM_L1CrossDomainMessenger = await smockit(
         await ethers.getContractFactory('OVM_L1CrossDomainMessenger')
+      )
+      await AddressManager.setAddress(
+        L1_ETH_GATEWAY_NAME,
+        Mock__OVM_L1CrossDomainMessenger.address
       )
 
       // Deploy the contract under test:
       OVM_L1ETHGateway = await (
         await ethers.getContractFactory('OVM_L1ETHGateway')
-      ).deploy(
-        Mock__OVM_L2ERC20Gateway.address,
-        Mock__OVM_L1CrossDomainMessenger.address
-      )
+      ).deploy(AddressManager.address, Mock__OVM_L2ERC20Gateway.address)
     })
 
     it('deposit() escrows the deposit amount and sends the correct deposit message', async () => {
-      const depositer = await alice.getAddress();
-      const initialBalance = await ethers.provider.getBalance(depositer);
+      const depositer = await alice.getAddress()
+      const initialBalance = await ethers.provider.getBalance(depositer)
 
       // alice calls deposit on the gateway and the L1 gateway calls transferFrom on the token
-      await OVM_L1ETHGateway.connect(alice).deposit({value: depositAmount, gasPrice: 0})
+      await OVM_L1ETHGateway.connect(alice).deposit({
+        value: depositAmount,
+        gasPrice: 0,
+      })
 
       const depositCallToMessenger =
         Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
 
-      const depositerBalance = await ethers.provider.getBalance(depositer);
+      const depositerBalance = await ethers.provider.getBalance(depositer)
 
-      expect(depositerBalance).to.equal(
-        initialBalance.sub(depositAmount)
-      )
+      expect(depositerBalance).to.equal(initialBalance.sub(depositAmount))
 
       // gateway's balance is increased
-      const gatewayBalance = await ethers.provider.getBalance(OVM_L1ETHGateway.address)
+      const gatewayBalance = await ethers.provider.getBalance(
+        OVM_L1ETHGateway.address
+      )
       expect(gatewayBalance).to.equal(depositAmount)
+      console.log('checked balances')
 
       // Check the correct cross-chain call was sent:
       // Message should be sent to the L2ETHGateway on L2
@@ -163,19 +184,22 @@ describe.only('OVM_L1ETHGateway', () => {
       // depositor calls deposit on the gateway and the L1 gateway calls transferFrom on the token
       const bobsAddress = await bob.getAddress()
       const aliceAddress = await alice.getAddress()
-      const initialBalance = await ethers.provider.getBalance(aliceAddress);
+      const initialBalance = await ethers.provider.getBalance(aliceAddress)
 
-      await OVM_L1ETHGateway.connect(alice).depositTo(bobsAddress, {value: depositAmount, gasPrice: 0})
+      await OVM_L1ETHGateway.connect(alice).depositTo(bobsAddress, {
+        value: depositAmount,
+        gasPrice: 0,
+      })
       const depositCallToMessenger =
         Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
 
       const depositerBalance = await ethers.provider.getBalance(aliceAddress)
-      expect(depositerBalance).to.equal(
-        initialBalance.sub(depositAmount)
-      )
+      expect(depositerBalance).to.equal(initialBalance.sub(depositAmount))
 
       // gateway's balance is increased
-      const gatewayBalance = await ethers.provider.getBalance(OVM_L1ETHGateway.address)
+      const gatewayBalance = await ethers.provider.getBalance(
+        OVM_L1ETHGateway.address
+      )
       expect(gatewayBalance).to.equal(depositAmount)
 
       // Check the correct cross-chain call was sent:
