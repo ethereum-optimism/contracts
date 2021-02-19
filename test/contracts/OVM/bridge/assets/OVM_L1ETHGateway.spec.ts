@@ -37,12 +37,12 @@ describe('OVM_L1ETHGateway', () => {
   })
 
   // we can just make up this string since it's on the "other" Layer
-  let Mock__OVM_L2ERC20Gateway: MockContract
+  let Mock__OVM_L2DepositedERC20: MockContract
   before(async () => {
     ;[l1MessengerImpersonator, alice, bob] = await ethers.getSigners()
 
-    Mock__OVM_L2ERC20Gateway = await smockit(
-      await ethers.getContractFactory('OVM_L2ERC20Gateway')
+    Mock__OVM_L2DepositedERC20 = await smockit(
+      await ethers.getContractFactory('OVM_L2DepositedERC20')
     )
   })
 
@@ -58,7 +58,7 @@ describe('OVM_L1ETHGateway', () => {
     // Deploy the contract under test
     OVM_L1ETHGateway = await (
       await ethers.getContractFactory('OVM_L1ETHGateway')
-    ).deploy(AddressManager.address, Mock__OVM_L2ERC20Gateway.address)
+    ).deploy(AddressManager.address, Mock__OVM_L2DepositedERC20.address)
   })
 
   describe('finalizeWithdrawal', () => {
@@ -92,7 +92,7 @@ describe('OVM_L1ETHGateway', () => {
 
       const withdrawalAmount = 100
       Mock__OVM_L1CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(
-        () => Mock__OVM_L2ERC20Gateway.address
+        () => Mock__OVM_L2DepositedERC20.address
       )
 
       // thanks Alice
@@ -136,7 +136,7 @@ describe('OVM_L1ETHGateway', () => {
       // Deploy the contract under test:
       OVM_L1ETHGateway = await (
         await ethers.getContractFactory('OVM_L1ETHGateway')
-      ).deploy(AddressManager.address, Mock__OVM_L2ERC20Gateway.address)
+      ).deploy(AddressManager.address, Mock__OVM_L2DepositedERC20.address)
     })
 
     it('deposit() escrows the deposit amount and sends the correct deposit message', async () => {
@@ -166,13 +166,13 @@ describe('OVM_L1ETHGateway', () => {
       // Check the correct cross-chain call was sent:
       // Message should be sent to the L2ETHGateway on L2
       expect(depositCallToMessenger._target).to.equal(
-        Mock__OVM_L2ERC20Gateway.address
+        Mock__OVM_L2DepositedERC20.address
       )
       // Message data should be a call telling the L2ETHGateway to finalize the deposit
 
       // the L1 gateway sends the correct message to the L1 messenger
       expect(depositCallToMessenger._message).to.equal(
-        await Mock__OVM_L2ERC20Gateway.interface.encodeFunctionData(
+        await Mock__OVM_L2DepositedERC20.interface.encodeFunctionData(
           'finalizeDeposit',
           [depositer, depositAmount]
         )
@@ -205,13 +205,13 @@ describe('OVM_L1ETHGateway', () => {
       // Check the correct cross-chain call was sent:
       // Message should be sent to the L2ETHGateway on L2
       expect(depositCallToMessenger._target).to.equal(
-        Mock__OVM_L2ERC20Gateway.address
+        Mock__OVM_L2DepositedERC20.address
       )
       // Message data should be a call telling the L2ETHGateway to finalize the deposit
 
       // the L1 gateway sends the correct message to the L1 messenger
       expect(depositCallToMessenger._message).to.equal(
-        await Mock__OVM_L2ERC20Gateway.interface.encodeFunctionData(
+        await Mock__OVM_L2DepositedERC20.interface.encodeFunctionData(
           'finalizeDeposit',
           [bobsAddress, depositAmount]
         )

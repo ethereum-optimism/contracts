@@ -5,11 +5,10 @@ pragma solidity >0.5.0 <0.8.0;
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 
 /* Interface Imports */
-import { iOVM_L2CrossDomainMessenger } from "../../iOVM/bridge/base/iOVM_L2CrossDomainMessenger.sol";
-import { iOVM_L1ERC20Gateway } from "../../iOVM/bridge/assets/iOVM_L1ERC20Gateway.sol";
+import { iOVM_L1ERC20Gateway } from "../../iOVM/bridge/tokens/iOVM_L1ERC20Gateway.sol";
 
 /* Contract Imports */
-import { OVM_L2ERC20Gateway } from "../bridge/assets/OVM_L2ERC20Gateway.sol";
+import { OVM_L2DepositedERC20 } from "../bridge/tokens/OVM_L2DepositedERC20.sol";
 
 /**
  * @title OVM_ETH
@@ -19,13 +18,13 @@ import { OVM_L2ERC20Gateway } from "../bridge/assets/OVM_L2ERC20Gateway.sol";
  * Compiler used: optimistic-solc
  * Runtime target: OVM
  */
-contract OVM_ETH is OVM_L2ERC20Gateway {
+contract OVM_ETH is OVM_L2DepositedERC20 {
     constructor(
         address _l2CrossDomainMessenger,
         address _l1ETHGateway
     ) 
-        OVM_L2ERC20Gateway(
-            iOVM_L2CrossDomainMessenger(_l2CrossDomainMessenger),
+        OVM_L2DepositedERC20(
+            _l2CrossDomainMessenger,
             18, // WETH decimals
             "ovmWETH",
             "oWETH"

@@ -4,13 +4,12 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/assets/iOVM_L1ERC20Gateway.sol";
-import { iOVM_L2ERC20Gateway } from "../../../iOVM/bridge/assets/iOVM_L2ERC20Gateway.sol";
-import { iAbs_BaseCrossDomainMessenger } from "../../../iOVM/bridge/base/iAbs_BaseCrossDomainMessenger.sol";
+import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Gateway.sol";
+import { iOVM_L2DepositedERC20 } from "../../../iOVM/bridge/tokens/iOVM_L2DepositedERC20.sol";
 import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
 
 /* Library Imports */
-import { OVM_CrossChainEnabled } from "../../../libraries/bridge/OVM_CrossChainEnabled.sol";
+import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
 
 /**
  * @title OVM_L1ERC20Gateway
@@ -21,7 +20,7 @@ import { OVM_CrossChainEnabled } from "../../../libraries/bridge/OVM_CrossChainE
  * Compiler used: solc
  * Runtime target: EVM
  */
-contract OVM_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossChainEnabled {
+contract OVM_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnabled {
     
     /********************************
      * External Contract References *
@@ -42,9 +41,9 @@ contract OVM_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossChainEnabled {
     constructor(
         iOVM_ERC20 _l1ERC20,
         address _l2ERC20Gateway,
-        iAbs_BaseCrossDomainMessenger _l1messenger 
+        address _l1messenger 
     )
-        OVM_CrossChainEnabled(_l1messenger)
+        OVM_CrossDomainEnabled(_l1messenger)
     {
         l1ERC20 = _l1ERC20;
         l2ERC20Gateway = _l2ERC20Gateway;
@@ -105,7 +104,7 @@ contract OVM_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossChainEnabled {
 
         // Construct calldata for l2ERC20Gateway.finalizeDeposit(_to, _amount)
         bytes memory data = abi.encodeWithSelector(
-            iOVM_L2ERC20Gateway.finalizeDeposit.selector,
+            iOVM_L2DepositedERC20.finalizeDeposit.selector,
             _to,
             _amount
         );

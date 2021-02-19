@@ -6,9 +6,9 @@ pragma experimental ABIEncoderV2;
 import { IUniswapV2ERC20 } from "../../../libraries/standards/IUniswapV2ERC20.sol";
 
 /**
- * @title iOVM_L2ERC20Gateway
+ * @title iOVM_L2DepositedERC20
  */
-interface iOVM_L2ERC20Gateway is IUniswapV2ERC20 {
+interface iOVM_L2DepositedERC20 is IUniswapV2ERC20 {
 
     /**********
      * Events *

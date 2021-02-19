@@ -26,15 +26,15 @@ describe('OVM_L1ERC20Gateway', () => {
   let bob: Signer
 
   // we can just make up this string since it's on the "other" Layer
-  let Mock__OVM_L2ERC20Gateway: MockContract
+  let Mock__OVM_L2DepositedERC20: MockContract
   let Factory__L1ERC20: ContractFactory
   let L1ERC20: Contract
   const initialSupply = 1_000
   before(async () => {
     ;[alice, bob] = await ethers.getSigners()
 
-    Mock__OVM_L2ERC20Gateway = await smockit(
-      await ethers.getContractFactory('OVM_L2ERC20Gateway')
+    Mock__OVM_L2DepositedERC20 = await smockit(
+      await ethers.getContractFactory('OVM_L2DepositedERC20')
     )
 
     // deploy an ERC20 contract on L1
@@ -68,7 +68,7 @@ describe('OVM_L1ERC20Gateway', () => {
       await ethers.getContractFactory('OVM_L1ERC20Gateway')
     ).deploy(
       L1ERC20.address,
-      Mock__OVM_L2ERC20Gateway.address,
+      Mock__OVM_L2DepositedERC20.address,
       Mock__OVM_L1CrossDomainMessenger.address
     )
   })
@@ -80,7 +80,7 @@ describe('OVM_L1ERC20Gateway', () => {
         await ethers.getContractFactory('OVM_L1ERC20Gateway')
       ).deploy(
         L1ERC20.address,
-        Mock__OVM_L2ERC20Gateway.address,
+        Mock__OVM_L2DepositedERC20.address,
         NON_ZERO_ADDRESS
       )
 
@@ -107,7 +107,7 @@ describe('OVM_L1ERC20Gateway', () => {
 
       const withdrawalAmount = 100
       Mock__OVM_L1CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(
-        () => Mock__OVM_L2ERC20Gateway.address
+        () => Mock__OVM_L2DepositedERC20.address
       )
 
       await L1ERC20.transfer(OVM_L1ERC20Gateway.address, withdrawalAmount)
@@ -149,7 +149,7 @@ describe('OVM_L1ERC20Gateway', () => {
         await ethers.getContractFactory('OVM_L1ERC20Gateway')
       ).deploy(
         L1ERC20.address,
-        Mock__OVM_L2ERC20Gateway.address,
+        Mock__OVM_L2DepositedERC20.address,
         Mock__OVM_L1CrossDomainMessenger.address
       )
 
@@ -182,13 +182,13 @@ describe('OVM_L1ERC20Gateway', () => {
       // Check the correct cross-chain call was sent:
       // Message should be sent to the L2ERC20Gateway on L2
       expect(depositCallToMessenger._target).to.equal(
-        Mock__OVM_L2ERC20Gateway.address
+        Mock__OVM_L2DepositedERC20.address
       )
       // Message data should be a call telling the L2ERC20Gateway to finalize the deposit
 
       // the L1 gateway sends the correct message to the L1 messenger
       expect(depositCallToMessenger._message).to.equal(
-        await Mock__OVM_L2ERC20Gateway.interface.encodeFunctionData(
+        await Mock__OVM_L2DepositedERC20.interface.encodeFunctionData(
           'finalizeDeposit',
           [depositer, depositAmount]
         )
@@ -215,13 +215,13 @@ describe('OVM_L1ERC20Gateway', () => {
       // Check the correct cross-chain call was sent:
       // Message should be sent to the L2ERC20Gateway on L2
       expect(depositCallToMessenger._target).to.equal(
-        Mock__OVM_L2ERC20Gateway.address
+        Mock__OVM_L2DepositedERC20.address
       )
       // Message data should be a call telling the L2ERC20Gateway to finalize the deposit
 
       // the L1 gateway sends the correct message to the L1 messenger
       expect(depositCallToMessenger._message).to.equal(
-        await Mock__OVM_L2ERC20Gateway.interface.encodeFunctionData(
+        await Mock__OVM_L2DepositedERC20.interface.encodeFunctionData(
           'finalizeDeposit',
           [bobsAddress, depositAmount]
         )

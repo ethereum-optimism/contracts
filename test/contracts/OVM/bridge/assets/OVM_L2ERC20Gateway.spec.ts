@@ -22,7 +22,7 @@ const ERR_INVALID_X_DOMAIN_MSG_SENDER =
 const MOCK_L1GATEWAY_ADDRESS: string =
   '0x1234123412341234123412341234123412341234'
 
-describe('OVM_L2ERC20Gateway', () => {
+describe('OVM_L2DepositedERC20', () => {
   let alice: Signer
   let bob: Signer
   let Factory__OVM_L1ERC20Gateway: ContractFactory
@@ -33,7 +33,7 @@ describe('OVM_L2ERC20Gateway', () => {
     )
   })
 
-  let OVM_L2ERC20Gateway: Contract
+  let OVM_L2DepositedERC20: Contract
   let Mock__OVM_L2CrossDomainMessenger: MockContract
   beforeEach(async () => {
     // Create a special signer which will enable us to send messages from the L2Messenger contract
@@ -48,8 +48,8 @@ describe('OVM_L2ERC20Gateway', () => {
     )
 
     // Deploy the contract under test
-    OVM_L2ERC20Gateway = await (
-      await ethers.getContractFactory('OVM_L2ERC20Gateway')
+    OVM_L2DepositedERC20 = await (
+      await ethers.getContractFactory('OVM_L2DepositedERC20')
     ).deploy(
       Mock__OVM_L2CrossDomainMessenger.address,
       decimals,
@@ -58,20 +58,20 @@ describe('OVM_L2ERC20Gateway', () => {
     )
 
     // initialize the L2 Gateway with the L1G ateway addrss
-    await OVM_L2ERC20Gateway.init(MOCK_L1GATEWAY_ADDRESS)
+    await OVM_L2DepositedERC20.init(MOCK_L1GATEWAY_ADDRESS)
   })
 
   // test the transfer flow of moving a token from L2 to L1
   describe('finalizeDeposit', () => {
     it('onlyFromCrossDomainAccount: should revert on calls from a non-crossDomainMessenger L2 account', async () => {
       // Deploy new gateway, initialize with random messenger
-      OVM_L2ERC20Gateway = await (
-        await ethers.getContractFactory('OVM_L2ERC20Gateway')
+      OVM_L2DepositedERC20 = await (
+        await ethers.getContractFactory('OVM_L2DepositedERC20')
       ).deploy(NON_ZERO_ADDRESS, decimals, 'ovmWETH', 'oWETH')
-      await OVM_L2ERC20Gateway.init(NON_ZERO_ADDRESS)
+      await OVM_L2DepositedERC20.init(NON_ZERO_ADDRESS)
 
       await expect(
-        OVM_L2ERC20Gateway.finalizeDeposit(ZERO_ADDRESS, 0)
+        OVM_L2DepositedERC20.finalizeDeposit(ZERO_ADDRESS, 0)
       ).to.be.revertedWith(ERR_INVALID_MESSENGER)
     })
 
@@ -81,7 +81,7 @@ describe('OVM_L2ERC20Gateway', () => {
       )
 
       await expect(
-        OVM_L2ERC20Gateway.finalizeDeposit(ZERO_ADDRESS, 0, {
+        OVM_L2DepositedERC20.finalizeDeposit(ZERO_ADDRESS, 0, {
           from: Mock__OVM_L2CrossDomainMessenger.address,
         })
       ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
@@ -93,13 +93,13 @@ describe('OVM_L2ERC20Gateway', () => {
         () => MOCK_L1GATEWAY_ADDRESS
       )
 
-      await OVM_L2ERC20Gateway.finalizeDeposit(
+      await OVM_L2DepositedERC20.finalizeDeposit(
         await alice.getAddress(),
         depositAmount,
         { from: Mock__OVM_L2CrossDomainMessenger.address }
       )
 
-      const aliceBalance = await OVM_L2ERC20Gateway.balanceOf(
+      const aliceBalance = await OVM_L2DepositedERC20.balanceOf(
         await alice.getAddress()
       )
       aliceBalance.should.equal(depositAmount)
@@ -114,7 +114,7 @@ describe('OVM_L2ERC20Gateway', () => {
     beforeEach(async () => {
       // Deploy a smodded gateway so we can give some balances to withdraw
       SmoddedL2Gateway = await (
-        await smoddit('OVM_L2ERC20Gateway', alice)
+        await smoddit('OVM_L2DepositedERC20', alice)
       ).deploy(
         Mock__OVM_L2CrossDomainMessenger.address,
         decimals,

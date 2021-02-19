@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >0.5.0 <0.8.0;
 /* Interface Imports */
-import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/base/iAbs_BaseCrossDomainMessenger.sol";
+import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/messenging/iAbs_BaseCrossDomainMessenger.sol";
 
 /**
- * @title OVM_CrossChainEnabled
+ * @title OVM_CrossDomainEnabled
  * @dev Helper contract for contracts performing cross-domain communications
  *
  * Compiler used: defined by inheriting contract
  * Runtime target: defined by inheriting contract
  */
-contract OVM_CrossChainEnabled {
-    iAbs_BaseCrossDomainMessenger public messenger;
+contract OVM_CrossDomainEnabled {
+    address public messenger;
 
     /***************
      * Constructor *
      ***************/    
     constructor(
-        iAbs_BaseCrossDomainMessenger _messenger
+        address _messenger
     ) {
         messenger = _messenger;
     }
@@ -61,7 +61,7 @@ contract OVM_CrossChainEnabled {
             iAbs_BaseCrossDomainMessenger
         )
     {
-        return messenger;
+        return iAbs_BaseCrossDomainMessenger(messenger);
     }
 
     /**

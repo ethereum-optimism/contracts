@@ -4,13 +4,12 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import { iOVM_L1ETHGateway } from "../../../iOVM/bridge/assets/iOVM_L1ETHGateway.sol";
-import { iOVM_L2ERC20Gateway } from "../../../iOVM/bridge/assets/iOVM_L2ERC20Gateway.sol";
-import { iAbs_BaseCrossDomainMessenger } from "../../../iOVM/bridge/base/iAbs_BaseCrossDomainMessenger.sol";
+import { iOVM_L1ETHGateway } from "../../../iOVM/bridge/tokens/iOVM_L1ETHGateway.sol";
+import { iOVM_L2DepositedERC20 } from "../../../iOVM/bridge/tokens/iOVM_L2DepositedERC20.sol";
 import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
 
 /* Library Imports */
-import { OVM_CrossChainEnabled } from "../../../libraries/bridge/OVM_CrossChainEnabled.sol";
+import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
 import { Lib_AddressResolver } from "../../../libraries/resolver/Lib_AddressResolver.sol";
 
 /**
@@ -20,7 +19,7 @@ import { Lib_AddressResolver } from "../../../libraries/resolver/Lib_AddressReso
  * Compiler used: solc
  * Runtime target: EVM
  */
-contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled, Lib_AddressResolver {
+contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_AddressResolver {
     /********************************
      * External Contract References *
      ********************************/
@@ -38,10 +37,11 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled, Lib_Addre
         address _libAddressManager,
         address _l2ERC20Gateway
     )
-        OVM_CrossChainEnabled(iAbs_BaseCrossDomainMessenger(0)) // overridden
+        OVM_CrossDomainEnabled(address(0)) // overridden in constructor code
         Lib_AddressResolver(_libAddressManager)
     {
         l2ERC20Gateway = _l2ERC20Gateway;
+        messenger = resolve("Proxy__OVM_L1CrossDomainMessenger"); // overrides OVM_CrossDomainEnabled constructor setting because resolve() is not yet accessible
     }
 
     /**************
@@ -77,7 +77,7 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled, Lib_Addre
         // Construct calldata for l2ERC20Gateway.finalizeDeposit(_to, _amount)
         bytes memory data =
             abi.encodeWithSelector(
-                iOVM_L2ERC20Gateway.finalizeDeposit.selector,
+                iOVM_L2DepositedERC20.finalizeDeposit.selector,
                 _to,
                 msg.value
             );
@@ -95,20 +95,6 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossChainEnabled, Lib_Addre
     /*************************
      * Cross-chain Functions *
      *************************/
-
-    /**
-     * @dev Resolve the cross-domain messenger via the Address Resolver for native ETH.
-     */
-
-    function getCrossDomainMessenger()
-        internal
-        override
-        returns(
-            iAbs_BaseCrossDomainMessenger
-        )
-    {
-        return iAbs_BaseCrossDomainMessenger(resolve("Proxy__OVM_L1CrossDomainMessenger"));
-    }
 
     /**
      * @dev Complete a withdrawal from L2 to L1, and credit funds to the recipient's balance of the

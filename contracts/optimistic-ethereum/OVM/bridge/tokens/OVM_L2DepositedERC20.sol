@@ -3,26 +3,25 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import { iOVM_L2ERC20Gateway } from "../../../iOVM/bridge/assets/iOVM_L2ERC20Gateway.sol";
-import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/assets/iOVM_L1ERC20Gateway.sol";
-import { iOVM_L2CrossDomainMessenger } from "../../../iOVM/bridge/base/iOVM_L2CrossDomainMessenger.sol";
+import { iOVM_L2DepositedERC20 } from "../../../iOVM/bridge/tokens/iOVM_L2DepositedERC20.sol";
+import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Gateway.sol";
 
 /* Contract Imports */
 import { UniswapV2ERC20 } from "../../../libraries/standards/UniswapV2ERC20.sol";
 
 /* Library Imports */
-import { OVM_CrossChainEnabled } from "../../../libraries/bridge/OVM_CrossChainEnabled.sol";
+import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
 
 /**
- * @title OVM_L2ERC20Gateway
- * @dev The L2 ERC20 Gateway is an ERC20 implementation which represents L1 assets deposited into L2.
+ * @title OVM_L2DepositedERC20
+ * @dev The L2 Deposited ERC20 is an ERC20 implementation which represents L1 assets deposited into L2.
  * This contract mints new tokens when it hears about deposits into the L1 ERC20 gateway.
  * This contract also burns the tokens intended for withdrawal, informing the L1 gateway to release L1 funds.
  *
  * Compiler used: optimistic-solc
  * Runtime target: OVM
  */
-contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, UniswapV2ERC20, OVM_CrossChainEnabled {
+contract OVM_L2DepositedERC20 is iOVM_L2DepositedERC20, UniswapV2ERC20, OVM_CrossDomainEnabled {
     
     /******************
      * Contract Events*
@@ -47,13 +46,13 @@ contract OVM_L2ERC20Gateway is iOVM_L2ERC20Gateway, UniswapV2ERC20, OVM_CrossCha
      * @param _symbol L2 ERC20 symbol
      */
     constructor(
-        iOVM_L2CrossDomainMessenger _l2CrossDomainMessenger,
+        address _l2CrossDomainMessenger,
         uint8 _decimals,
         string memory _name,
         string memory _symbol
     )
         public
-        OVM_CrossChainEnabled(_l2CrossDomainMessenger)
+        OVM_CrossDomainEnabled(_l2CrossDomainMessenger)
         UniswapV2ERC20(_decimals, _name, _symbol)
     {}
 
