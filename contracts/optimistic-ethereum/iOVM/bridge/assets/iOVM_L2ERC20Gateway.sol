@@ -3,7 +3,7 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import { IUniswapV2ERC20 } from "../../precompiles/IUniswapV2ERC20.sol";
+import { IUniswapV2ERC20 } from "../../../libraries/standards/IUniswapV2ERC20.sol";
 
 /**
  * @title iOVM_L2ERC20Gateway

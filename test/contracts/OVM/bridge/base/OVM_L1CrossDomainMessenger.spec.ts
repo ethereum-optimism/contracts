@@ -1,4 +1,4 @@
-import { expect } from '../../../setup'
+import { expect } from '../../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
@@ -20,7 +20,7 @@ import {
   getNextBlockNumber,
   remove0x,
   getXDomainCalldata,
-} from '../../../helpers'
+} from '../../../../helpers'
 import { keccak256 } from 'ethers/lib/utils'
 
 const deployProxyXDomainMessenger = async (

@@ -5,19 +5,13 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import {
-    iOVM_L1ETHGateway
-} from "../../../iOVM/bridge/ETH/iOVM_L1ETHGateway.sol";
-import {
-    iOVM_L2ERC20Gateway
-} from "../../../iOVM/bridge/ERC20/iOVM_L2ERC20Gateway.sol";
-import {
-    iAbs_BaseCrossDomainMessenger
-} from "../../../iOVM/bridge/iAbs_BaseCrossDomainMessenger.sol";
+import { iOVM_L1ETHGateway } from "../../../iOVM/bridge/assets/iOVM_L1ETHGateway.sol";
+import { iOVM_L2ERC20Gateway } from "../../../iOVM/bridge/assets/iOVM_L2ERC20Gateway.sol";
+import { iAbs_BaseCrossDomainMessenger } from "../../../iOVM/bridge/base/iAbs_BaseCrossDomainMessenger.sol";
 import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
 
 /* Library Imports */
-import { OVM_CrossChainEnabled } from "../OVM_CrossChainEnabled.sol";
+import { OVM_CrossChainEnabled } from "../../../libraries/bridge/OVM_CrossChainEnabled.sol";
 import { Lib_AddressResolver } from "../../../libraries/resolver/Lib_AddressResolver.sol";
 
 /**

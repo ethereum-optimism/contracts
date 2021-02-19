@@ -1,7 +1,7 @@
 pragma solidity >=0.5.16 <0.8.0;
 
-import '../../iOVM/precompiles/IUniswapV2ERC20.sol';
-import './dependencies/UniSafeMath.sol';
+import './IUniswapV2ERC20.sol';
+import './UniSafeMath.sol';
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
     using UniSafeMath for uint;

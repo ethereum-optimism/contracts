@@ -5,11 +5,11 @@ pragma solidity >0.5.0 <0.8.0;
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 
 /* Interface Imports */
-import { iOVM_L2CrossDomainMessenger } from "../../iOVM/bridge/iOVM_L2CrossDomainMessenger.sol";
-import { iOVM_L1ERC20Gateway } from "../../iOVM/bridge/ERC20/iOVM_L1ERC20Gateway.sol";
+import { iOVM_L2CrossDomainMessenger } from "../../iOVM/bridge/base/iOVM_L2CrossDomainMessenger.sol";
+import { iOVM_L1ERC20Gateway } from "../../iOVM/bridge/assets/iOVM_L1ERC20Gateway.sol";
 
 /* Contract Imports */
-import { OVM_L2ERC20Gateway } from "../bridge/ERC20/OVM_L2ERC20Gateway.sol";
+import { OVM_L2ERC20Gateway } from "../bridge/assets/OVM_L2ERC20Gateway.sol";
 
 /**
  * @title OVM_ETH

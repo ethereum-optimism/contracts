@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >0.5.0 <0.8.0;
 /* Interface Imports */
-import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/iAbs_BaseCrossDomainMessenger.sol";
+import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/base/iAbs_BaseCrossDomainMessenger.sol";
 
 /**
  * @title OVM_CrossChainEnabled
