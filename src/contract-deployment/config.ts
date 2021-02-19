@@ -34,7 +34,6 @@ export interface RollupDeployConfig {
     owner: string | Signer
     allowArbitraryContractDeployment: boolean
   }
-  l1WethAddress?: string
   addressManager?: string
   dependencies?: string[]
   deployOverrides: Overrides
@@ -220,7 +219,7 @@ export const makeContractDeployConfig = async (
     OVM_ETH: {
       factory: getContractFactory('OVM_ETH'),
       params: [
-        '0x4200000000000000000000000000000000000007', // TODO: grab this from a config
+        '0x4200000000000000000000000000000000000007',
         '0x0000000000000000000000000000000000000000', // will be overridden by geth when state dump is ingested.  Storage key: 0x0000000000000000000000000000000000000000000000000000000000000008
       ],
     },
