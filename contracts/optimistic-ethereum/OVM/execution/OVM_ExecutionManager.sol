@@ -1826,7 +1826,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         )
     {
         // Prevent this call from having any effect unless at in a custom-set VM frame
-        require(msg.sender == address(0));
+        require(msg.sender == address(0), "nonzero msg.sender"); // TODO: remove this for revert string decoding non-collision
 
         _initContext(_transaction);
         
@@ -1836,7 +1836,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         (bool success, bytes memory resultData) = _transaction.entrypoint.call{gas: _transaction.gasLimit}(_transaction.data);
 
         if (!success) { 
-            revert(string(resultData));
+            assembly {
+                revert(add(resultData,0x20), mload(resultData))
+            }
          }
     }
 }
