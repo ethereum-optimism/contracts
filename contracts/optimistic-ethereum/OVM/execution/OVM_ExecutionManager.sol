@@ -1806,12 +1806,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
     }
 
-        /***********************
-     * L2 Helper Functions *
+    /***********************
+     * L2-only Helper Functions *
      ***********************/
 
     /**
-     * Used for simulating eth_calls with an OVM message context.
+     * Unreachable helper function for simulating eth_calls with an OVM message context.
      * This function will throw an exception in all cases other than when used as a custom entrypoint in L2 Geth to simulate eth_call. 
      * @param _transaction the message transaction to simulate.
      * @param _from the OVM account the simulated call should be from.
@@ -1825,6 +1825,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes memory _resultData
         )
     {
+        // Prevent this call from having any effect unless at in a custom-set VM frame
         require(msg.sender == address(0));
 
         _initContext(_transaction);
@@ -1838,5 +1839,4 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             revert(string(resultData));
          }
     }
-    
 }
