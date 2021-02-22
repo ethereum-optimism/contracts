@@ -165,7 +165,9 @@ describe('OVM_L2DepositedERC20', () => {
         )
       )
       // Hardcoded gaslimit should be correct
-      expect(withdrawalCallToMessenger._gasLimit).to.equal(finalizeDepositGasLimit)
+      expect(withdrawalCallToMessenger._gasLimit).to.equal(
+        finalizeDepositGasLimit
+      )
     })
 
     it('withdrawTo() burns and sends the correct withdrawal message', async () => {
@@ -198,7 +200,9 @@ describe('OVM_L2DepositedERC20', () => {
         )
       )
       // Hardcoded gaslimit should be correct
-      expect(withdrawalCallToMessenger._gasLimit).to.equal(finalizeDepositGasLimit)
+      expect(withdrawalCallToMessenger._gasLimit).to.equal(
+        finalizeDepositGasLimit
+      )
     })
   })
 
