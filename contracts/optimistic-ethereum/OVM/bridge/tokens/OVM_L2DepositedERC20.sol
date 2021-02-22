@@ -23,9 +23,9 @@ import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomai
  */
 contract OVM_L2DepositedERC20 is iOVM_L2DepositedERC20, UniswapV2ERC20, OVM_CrossDomainEnabled {
     
-    /******************
-     * Contract Events*
-     ******************/
+    /*******************
+     * Contract Events *
+     *******************/
 
     event Initialized(iOVM_L1ERC20Gateway _l1ERC20Gateway);
 
@@ -56,11 +56,11 @@ contract OVM_L2DepositedERC20 is iOVM_L2DepositedERC20, UniswapV2ERC20, OVM_Cros
         UniswapV2ERC20(_decimals, _name, _symbol)
     {}
 
-    // Should we be inheriting this initialization logic?
     /**
      * @dev Initialize this gateway with the L1 gateway address
-     * The assumed flow is that this contract is deployed, then the L1 gateway,
-     * then init is called on L2.
+     * The assumed flow is that this contract is deployed on L2, then the L1 
+     * gateway is dpeloyed, and its address passed here to init.
+     *
      * @param _l1ERC20Gateway Address of the corresponding L1 gateway deployed to the main chain
      */
     function init(

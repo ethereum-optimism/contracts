@@ -51,7 +51,11 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
     /**
      * @dev deposit an amount of the ERC20 to the caller's balance on L2
      */
-    function deposit() external override payable {
+    function deposit() 
+        external
+        override
+        payable
+    {
         _initiateDeposit(msg.sender, msg.sender);
     }
 
@@ -59,7 +63,13 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
      * @dev deposit an amount of ERC20 to a recipients's balance on L2
      * @param _to L2 address to credit the withdrawal to
      */
-    function depositTo(address _to) external override payable {
+    function depositTo(
+        address _to
+    )
+        external
+        override
+        payable
+    {
         _initiateDeposit(msg.sender, _to);
     }
 
@@ -72,8 +82,9 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
     function _initiateDeposit(
         address _from,
         address _to
-    ) internal {
-
+    )
+        internal
+    {
         // Construct calldata for l2ERC20Gateway.finalizeDeposit(_to, _amount)
         bytes memory data =
             abi.encodeWithSelector(
@@ -104,7 +115,10 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
      * @param _to L1 address to credit the withdrawal to
      * @param _amount Amount of the ERC20 to withdraw
      */
-    function finalizeWithdrawal(address _to, uint256 _amount)
+    function finalizeWithdrawal(
+        address _to,
+        uint256 _amount
+    )
         external
         override
         onlyFromCrossDomainAccount(l2ERC20Gateway)
@@ -114,11 +128,33 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
         emit WithdrawalFinalized(_to, _amount);
     }
 
-    function _safeTransferETH(address to, uint256 value) internal {
-        (bool success, ) = to.call{value: value}(new bytes(0));
+    /**********************************
+     * Internal Functions: Accounting *
+     **********************************/
+
+    /**
+     * @dev Internal accounting function for moving around L1 ETH.
+     *
+     * @param _to L1 address to transfer ETH to
+     * @param _value Amount of ETH to send to
+     */
+    function _safeTransferETH(
+        address _to,
+        uint256 _value
+    )
+        internal
+    {
+        (bool success, ) = _to.call{value: _value}(new bytes(0));
         require(success, 'TransferHelper::safeTransferETH: ETH transfer failed');
     }
 
-    receive() external payable {
+    /**
+     * @dev Prevent users from sending ETH directly to this contract without calling deposit
+     */
+    receive()
+        external
+        payable
+    {
+        revert("Deposits must be initiated via deposit() or depositTo()");
     }
 }
