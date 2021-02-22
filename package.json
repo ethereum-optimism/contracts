@@ -27,7 +27,8 @@
     "lint:fix": "yarn run lint:fix:typescript",
     "lint:fix:typescript": "prettier --config prettier-config.json --write \"buidler.config.ts\" \"{src,test}/**/*.ts\"",
     "clean": "rm -rf ./artifacts ./build ./cache",
-    "deploy": "./bin/deploy.js"
+    "deploy": "./bin/deploy.js",
+    "serve": "./bin/serve_dump.sh"
   },
   "dependencies": {
     "@eth-optimism/core-utils": "^0.1.8",
