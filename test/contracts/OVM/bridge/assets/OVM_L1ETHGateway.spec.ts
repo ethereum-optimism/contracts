@@ -18,8 +18,6 @@ import {
 } from '../../../../helpers'
 
 const L1_ETH_GATEWAY_NAME = 'Proxy__OVM_L1CrossDomainMessenger'
-const HARDCODED_GASLIMIT = 1000000
-const INITIAL_TOTAL_L1_SUPPLY = 3000
 
 const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
@@ -48,6 +46,7 @@ describe('OVM_L1ETHGateway', () => {
 
   let OVM_L1ETHGateway: Contract
   let Mock__OVM_L1CrossDomainMessenger: MockContract
+  let finalizeDepositGasLimit: number
   beforeEach(async () => {
     // Get a new mock L1 messenger
     Mock__OVM_L1CrossDomainMessenger = await smockit(
@@ -59,6 +58,8 @@ describe('OVM_L1ETHGateway', () => {
     OVM_L1ETHGateway = await (
       await ethers.getContractFactory('OVM_L1ETHGateway')
     ).deploy(AddressManager.address, Mock__OVM_L2DepositedERC20.address)
+
+    finalizeDepositGasLimit = await OVM_L1ETHGateway.DEFAULT_FINALIZE_DEPOSIT_L2_GAS()
   })
 
   describe('finalizeWithdrawal', () => {
@@ -181,7 +182,7 @@ describe('OVM_L1ETHGateway', () => {
           [depositer, depositAmount]
         )
       )
-      expect(depositCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)
+      expect(depositCallToMessenger._gasLimit).to.equal(finalizeDepositGasLimit)
     })
 
     it('depositTo() escrows the deposit amount and sends the correct deposit message', async () => {
@@ -220,7 +221,7 @@ describe('OVM_L1ETHGateway', () => {
           [bobsAddress, depositAmount]
         )
       )
-      expect(depositCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)
+      expect(depositCallToMessenger._gasLimit).to.equal(finalizeDepositGasLimit)
     })
   })
 })

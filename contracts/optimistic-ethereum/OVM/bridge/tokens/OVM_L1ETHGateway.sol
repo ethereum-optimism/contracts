@@ -97,7 +97,7 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
         sendCrossDomainMessage(
             l2ERC20Gateway,
             data,
-            1000000 // TODO: meter and set with some buffer
+            DEFAULT_FINALIZE_DEPOSIT_L2_GAS
         );
 
         emit DepositInitiated(_from, _to, msg.value);
