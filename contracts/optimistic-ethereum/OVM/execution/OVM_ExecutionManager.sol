@@ -29,7 +29,7 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
  * OVM operation, which will read state from the State Manager contract.
  * The EM relies on the Safety Checker to verify that code deployed to Layer 2 does not contain any
  * context-dependent operations.
-  * 
+ *
  * Compiler used: solc
  * Runtime target: EVM
  */
@@ -660,8 +660,13 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes32 _value
         )
     {
+        // one
+        address(4).call(abi.encodePacked(hex"0001"));
+
         // We always SLOAD from the storage of ADDRESS.
         address contractAddress = ovmADDRESS();
+
+        address(4).call(abi.encodePacked(hex"0002"));
 
         return _getContractStorage(
             contractAddress,
@@ -891,7 +896,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         if (!isAllowed || !success) {
             _revertWithFlag(RevertFlag.CREATOR_NOT_ALLOWED);
-        }   
+        }
     }
 
     /********************************************
@@ -967,7 +972,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // We reserve addresses of the form 0xdeaddeaddead...NNNN for the container contracts in L2 geth.
         // So, we block calls to these addresses since they are not safe to run as an OVM contract itself.
         if (
-            (uint256(_contract) & uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000)) 
+            (uint256(_contract) & uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000))
             == uint256(0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000)
         ) {
             return (true, hex'');
@@ -1051,7 +1056,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 _revertWithFlag(flag);
             }
 
-            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_ALLOWED aren't 
+            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_ALLOWED aren't
             // dependent on the input state, so we can just handle them like standard reverts. Our only change here
             // is to record the gas refund reported by the call (enforced by safety checking).
             if (
@@ -1230,6 +1235,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes32 _value
         )
     {
+        // three
+        address(4).call(abi.encodePacked(hex"0003"));
         _checkContractStorageLoad(_contract, _key);
         return ovmStateManager.getContractStorage(_contract, _key);
     }
@@ -1346,6 +1353,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
             _revertWithFlag(RevertFlag.OUT_OF_GAS);
         }
+        address(4).call(abi.encodePacked(hex"0004"));
 
         // We need to make sure that the transaction isn't trying to access storage that hasn't
         // been provided to the OVM_StateManager. We'll immediately abort if this is the case.
@@ -1353,18 +1361,21 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (ovmStateManager.hasContractStorage(_contract, _key) == false) {
             _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
         }
+        address(4).call(abi.encodePacked(hex"0005"));
 
         // Check whether the slot has been loaded before and mark it as loaded if not. We need
         // this because "nuisance gas" only applies to the first time that a slot is loaded.
         (
             bool _wasContractStorageAlreadyLoaded
         ) = ovmStateManager.testAndSetContractStorageLoaded(_contract, _key);
+        address(4).call(abi.encodePacked(hex"0006"));
 
         // If we hadn't already loaded the account, then we'll need to charge some fixed amount of
         // "nuisance gas".
         if (_wasContractStorageAlreadyLoaded == false) {
             _useNuisanceGas(NUISANCE_GAS_SLOAD);
         }
+        address(4).call(abi.encodePacked(hex"0007"));
     }
 
     /**
@@ -1812,7 +1823,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
     /**
      * Unreachable helper function for simulating eth_calls with an OVM message context.
-     * This function will throw an exception in all cases other than when used as a custom entrypoint in L2 Geth to simulate eth_call. 
+     * This function will throw an exception in all cases other than when used as a custom entrypoint in L2 Geth to simulate eth_call.
      * @param _transaction the message transaction to simulate.
      * @param _from the OVM account the simulated call should be from.
      */
@@ -1822,25 +1833,21 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         iOVM_StateManager _ovmStateManager
     )
         external
-        returns(
-            bytes memory _resultData
+        returns (
+            bool _success,
+            bytes memory _returndata
         )
     {
         // Prevent this call from having any effect unless at in a custom-set VM frame
-        require(msg.sender == address(0), "nonzero msg.sender"); // TODO: remove this for revert string decoding non-collision
+        require(msg.sender == address(0));
 
         ovmStateManager = _ovmStateManager;
         _initContext(_transaction);
-        
+
+        messageRecord.nuisanceGasLeft = uint(-1);
         messageContext.ovmADDRESS = _transaction.entrypoint;
         messageContext.ovmCALLER = _from;
 
-        (bool success, bytes memory resultData) = _transaction.entrypoint.call{gas: _transaction.gasLimit}(_transaction.data);
-
-        if (!success) { 
-            assembly {
-                revert(add(resultData,0x20), mload(resultData))
-            }
-         }
+        (bool _success, bytes memory _returndata) = _transaction.entrypoint.call{gas: _transaction.gasLimit}(_transaction.data);
     }
 }
