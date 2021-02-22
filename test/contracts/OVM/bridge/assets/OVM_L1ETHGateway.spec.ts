@@ -25,7 +25,7 @@ const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
   'OVM_XCHAIN: wrong sender of cross-domain message'
 
-describe('OVM_L1ETHGateway', () => {
+describe.only('OVM_L1ETHGateway', () => {
   // init signers
   let l1MessengerImpersonator: Signer
   let alice: Signer
@@ -100,9 +100,9 @@ describe('OVM_L1ETHGateway', () => {
       )
 
       // thanks Alice
-      await alice.sendTransaction({
-        to: OVM_L1ETHGateway.address,
+      await OVM_L1ETHGateway.connect(alice).deposit({
         value: ethers.utils.parseEther('1.0'),
+        gasPrice: 0,
       })
 
       await OVM_L1ETHGateway.finalizeWithdrawal(
