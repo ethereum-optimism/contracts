@@ -132,7 +132,7 @@ contract OVM_L2DepositedERC20 is iOVM_L2DepositedERC20, UniswapV2ERC20, OVM_Cros
         sendCrossDomainMessage(
             address(l1ERC20Gateway),
             data,
-            DEFAULT_FINALIZE_DEPOSIT_L2_GAS
+            DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS
         );
 
         emit WithdrawalInitiated(msg.sender, _to, _amount);

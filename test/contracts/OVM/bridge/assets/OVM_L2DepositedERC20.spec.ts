@@ -34,7 +34,7 @@ describe('OVM_L2DepositedERC20', () => {
 
   let OVM_L2DepositedERC20: Contract
   let Mock__OVM_L2CrossDomainMessenger: MockContract
-  let finalizeDepositGasLimit: number
+  let finalizeWithdrawalGasLimit: number
   beforeEach(async () => {
     // Create a special signer which will enable us to send messages from the L2Messenger contract
     let l2MessengerImpersonator: Signer
@@ -60,7 +60,7 @@ describe('OVM_L2DepositedERC20', () => {
     // initialize the L2 Gateway with the L1G ateway addrss
     await OVM_L2DepositedERC20.init(MOCK_L1GATEWAY_ADDRESS)
 
-    finalizeDepositGasLimit = await OVM_L2DepositedERC20.DEFAULT_FINALIZE_DEPOSIT_L2_GAS()
+    finalizeWithdrawalGasLimit = await OVM_L2DepositedERC20.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()
   })
 
   // test the transfer flow of moving a token from L2 to L1
@@ -166,7 +166,7 @@ describe('OVM_L2DepositedERC20', () => {
       )
       // Hardcoded gaslimit should be correct
       expect(withdrawalCallToMessenger._gasLimit).to.equal(
-        finalizeDepositGasLimit
+        finalizeWithdrawalGasLimit
       )
     })
 
@@ -201,7 +201,7 @@ describe('OVM_L2DepositedERC20', () => {
       )
       // Hardcoded gaslimit should be correct
       expect(withdrawalCallToMessenger._gasLimit).to.equal(
-        finalizeDepositGasLimit
+        finalizeWithdrawalGasLimit
       )
     })
   })

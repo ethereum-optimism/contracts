@@ -89,7 +89,7 @@ describe('OVM_L1ETHGateway', () => {
       ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
     })
 
-    it('should credit funds to the withdrawer', async () => {
+    it('should credit funds to the withdrawer and not use too much gas', async () => {
       // make sure no balance at start of test
       await expect(
         await ethers.provider.getBalance(NON_ZERO_ADDRESS)
@@ -106,7 +106,7 @@ describe('OVM_L1ETHGateway', () => {
         gasPrice: 0,
       })
 
-      await OVM_L1ETHGateway.finalizeWithdrawal(
+      const res = await OVM_L1ETHGateway.finalizeWithdrawal(
         NON_ZERO_ADDRESS,
         withdrawalAmount,
         { from: Mock__OVM_L1CrossDomainMessenger.address }
@@ -115,6 +115,17 @@ describe('OVM_L1ETHGateway', () => {
       await expect(
         await ethers.provider.getBalance(NON_ZERO_ADDRESS)
       ).to.be.equal(withdrawalAmount)
+
+      const gasUsed = (
+        await OVM_L1ETHGateway.provider.getTransactionReceipt(res.hash)
+      ).gasUsed
+
+      await expect(
+        gasUsed.gt(
+          ((await OVM_L1ETHGateway.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()) * 11) /
+            10
+        )
+      )
     })
 
     it.skip('finalizeWithdrawalAndCall(): should should credit funds to the withdrawer, and forward from and data', async () => {
@@ -166,7 +177,6 @@ describe('OVM_L1ETHGateway', () => {
         OVM_L1ETHGateway.address
       )
       expect(gatewayBalance).to.equal(depositAmount)
-      console.log('checked balances')
 
       // Check the correct cross-chain call was sent:
       // Message should be sent to the L2ETHGateway on L2

@@ -13,7 +13,6 @@ import {
 /* Internal Imports */
 import { NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../../helpers'
 
-const HARDCODED_GASLIMIT = 8999999
 const INITIAL_TOTAL_L1_SUPPLY = 3000
 
 const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
@@ -53,6 +52,7 @@ describe('OVM_L1ERC20Gateway', () => {
 
   let OVM_L1ERC20Gateway: Contract
   let Mock__OVM_L1CrossDomainMessenger: MockContract
+  let finalizeDepositGasLimit: number
   beforeEach(async () => {
     // Create a special signer which will enable us to send messages from the L1Messenger contract
     let l1MessengerImpersonator: Signer
@@ -71,6 +71,8 @@ describe('OVM_L1ERC20Gateway', () => {
       Mock__OVM_L2DepositedERC20.address,
       Mock__OVM_L1CrossDomainMessenger.address
     )
+
+    finalizeDepositGasLimit = await OVM_L1ERC20Gateway.DEFAULT_FINALIZE_DEPOSIT_L2_GAS()
   })
 
   describe('finalizeWithdrawal', () => {
@@ -101,7 +103,7 @@ describe('OVM_L1ERC20Gateway', () => {
       ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
     })
 
-    it('should credit funds to the withdrawer', async () => {
+    it('should credit funds to the withdrawer and not use too much gas', async () => {
       // make sure no balance at start of test
       await expect(await L1ERC20.balanceOf(NON_ZERO_ADDRESS)).to.be.equal(0)
 
@@ -112,7 +114,7 @@ describe('OVM_L1ERC20Gateway', () => {
 
       await L1ERC20.transfer(OVM_L1ERC20Gateway.address, withdrawalAmount)
 
-      await OVM_L1ERC20Gateway.finalizeWithdrawal(
+      const res = await OVM_L1ERC20Gateway.finalizeWithdrawal(
         NON_ZERO_ADDRESS,
         withdrawalAmount,
         { from: Mock__OVM_L1CrossDomainMessenger.address }
@@ -120,6 +122,18 @@ describe('OVM_L1ERC20Gateway', () => {
 
       await expect(await L1ERC20.balanceOf(NON_ZERO_ADDRESS)).to.be.equal(
         withdrawalAmount
+      )
+
+      const gasUsed = (
+        await OVM_L1ERC20Gateway.provider.getTransactionReceipt(res.hash)
+      ).gasUsed
+
+      await expect(
+        gasUsed.gt(
+          ((await OVM_L1ERC20Gateway.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()) *
+            11) /
+            10
+        )
       )
     })
 
@@ -193,7 +207,7 @@ describe('OVM_L1ERC20Gateway', () => {
           [depositer, depositAmount]
         )
       )
-      expect(depositCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)
+      expect(depositCallToMessenger._gasLimit).to.equal(finalizeDepositGasLimit)
     })
 
     it('depositTo() escrows the deposit amount and sends the correct deposit message', async () => {
@@ -226,7 +240,7 @@ describe('OVM_L1ERC20Gateway', () => {
           [bobsAddress, depositAmount]
         )
       )
-      expect(depositCallToMessenger._gasLimit).to.equal(HARDCODED_GASLIMIT)
+      expect(depositCallToMessenger._gasLimit).to.equal(finalizeDepositGasLimit)
     })
   })
 })
