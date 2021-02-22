@@ -46,5 +46,6 @@ interface iOVM_L1ERC20Gateway {
     function finalizeWithdrawal(
         address _to,
         uint _amount
-    ) external;
+    )
+        external;
 }
