@@ -1827,7 +1827,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes memory
         )
     {
-        // Prevent this call from having any effect unless at in a custom-set VM frame
+        // Prevent this call from having any effect unless in a custom-set VM frame
         require(msg.sender == address(0));
 
         ovmStateManager = _ovmStateManager;
