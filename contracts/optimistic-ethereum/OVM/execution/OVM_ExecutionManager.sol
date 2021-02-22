@@ -1806,9 +1806,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
     }
 
-    /***********************
+    /*****************************
      * L2-only Helper Functions *
-     ***********************/
+     *****************************/
 
     /**
      * Unreachable helper function for simulating eth_calls with an OVM message context.
