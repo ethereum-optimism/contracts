@@ -1818,7 +1818,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      */
     function simulateMessage(
         Lib_OVMCodec.Transaction memory _transaction,
-        address _from
+        address _from,
+        iOVM_StateManager _ovmStateManager
     )
         external
         returns(
@@ -1828,6 +1829,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Prevent this call from having any effect unless at in a custom-set VM frame
         require(msg.sender == address(0), "nonzero msg.sender"); // TODO: remove this for revert string decoding non-collision
 
+        ovmStateManager = _ovmStateManager;
         _initContext(_transaction);
         
         messageContext.ovmADDRESS = _transaction.entrypoint;
