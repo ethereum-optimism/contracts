@@ -660,13 +660,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes32 _value
         )
     {
-        // one
-        address(4).call(abi.encodePacked(hex"0001"));
-
         // We always SLOAD from the storage of ADDRESS.
         address contractAddress = ovmADDRESS();
-
-        address(4).call(abi.encodePacked(hex"0002"));
 
         return _getContractStorage(
             contractAddress,
@@ -1235,8 +1230,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             bytes32 _value
         )
     {
-        // three
-        address(4).call(abi.encodePacked(hex"0003"));
         _checkContractStorageLoad(_contract, _key);
         return ovmStateManager.getContractStorage(_contract, _key);
     }
@@ -1353,7 +1346,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (gasleft() < MIN_GAS_FOR_INVALID_STATE_ACCESS) {
             _revertWithFlag(RevertFlag.OUT_OF_GAS);
         }
-        address(4).call(abi.encodePacked(hex"0004"));
 
         // We need to make sure that the transaction isn't trying to access storage that hasn't
         // been provided to the OVM_StateManager. We'll immediately abort if this is the case.
@@ -1361,21 +1353,18 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (ovmStateManager.hasContractStorage(_contract, _key) == false) {
             _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
         }
-        address(4).call(abi.encodePacked(hex"0005"));
 
         // Check whether the slot has been loaded before and mark it as loaded if not. We need
         // this because "nuisance gas" only applies to the first time that a slot is loaded.
         (
             bool _wasContractStorageAlreadyLoaded
         ) = ovmStateManager.testAndSetContractStorageLoaded(_contract, _key);
-        address(4).call(abi.encodePacked(hex"0006"));
 
         // If we hadn't already loaded the account, then we'll need to charge some fixed amount of
         // "nuisance gas".
         if (_wasContractStorageAlreadyLoaded == false) {
             _useNuisanceGas(NUISANCE_GAS_SLOAD);
         }
-        address(4).call(abi.encodePacked(hex"0007"));
     }
 
     /**
@@ -1834,8 +1823,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         external
         returns (
-            bool _success,
-            bytes memory _returndata
+            bool,
+            bytes memory
         )
     {
         // Prevent this call from having any effect unless at in a custom-set VM frame
@@ -1848,6 +1837,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         messageContext.ovmADDRESS = _transaction.entrypoint;
         messageContext.ovmCALLER = _from;
 
-        (bool _success, bytes memory _returndata) = _transaction.entrypoint.call{gas: _transaction.gasLimit}(_transaction.data);
+        return _transaction.entrypoint.call{gas: _transaction.gasLimit}(_transaction.data);
     }
 }
