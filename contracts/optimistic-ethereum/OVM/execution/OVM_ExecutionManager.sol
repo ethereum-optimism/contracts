@@ -66,6 +66,11 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     uint256 constant NUISANCE_GAS_PER_CONTRACT_BYTE = 100;
     uint256 constant MIN_GAS_FOR_INVALID_STATE_ACCESS = 30000;
 
+    /*********************
+     * Utility Constants *
+     *********************/
+    address constant MAX_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
+
 
     /***************
      * Constructor *
@@ -85,6 +90,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         ovmSafetyChecker = iOVM_SafetyChecker(resolve("OVM_SafetyChecker"));
         gasMeterConfig = _gasMeterConfig;
         globalContext = _globalContext;
+        _resetContext();
     }
 
 
@@ -205,7 +211,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         _resetContext();
 
         // Reset the ovmStateManager.
-        ovmStateManager = iOVM_StateManager(address(0));
+        // @todo: should we move this into reset context?
+        ovmStateManager = iOVM_StateManager(MAX_ADDRESS);
     }
 
 
@@ -1789,20 +1796,20 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     function _resetContext()
         internal
     {
-        transactionContext.ovmL1TXORIGIN = address(0);
-        transactionContext.ovmTIMESTAMP = 0;
-        transactionContext.ovmNUMBER = 0;
-        transactionContext.ovmGASLIMIT = 0;
-        transactionContext.ovmTXGASLIMIT = 0;
+        transactionContext.ovmL1TXORIGIN = MAX_ADDRESS;
+        transactionContext.ovmTIMESTAMP = type(uint256).max;
+        transactionContext.ovmNUMBER = type(uint256).max;
+        transactionContext.ovmGASLIMIT = type(uint256).max;
+        transactionContext.ovmTXGASLIMIT = type(uint256).max;
         transactionContext.ovmL1QUEUEORIGIN = Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE;
 
-        transactionRecord.ovmGasRefund = 0;
+        transactionRecord.ovmGasRefund = type(uint256).max;
 
-        messageContext.ovmCALLER = address(0);
-        messageContext.ovmADDRESS = address(0);
-        messageContext.isStatic = false;
+        messageContext.ovmCALLER = MAX_ADDRESS;
+        messageContext.ovmADDRESS = MAX_ADDRESS;
+        messageContext.isStatic = false; // temp note: is it worth making this into an enum?
 
-        messageRecord.nuisanceGasLeft = 0;
+        messageRecord.nuisanceGasLeft = type(uint256).max;
         messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
     }
 
