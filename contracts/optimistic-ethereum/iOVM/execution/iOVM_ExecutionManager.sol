@@ -11,7 +11,7 @@ interface iOVM_ExecutionManager {
      *********/
 
     enum RevertFlag {
-        // UNUSED, // Save gas by not setting a storage slot to zero
+        UNUSED, // Save gas by not setting a storage slot to zero
         DID_NOT_REVERT,
         OUT_OF_GAS,
         INTENTIONAL_REVERT,
