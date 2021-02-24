@@ -1803,7 +1803,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         transactionContext.ovmTXGASLIMIT = type(uint256).max;
         transactionContext.ovmL1QUEUEORIGIN = Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE;
 
-        transactionRecord.ovmGasRefund = type(uint256).max;
+        transactionRecord.ovmGasRefund = 0;
 
         messageContext.ovmCALLER = MAX_ADDRESS;
         messageContext.ovmADDRESS = MAX_ADDRESS;
