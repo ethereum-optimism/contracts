@@ -24,6 +24,12 @@ interface iOVM_ExecutionManager {
         CREATOR_NOT_ALLOWED
     }
 
+    enum StaticFlag {
+        UNUSED, // Save gas by not setting a storage slot to zero
+        TRUE,
+        FALSE
+    }
+
     enum GasMetadataKey {
         CURRENT_EPOCH_START_TIMESTAMP,
         CUMULATIVE_SEQUENCER_QUEUE_GAS,
@@ -63,7 +69,7 @@ interface iOVM_ExecutionManager {
     struct MessageContext {
         address ovmCALLER;
         address ovmADDRESS;
-        bool isStatic;
+        StaticFlag isStatic;
     }
 
     struct MessageRecord {

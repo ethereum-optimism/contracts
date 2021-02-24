@@ -141,7 +141,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * Makes sure we're not inside a static context.
      */
     modifier notStatic() {
-        if (messageContext.isStatic == true) {
+        if (messageContext.isStatic == StaticFlag.TRUE) {
             _revertWithFlag(RevertFlag.STATIC_VIOLATION);
         }
         _;
@@ -604,7 +604,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         MessageContext memory nextMessageContext = messageContext;
         nextMessageContext.ovmCALLER = nextMessageContext.ovmADDRESS;
         nextMessageContext.ovmADDRESS = _address;
-        nextMessageContext.isStatic = true;
+        nextMessageContext.isStatic = StaticFlag.TRUE;
 
         return _callContract(
             nextMessageContext,
@@ -1807,7 +1807,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         messageContext.ovmCALLER = MAX_ADDRESS;
         messageContext.ovmADDRESS = MAX_ADDRESS;
-        messageContext.isStatic = false; // temp note: is it worth making this into an enum?
+        messageContext.isStatic = StaticFlag.FALSE;
 
         messageRecord.nuisanceGasLeft = type(uint256).max;
         messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
