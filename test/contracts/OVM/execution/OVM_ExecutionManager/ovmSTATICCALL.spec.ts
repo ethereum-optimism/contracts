@@ -19,6 +19,9 @@ const test_ovmSTATICCALL: TestDefinition = {
       messageRecord: {
         nuisanceGasLeft: OVM_TX_GAS_LIMIT,
       },
+      transactionRecord: {
+        ovmGasRefund: 0,
+      },
     },
     StateManager: {
       owner: '$OVM_EXECUTION_MANAGER',
