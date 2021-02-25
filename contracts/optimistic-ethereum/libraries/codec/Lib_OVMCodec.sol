@@ -37,6 +37,7 @@ library Lib_OVMCodec {
     }
 
     enum QueueOrigin {
+        UNUSED, // Save gas by not setting a storage slot to zero
         SEQUENCER_QUEUE,
         L1TOL2_QUEUE
     }

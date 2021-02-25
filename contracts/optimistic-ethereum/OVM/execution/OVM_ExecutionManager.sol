@@ -183,7 +183,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // _checkNeedsNewEpoch(_transaction.timestamp);
 
         // Make sure the transaction's gas limit is valid, ie. within the configured min/max
-        // gas limit range.
+        // gas limit range, and does not exceed this epoch's cumulative gas limit.
         // We don't revert here because we reserve reverts for INVALID_STATE_ACCESS.
         if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
             // Wipe the execution context.
@@ -208,10 +208,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Wipe the execution context.
         _resetContext();
-
-        // Reset the ovmStateManager.
-        // @todo: should we move this into reset context?
-        ovmStateManager = iOVM_StateManager(address(-1));
     }
 
 
@@ -941,8 +937,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             )
         );
 
-        // Need to make sure that this flag is reset so that it isn't propagated to creations in
-        // some parent EVM message.
+        // Reset this flag so that it isn't propagated to creations in some parent EVM message.
         messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
 
         // Yellow paper requires that address returned is zero if the contract deployment fails.
@@ -1653,6 +1648,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // TEMPORARY: Gas metering is disabled for minnet.
         return true;
+
+        // Logic to handle gas limits per Epoch
         // GasMetadataKey cumulativeGasKey;
         // GasMetadataKey prevEpochGasKey;
         // if (_queueOrigin == Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE) {
@@ -1773,43 +1770,59 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * Initializes the execution context.
      * @param _transaction OVM transaction being executed.
+     * Security considerations: 
+     * It is critical that these values are initialized to their safe defaults in the `_initContext` function. Thus all 
+     * types other than enums need to be set to zero.
      */
     function _initContext(
         Lib_OVMCodec.Transaction memory _transaction
     )
         internal
     {
+        transactionContext.ovmL1QUEUEORIGIN = _transaction.l1QueueOrigin;
         transactionContext.ovmTIMESTAMP = _transaction.timestamp;
         transactionContext.ovmNUMBER = _transaction.blockNumber;
-        transactionContext.ovmTXGASLIMIT = _transaction.gasLimit;
-        transactionContext.ovmL1QUEUEORIGIN = _transaction.l1QueueOrigin;
-        transactionContext.ovmL1TXORIGIN = _transaction.l1TxOrigin;
         transactionContext.ovmGASLIMIT = gasMeterConfig.maxGasPerQueuePerEpoch;
+        transactionContext.ovmTXGASLIMIT = _transaction.gasLimit;
+        transactionContext.ovmL1TXORIGIN = _transaction.l1TxOrigin;
+
+        transactionRecord.ovmGasRefund = 0;
+
 
         messageRecord.nuisanceGasLeft = _getNuisanceGasLimit(_transaction.gasLimit);
     }
 
     /**
-     * Resets the transaction and message context.
+     * Resets the transaction and message context
+     * @notice We want to start the call frame with non-zero storage values, which provides significant gas savings using 
+     * EIP-1283 net gas metering. 
+     * Thus upon exiting the contract, we set all the values to either their maximum value, or in the case of ENUMs
+     * to their default value, which is at the 1-index (the 0-index is UNUSED).
+     * Security considerations: 
+     * It is critical that these values are initialized to their safe defaults in the `_initContext` function. Thus all 
+     * types other than enums need to be set to zero.
      */
     function _resetContext()
         internal
     {
-        transactionContext.ovmL1TXORIGIN = address(-1);
+        transactionContext.ovmL1QUEUEORIGIN = Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE;
         transactionContext.ovmTIMESTAMP = type(uint256).max;
         transactionContext.ovmNUMBER = type(uint256).max;
         transactionContext.ovmGASLIMIT = type(uint256).max;
         transactionContext.ovmTXGASLIMIT = type(uint256).max;
-        transactionContext.ovmL1QUEUEORIGIN = Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE;
+        transactionContext.ovmL1TXORIGIN = address(-1);
 
         transactionRecord.ovmGasRefund = type(uint256).max;
+
+        messageRecord.nuisanceGasLeft = type(uint256).max;
+        messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
 
         messageContext.ovmCALLER = address(-1);
         messageContext.ovmADDRESS = address(-1);
         messageContext.isStatic = StaticFlag.FALSE;
 
-        messageRecord.nuisanceGasLeft = type(uint256).max;
-        messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
+        // Reset the ovmStateManager.
+        ovmStateManager = iOVM_StateManager(address(-1));
     }
 
     /*****************************

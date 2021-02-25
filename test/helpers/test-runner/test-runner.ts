@@ -89,7 +89,7 @@ export class ExecutionManagerTestRunner {
     )),
       (test.postState = test.postState || {})
 
-    describe(`OVM_ExecutionManager Test: ${test.name}`, () => {
+    describe.only(`OVM_ExecutionManager Test: ${test.name}`, () => {
       test.subTests?.map((subTest) => {
         this.run({
           ...subTest,

@@ -31,6 +31,7 @@ interface iOVM_ExecutionManager {
     }
 
     enum GasMetadataKey {
+        UNUSED, // Save gas by not setting a storage slot to zero
         CURRENT_EPOCH_START_TIMESTAMP,
         CUMULATIVE_SEQUENCER_QUEUE_GAS,
         CUMULATIVE_L1TOL2_QUEUE_GAS,
