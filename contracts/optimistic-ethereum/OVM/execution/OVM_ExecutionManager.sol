@@ -66,12 +66,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     uint256 constant NUISANCE_GAS_PER_CONTRACT_BYTE = 100;
     uint256 constant MIN_GAS_FOR_INVALID_STATE_ACCESS = 30000;
 
-    /*********************
-     * Utility Constants *
-     *********************/
-    address constant MAX_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
-
-
     /***************
      * Constructor *
      ***************/
@@ -212,7 +206,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Reset the ovmStateManager.
         // @todo: should we move this into reset context?
-        ovmStateManager = iOVM_StateManager(MAX_ADDRESS);
+        ovmStateManager = iOVM_StateManager(address(-1));
     }
 
 
@@ -1796,7 +1790,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     function _resetContext()
         internal
     {
-        transactionContext.ovmL1TXORIGIN = MAX_ADDRESS;
+        transactionContext.ovmL1TXORIGIN = address(-1);
         transactionContext.ovmTIMESTAMP = type(uint256).max;
         transactionContext.ovmNUMBER = type(uint256).max;
         transactionContext.ovmGASLIMIT = type(uint256).max;
@@ -1805,8 +1799,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         transactionRecord.ovmGasRefund = type(uint256).max;
 
-        messageContext.ovmCALLER = MAX_ADDRESS;
-        messageContext.ovmADDRESS = MAX_ADDRESS;
+        messageContext.ovmCALLER = address(-1);
+        messageContext.ovmADDRESS = address(-1);
         messageContext.isStatic = StaticFlag.FALSE;
 
         messageRecord.nuisanceGasLeft = type(uint256).max;
