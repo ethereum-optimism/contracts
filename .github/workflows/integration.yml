@@ -4,12 +4,11 @@ on:
   push:
     branches:
       - master
-  # pull_request:
-  #   branches:
-  #     - master
-  pull_request_target:
+  pull_request:
     branches:
       - master
+  pull_request_target:
+    types: [opened]
 
 jobs:
   build:
@@ -19,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build
+      - name: Build integration
         run: |
           git clone https://github.com/ethereum-optimism/optimism-integration.git \
               $HOME/optimism-integration
@@ -32,11 +31,6 @@ jobs:
           fi
           GIT_COMMIT=$(git rev-parse HEAD | head -c 8)
           REMOTE="https://github.com/${{ github.repository }}"
-          echo "optimism-integration $GIT_COMMIT"
-          echo "$GITHUB_HEAD_REF"
-          echo "${{ github.repository }}"
-          echo "${{ github.event }}"
-          echo "${{ github.event_name }}"
           ./docker/build.sh -s deployer -b $GITHUB_HEAD_REF -r $REMOTE
 
       - name: Test
