@@ -54,7 +54,7 @@ jobs:
               GITHUB_HEAD_REF=${GITHUB_REF##*/}
           fi
           GIT_COMMIT=$(git rev-parse HEAD | head -c 8)
-          ./docker/build.sh -s deployer -b $GITHUB_HEAD_REF -r ${{ github.event.pull_request.head.repo.url }}
+          ./docker/build.sh -s deployer -b $GITHUB_HEAD_REF -r ${{ github.event.pull_request.head.repo.html_url }}
 
       - name: Test
         run: |
