@@ -14,11 +14,11 @@ const deployFn: DeployFunction = async (hre) => {
     await execute(
       'Lib_AddressManager',
       {
-        from: deployer
+        from: deployer,
       },
       'setAddress',
       'OVM_L1CrossDomainMessenger',
-      contract.address,
+      contract.address
     )
   }
 }

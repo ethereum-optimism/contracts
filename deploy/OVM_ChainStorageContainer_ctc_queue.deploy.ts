@@ -9,10 +9,7 @@ const deployFn: DeployFunction = async (hre) => {
   const contract = await deploy('OVM_ChainStorageContainer:CTC:queue', {
     contract: 'OVM_ChainStorageContainer',
     from: deployer,
-    args: [
-      Lib_AddressManager.address,
-      'OVM_CanonicalTransactionChain',
-    ],
+    args: [Lib_AddressManager.address, 'OVM_CanonicalTransactionChain'],
     log: true,
   })
 
@@ -20,11 +17,11 @@ const deployFn: DeployFunction = async (hre) => {
     await execute(
       'Lib_AddressManager',
       {
-        from: deployer
+        from: deployer,
       },
       'setAddress',
       'OVM_ChainStorageContainer:CTC:queue',
-      contract.address,
+      contract.address
     )
   }
 }

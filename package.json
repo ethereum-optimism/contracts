@@ -27,7 +27,7 @@
     "lint": "yarn run lint:typescript",
     "lint:typescript": "tslint --format stylish --project .",
     "lint:fix": "yarn run lint:fix:typescript",
-    "lint:fix:typescript": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test}/**/*.ts\"",
+    "lint:fix:typescript": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test,deploy}/**/*.ts\"",
     "clean": "rm -rf ./artifacts ./build ./cache",
     "deploy": "hardhat deploy",
     "verify": "hardhat etherscan-verify",

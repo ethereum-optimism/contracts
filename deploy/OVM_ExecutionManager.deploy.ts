@@ -27,11 +27,11 @@ const deployFn: DeployFunction = async (hre) => {
     await execute(
       'Lib_AddressManager',
       {
-        from: deployer
+        from: deployer,
       },
       'setAddress',
       'OVM_ChainStorageContainer:ctc:batches',
-      contract.address,
+      contract.address
     )
   }
 }

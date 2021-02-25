@@ -8,10 +8,7 @@ const deployFn: DeployFunction = async (hre) => {
 
   const contract = await deploy('Lib_ResolvedDelegateProxy', {
     from: deployer,
-    args: [
-      Lib_AddressManager.address,
-      'OVM_L1CrossDomainMessenger'
-    ],
+    args: [Lib_AddressManager.address, 'OVM_L1CrossDomainMessenger'],
     log: true,
   })
 
@@ -19,11 +16,11 @@ const deployFn: DeployFunction = async (hre) => {
     await execute(
       'Lib_AddressManager',
       {
-        from: deployer
+        from: deployer,
       },
       'setAddress',
       'Proxy__OVM_L1CrossDomainMessenger',
-      contract.address,
+      contract.address
     )
   }
 }

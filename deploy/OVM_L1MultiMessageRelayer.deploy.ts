@@ -8,9 +8,7 @@ const deployFn: DeployFunction = async (hre) => {
 
   const contract = await deploy('OVM_L1MultiMessageRelayer', {
     from: deployer,
-    args: [
-      Lib_AddressManager.address,
-    ],
+    args: [Lib_AddressManager.address],
     log: true,
   })
 
@@ -18,11 +16,11 @@ const deployFn: DeployFunction = async (hre) => {
     await execute(
       'Lib_AddressManager',
       {
-        from: deployer
+        from: deployer,
       },
       'setAddress',
       'OVM_L1MultiMessageRelayer',
-      contract.address,
+      contract.address
     )
   }
 }
