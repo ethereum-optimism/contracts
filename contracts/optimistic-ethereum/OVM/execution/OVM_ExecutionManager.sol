@@ -158,7 +158,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
-        // Prevent reentrancy to this function by requiring that the transaction context has been
+        // Prevent reentrancy to this function by requiring that the transaction context has not yet been
         // initialized
         require(transactionContext.ovmNUMBER == type(uint256).max, "Only callable as the start of a transaction");
         // Store our OVM_StateManager instance (significantly easier than attempting to pass the
@@ -1788,6 +1788,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         transactionRecord.ovmGasRefund = 0;
 
+        messageContext.ovmCALLER = address(-1);
+        messageContext.ovmADDRESS = address(-1);
 
         messageRecord.nuisanceGasLeft = _getNuisanceGasLimit(_transaction.gasLimit);
     }
