@@ -15,7 +15,7 @@ contract OVM_CrossDomainEnabled {
     address public messenger;
 
     uint32 public constant DEFAULT_FINALIZE_DEPOSIT_L2_GAS = 1200000;
-    uint32 public constant DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS = 100000;
+    // uint32 public constant DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS = 100000;
 
     /***************
      * Constructor *
