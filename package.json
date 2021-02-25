@@ -30,6 +30,7 @@
     "lint:fix:typescript": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test}/**/*.ts\"",
     "clean": "rm -rf ./artifacts ./build ./cache",
     "deploy": "hardhat deploy",
+    "verify": "hardhat etherscan-verify",
     "serve": "./bin/serve_dump.sh"
   },
   "dependencies": {
