@@ -15,6 +15,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Build
         run: |
           git clone https://github.com/ethereum-optimism/optimism-integration.git \
@@ -27,6 +28,7 @@ jobs:
               GITHUB_HEAD_REF=${GITHUB_REF##*/}
           fi
           GIT_COMMIT=$(git rev-parse HEAD | head -c 8)
+          echo "optimism-integration $GIT_COMMIT"
           ./docker/build.sh -s deployer -b $GITHUB_HEAD_REF -r ${{ github.event.pull_request.head.repo.html_url }}
 
       - name: Test
