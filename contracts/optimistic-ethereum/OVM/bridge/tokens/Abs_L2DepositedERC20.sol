@@ -45,7 +45,6 @@ abstract contract Abs_L2DepositedERC20 is iOVM_L2DepositedERC20, OVM_CrossDomain
     constructor(
         address _l2CrossDomainMessenger
     )
-        public
         OVM_CrossDomainEnabled(_l2CrossDomainMessenger)
     {}
 
