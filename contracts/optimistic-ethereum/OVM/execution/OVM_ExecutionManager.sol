@@ -8,10 +8,12 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_EthUtils } from "../../libraries/utils/Lib_EthUtils.sol";
 
-/* Interface Imports */
+/* Inherited Interface Imports */
 import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManager.sol";
+
+/* External Interface Imports */
 import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
-import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol";
+import { iOVM_SafetyCache } from "../../iOVM/execution/iOVM_SafetyCache.sol";
 
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
@@ -27,7 +29,7 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
  * transaction on L2.
  * For each context-dependent EVM operation the EM has a function which implements a corresponding
  * OVM operation, which will read state from the State Manager contract.
- * The EM relies on the Safety Checker to verify that code deployed to Layer 2 does not contain any
+ * The EM relies on the Safety Cache and Checker to verify that code deployed to Layer 2 does not contain any
  * context-dependent operations.
  *
  * Compiler used: solc
@@ -39,7 +41,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * External Contract References *
      ********************************/
 
-    iOVM_SafetyChecker internal ovmSafetyChecker;
+    iOVM_SafetyCache internal ovmSafetyCache;
     iOVM_StateManager internal ovmStateManager;
 
 
@@ -82,7 +84,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         public
         Lib_AddressResolver(_libAddressManager)
     {
-        ovmSafetyChecker = iOVM_SafetyChecker(resolve("OVM_SafetyChecker"));
+        ovmSafetyCache = iOVM_SafetyCache(resolve("OVM_SafetyCache"));
         gasMeterConfig = _gasMeterConfig;
         globalContext = _globalContext;
     }
@@ -806,8 +808,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
 
-        // Check the creation bytecode against the OVM_SafetyChecker.
-        if (ovmSafetyChecker.isBytecodeSafe(_bytecode) == false) {
+        // Check the creation bytecode against the Safety Cache and Safety Checker.
+        if (ovmSafetyCache.checkAndRegisterSafeBytecode(_bytecode) == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
@@ -838,7 +840,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Again simply checking that the deployed code is safe too. Contracts can generate
         // arbitrary deployment code, so there's no easy way to analyze this beforehand.
         bytes memory deployedCode = Lib_EthUtils.getCode(ethAddress);
-        if (ovmSafetyChecker.isBytecodeSafe(deployedCode) == false) {
+        if (ovmSafetyCache.checkAndRegisterSafeBytecode(deployedCode) == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
@@ -868,7 +870,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /********************************************
-     * Public Functions: Deployment Witelisting *
+     * Internal Functions: Deployment Witelisting *
      ********************************************/
 
     /**
