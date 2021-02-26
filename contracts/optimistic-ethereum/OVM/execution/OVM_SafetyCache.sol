@@ -72,12 +72,15 @@ contract OVM_SafetyCache is iOVM_SafetyCache, Lib_AddressResolver {
 
         if(isSafeCodehash[codehash] == true) {
             return true;
+        } else if (ovmSafetyChecker.isBytecodeSafe(_code)) {
+            isSafeCodehash[_code] = true;
         } else {
-            return ovmSafetyChecker.isBytecodeSafe(_code);
+            return false;
         }
+
     }
 
-    /** Used to check if bytecode has already been recorded as safe.
+    /** A utility function used to check if bytecode has already been recorded as safe.
     * @param _codehash A bytes32 hash of the code
     */
     function isRegisteredSafeBytecode(
