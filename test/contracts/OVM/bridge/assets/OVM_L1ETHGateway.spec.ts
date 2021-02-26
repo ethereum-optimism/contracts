@@ -23,7 +23,7 @@ const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
   'OVM_XCHAIN: wrong sender of cross-domain message'
 
-describe('OVM_L1ETHGateway', () => {
+describe.only('OVM_L1ETHGateway', () => {
   // init signers
   let l1MessengerImpersonator: Signer
   let alice: Signer
@@ -101,7 +101,7 @@ describe('OVM_L1ETHGateway', () => {
       )
 
       // thanks Alice
-      await OVM_L1ETHGateway.connect(alice).depositETH({
+      await OVM_L1ETHGateway.connect(alice).deposit({
         value: ethers.utils.parseEther('1.0'),
         gasPrice: 0,
       })
@@ -120,11 +120,12 @@ describe('OVM_L1ETHGateway', () => {
         await OVM_L1ETHGateway.provider.getTransactionReceipt(res.hash)
       ).gasUsed
 
-      const OVM_L2DepositedERC20 = await (
-        await ethers.getContractFactory('OVM_L2DepositedERC20')
-      ).deploy(ZERO_ADDRESS, 0, '', '')
-      const defaultFinalizeWithdrawalGas = await OVM_L2DepositedERC20.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()
-      await expect(gasUsed.gt((defaultFinalizeWithdrawalGas * 11) / 10))
+      await expect(
+        gasUsed.gt(
+          ((await OVM_L1ETHGateway.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()) * 11) /
+            10
+        )
+      )
     })
 
     it.skip('finalizeWithdrawalAndCall(): should should credit funds to the withdrawer, and forward from and data', async () => {
@@ -154,12 +155,12 @@ describe('OVM_L1ETHGateway', () => {
       ).deploy(AddressManager.address, Mock__OVM_L2DepositedERC20.address)
     })
 
-    it('depositETH() escrows the deposit amount and sends the correct deposit message', async () => {
+    it('deposit() escrows the deposit amount and sends the correct deposit message', async () => {
       const depositer = await alice.getAddress()
       const initialBalance = await ethers.provider.getBalance(depositer)
 
       // alice calls deposit on the gateway and the L1 gateway calls transferFrom on the token
-      await OVM_L1ETHGateway.connect(alice).depositETH({
+      await OVM_L1ETHGateway.connect(alice).deposit({
         value: depositAmount,
         gasPrice: 0,
       })
@@ -194,13 +195,13 @@ describe('OVM_L1ETHGateway', () => {
       expect(depositCallToMessenger._gasLimit).to.equal(finalizeDepositGasLimit)
     })
 
-    it('depositETHTo() escrows the deposit amount and sends the correct deposit message', async () => {
+    it('depositTo() escrows the deposit amount and sends the correct deposit message', async () => {
       // depositor calls deposit on the gateway and the L1 gateway calls transferFrom on the token
       const bobsAddress = await bob.getAddress()
       const aliceAddress = await alice.getAddress()
       const initialBalance = await ethers.provider.getBalance(aliceAddress)
 
-      await OVM_L1ETHGateway.connect(alice).depositETHTo(bobsAddress, {
+      await OVM_L1ETHGateway.connect(alice).depositTo(bobsAddress, {
         value: depositAmount,
         gasPrice: 0,
       })

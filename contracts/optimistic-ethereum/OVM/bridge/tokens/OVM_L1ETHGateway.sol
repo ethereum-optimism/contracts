@@ -12,17 +12,20 @@ import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
 import { Lib_AddressResolver } from "../../../libraries/resolver/Lib_AddressResolver.sol";
 
-import { Abs_L1TokenGateway } from "./Abs_L1TokenGateway.sol";
-
 /**
  * @title OVM_L1ETHGateway
  * @dev The L1 ETH Gateway is a contract which stores deposited ETH that is in use on L2.
- * This contract extends the Abs_L1TokenGateway for use with native ETH.
  *
  * Compiler used: solc
  * Runtime target: EVM
  */
-contract OVM_L1ETHGateway is iOVM_L1ETHGateway, Abs_L1TokenGateway, Lib_AddressResolver {
+contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_AddressResolver {
+
+    /********************************
+     * External Contract References *
+     ********************************/
+
+    address public l2ERC20Gateway;
 
     /***************
      * Constructor *
@@ -33,15 +36,13 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, Abs_L1TokenGateway, Lib_AddressR
      */
     constructor(
         address _libAddressManager,
-        address _l2DepositedERC20
+        address _l2ERC20Gateway
     )
-        Abs_L1TokenGateway(
-            _l2DepositedERC20,
-            address(0) // overridden in constructor code
-        )
+        OVM_CrossDomainEnabled(address(0)) // overridden in constructor code
         Lib_AddressResolver(_libAddressManager)
     {
-        messenger = resolve("Proxy__OVM_L1CrossDomainMessenger"); // we have to override Abs_L1TokenGateway constructor setting because resolve() is not yet accessible
+        l2ERC20Gateway = _l2ERC20Gateway;
+        messenger = resolve("Proxy__OVM_L1CrossDomainMessenger"); // overrides OVM_CrossDomainEnabled constructor setting because resolve() is not yet accessible
     }
 
     /**************
@@ -49,73 +50,88 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, Abs_L1TokenGateway, Lib_AddressR
      **************/
 
     /**
-     * @dev deposit an amount of the ETH to the caller's account on L2
+     * @dev deposit an amount of the ERC20 to the caller's balance on L2
      */
-    function depositETH() 
+    function deposit() 
         external
         override
         payable
     {
-        deposit(msg.value);
+        _initiateDeposit(msg.sender, msg.sender);
     }
 
     /**
-     * @dev deposit an amount of ETH to a recipient account on L2
+     * @dev deposit an amount of ERC20 to a recipients's balance on L2
      * @param _to L2 address to credit the withdrawal to
      */
-    function depositETHTo(
+    function depositTo(
         address _to
     )
         external
         override
         payable
     {
-        depositTo(_to, msg.value);
-    }
-
-    /**************
-     * Accounting *
-     **************/
-
-    /**
-     * @dev When a withdrawal is finalized on L1, the L1 ETH Gateway
-     * transfers the funds to the withdrawal target
-     *
-     * @param _to L1 address that the ETH is being withdrawn to
-     * @param _amount Amount of ERC20 which is being withdrawn
-     */
-    function _handleFinalizeWithdrawal(
-        address _to,
-        uint256 _amount
-    )
-        internal
-        override
-    {
-        _safeTransferETH(
-            _to,
-            _amount
-        );
+        _initiateDeposit(msg.sender, _to);
     }
 
     /**
-     * @dev When a deposit is finalized on L1, the L1 Gateway
-     * transfers the ETH to itself for future withdrawals
+     * @dev Performs the logic for deposits by storing the ERC20 and informing the L2 ERC20 Gateway of the deposit.
      *
-     * @param _from L1 address that the ETH is being deposited from
-     * @param _to L2 address that the ETH is being deposited to
-     * @param _amount Amount of ETH that is being deposited
+     * @param _from Account to pull the deposit from on L1
+     * @param _to Account to give the deposit to on L2
      */
-    function _handleInitiateDeposit(
+    function _initiateDeposit(
         address _from,
+        address _to
+    )
+        internal
+    {
+        // Construct calldata for l2ERC20Gateway.finalizeDeposit(_to, _amount)
+        bytes memory data =
+            abi.encodeWithSelector(
+                iOVM_L2DepositedERC20.finalizeDeposit.selector,
+                _to,
+                msg.value
+            );
+
+        // Send calldata into L2
+        sendCrossDomainMessage(
+            l2ERC20Gateway,
+            data,
+            DEFAULT_FINALIZE_DEPOSIT_L2_GAS
+        );
+
+        emit DepositInitiated(_from, _to, msg.value);
+    }
+
+    /*************************
+     * Cross-chain Functions *
+     *************************/
+
+    /**
+     * @dev Complete a withdrawal from L2 to L1, and credit funds to the recipient's balance of the
+     * L1 ERC20 token.
+     * This call will fail if the initialized withdrawal from L2 has not been finalized.
+     *
+     * @param _to L1 address to credit the withdrawal to
+     * @param _amount Amount of the ERC20 to withdraw
+     */
+    function finalizeWithdrawal(
         address _to,
         uint256 _amount
     )
-        internal
+        external
         override
+        onlyFromCrossDomainAccount(l2ERC20Gateway)
     {
-        // Since ETH is sent alongside calls themselves, we verify the money was already sent.
-        require(msg.value == _amount, "deposit() _value input does not match msg.value");
+        _safeTransferETH(_to, _amount);
+
+        emit WithdrawalFinalized(_to, _amount);
     }
+
+    /**********************************
+     * Internal Functions: Accounting *
+     **********************************/
 
     /**
      * @dev Internal accounting function for moving around L1 ETH.
