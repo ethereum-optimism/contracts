@@ -55,7 +55,7 @@ describe('OVM_StateCommitmentChain', () => {
     Mock__OVM_BondManager.smocked.isCollateralized.will.return.with(true)
 
     await AddressManager.setAddress(
-      'OVM_Sequencer',
+      'OVM_Proposer',
       await sequencer.getAddress()
     )
   })
