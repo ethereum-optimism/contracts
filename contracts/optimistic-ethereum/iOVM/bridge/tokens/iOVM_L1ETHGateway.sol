@@ -13,11 +13,11 @@ interface iOVM_L1ETHGateway is iOVM_L1TokenGateway {
      * Public Functions *
      ********************/
 
-    function deposit()
+    function depositETH()
         external
         payable;
 
-    function depositTo(
+    function depositETHTo(
         address _to
     )
         external

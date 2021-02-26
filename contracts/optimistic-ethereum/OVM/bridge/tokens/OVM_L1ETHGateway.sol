@@ -76,7 +76,7 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, Abs_L1TokenGateway, Lib_AddressR
     /**
      * @dev deposit an amount of the ERC20 to the caller's balance on L2
      */
-    function deposit() 
+    function depositETH() 
         external
         override
         payable
@@ -88,7 +88,7 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, Abs_L1TokenGateway, Lib_AddressR
      * @dev deposit an amount of ERC20 to a recipients's balance on L2
      * @param _to L2 address to credit the withdrawal to
      */
-    function depositTo(
+    function depositETHTo(
         address _to
     )
         external

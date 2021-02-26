@@ -128,13 +128,11 @@ describe('OVM_L1ERC20Gateway', () => {
         await OVM_L1ERC20Gateway.provider.getTransactionReceipt(res.hash)
       ).gasUsed
 
-      await expect(
-        gasUsed.gt(
-          ((await OVM_L1ERC20Gateway.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()) *
-            11) /
-            10
-        )
-      )
+      const OVM_L2DepositedERC20 = await (
+        await ethers.getContractFactory('OVM_L2DepositedERC20')
+      ).deploy(ZERO_ADDRESS, 0, '', '')
+      const defaultFinalizeWithdrawalGas = await OVM_L2DepositedERC20.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()
+      await expect(gasUsed.gt((defaultFinalizeWithdrawalGas * 11) / 10))
     })
 
     it.skip('finalizeWithdrawalAndCall(): should should credit funds to the withdrawer, and forward from and data', async () => {
