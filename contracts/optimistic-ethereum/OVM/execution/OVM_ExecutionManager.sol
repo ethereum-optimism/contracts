@@ -160,7 +160,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // Prevent reentrancy to this function by requiring that the transaction context has not yet been
         // initialized
-        require(transactionContext.ovmNUMBER == type(uint256).max, "Only callable as the start of a transaction");
+        require(transactionContext.ovmNUMBER == type(uint256).max, "OVM_ExecutionManager: Run can only be called at the start of a transaction.");
         // Store our OVM_StateManager instance (significantly easier than attempting to pass the
         // address around in calldata).
         ovmStateManager = iOVM_StateManager(_ovmStateManager);
