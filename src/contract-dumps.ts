@@ -137,9 +137,6 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
       allowArbitraryContractDeployment: true,
     },
     l1CrossDomainMessengerConfig: {},
-    ethConfig: {
-      initialAmount: 0,
-    },
     dependencies: [
       'ERC1820Registry',
       'Lib_AddressManager',
