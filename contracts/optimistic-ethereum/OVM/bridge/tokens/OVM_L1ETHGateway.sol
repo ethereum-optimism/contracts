@@ -17,37 +17,12 @@ import { Abs_L1TokenGateway } from "./Abs_L1TokenGateway.sol";
 /**
  * @title OVM_L1ETHGateway
  * @dev The L1 ETH Gateway is a contract which stores deposited ETH that is in use on L2.
+ * This contract extends the Abs_L1TokenGateway for use with native ETH.
  *
  * Compiler used: solc
  * Runtime target: EVM
  */
 contract OVM_L1ETHGateway is iOVM_L1ETHGateway, Abs_L1TokenGateway, Lib_AddressResolver {
-
-
-    function _handleFinalizeWithdrawal(
-        address _to,
-        uint256 _amount
-    )
-        internal
-        override
-    {
-        _safeTransferETH(
-            _to,
-            _amount
-        );
-    }
-
-    function _handleInitiateDeposit(
-        address _from,
-        address _to,
-        uint256 _amount
-    )
-        internal
-        override
-    {
-        require(msg.value == _amount, "deposit() _value input does not match msg.value");
-    }
-
 
     /***************
      * Constructor *
@@ -74,7 +49,7 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, Abs_L1TokenGateway, Lib_AddressR
      **************/
 
     /**
-     * @dev deposit an amount of the ERC20 to the caller's balance on L2
+     * @dev deposit an amount of the ETH to the caller's account on L2
      */
     function depositETH() 
         external
@@ -85,7 +60,7 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, Abs_L1TokenGateway, Lib_AddressR
     }
 
     /**
-     * @dev deposit an amount of ERC20 to a recipients's balance on L2
+     * @dev deposit an amount of ETH to a recipient account on L2
      * @param _to L2 address to credit the withdrawal to
      */
     function depositETHTo(
@@ -96,6 +71,50 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, Abs_L1TokenGateway, Lib_AddressR
         payable
     {
         depositTo(_to, msg.value);
+    }
+
+    /**************
+     * Accounting *
+     **************/
+
+    /**
+     * @dev When a withdrawal is finalized on L1, the L1 ETH Gateway
+     * transfers the funds to the withdrawal target
+     *
+     * @param _to L1 address that the ETH is being withdrawn to
+     * @param _amount Amount of ERC20 which is being withdrawn
+     */
+    function _handleFinalizeWithdrawal(
+        address _to,
+        uint256 _amount
+    )
+        internal
+        override
+    {
+        _safeTransferETH(
+            _to,
+            _amount
+        );
+    }
+
+    /**
+     * @dev When a deposit is finalized on L1, the L1 Gateway
+     * transfers the ETH to itself for future withdrawals
+     *
+     * @param _from L1 address that the ETH is being deposited from
+     * @param _to L2 address that the ETH is being deposited to
+     * @param _amount Amount of ETH that is being deposited
+     */
+    function _handleInitiateDeposit(
+        address _from,
+        address _to,
+        uint256 _amount
+    )
+        internal
+        override
+    {
+        // Since ETH is sent alongside calls themselves, we verify the money was already sent.
+        require(msg.value == _amount, "deposit() _value input does not match msg.value");
     }
 
     /**
