@@ -21,7 +21,7 @@ const ERR_INVALID_X_DOMAIN_MSG_SENDER =
 const MOCK_L1GATEWAY_ADDRESS: string =
   '0x1234123412341234123412341234123412341234'
 
-describe('OVM_L2DepositedERC20', () => {
+describe.only('OVM_L2DepositedERC20', () => {
   let alice: Signer
   let bob: Signer
   let Factory__OVM_L1ERC20Gateway: ContractFactory
@@ -60,7 +60,7 @@ describe('OVM_L2DepositedERC20', () => {
     // initialize the L2 Gateway with the L1G ateway addrss
     await OVM_L2DepositedERC20.init(MOCK_L1GATEWAY_ADDRESS)
 
-    finalizeWithdrawalGasLimit = await OVM_L2DepositedERC20.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()
+    finalizeWithdrawalGasLimit = await OVM_L2DepositedERC20.getFinalizeWithdrawalL1Gas()
   })
 
   // test the transfer flow of moving a token from L2 to L1

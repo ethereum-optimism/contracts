@@ -19,7 +19,7 @@ const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
   'OVM_XCHAIN: wrong sender of cross-domain message'
 
-describe('OVM_L1ERC20Gateway', () => {
+describe.only('OVM_L1ERC20Gateway', () => {
   // init signers
   let alice: Signer
   let bob: Signer
@@ -131,7 +131,7 @@ describe('OVM_L1ERC20Gateway', () => {
       const OVM_L2DepositedERC20 = await (
         await ethers.getContractFactory('OVM_L2DepositedERC20')
       ).deploy(ZERO_ADDRESS, 0, '', '')
-      const defaultFinalizeWithdrawalGas = await OVM_L2DepositedERC20.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()
+      const defaultFinalizeWithdrawalGas = await OVM_L2DepositedERC20.getFinalizeWithdrawalL1Gas()
       await expect(gasUsed.gt((defaultFinalizeWithdrawalGas * 11) / 10))
     })
 

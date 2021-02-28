@@ -51,4 +51,11 @@ interface iOVM_L2DepositedERC20 is IUniswapV2ERC20 {
         uint _amount
     )
         external;
+
+    function getFinalizeWithdrawalL1Gas()
+        external
+        view
+        returns(
+            uint32
+        );
 }

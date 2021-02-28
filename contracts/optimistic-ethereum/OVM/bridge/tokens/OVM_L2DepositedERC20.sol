@@ -54,4 +54,15 @@ contract OVM_L2DepositedERC20 is Abs_L2DepositedERC20, UniswapV2ERC20 {
     {
         _mint(_to, _amount);
     }
+
+    function getFinalizeWithdrawalL1Gas()
+        public
+        view
+        override
+        returns(
+            uint32
+        )
+    {
+        return MY_FINALIZE_WITHDRAWAL_L1_GAS;
+    }
 }

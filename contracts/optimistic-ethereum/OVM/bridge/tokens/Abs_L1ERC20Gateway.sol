@@ -4,15 +4,17 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import { iOVM_L1TokenGateway } from "../../../iOVM/bridge/tokens/iOVM_L1TokenGateway.sol";
+import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Gateway.sol";
 import { iOVM_L2DepositedERC20 } from "../../../iOVM/bridge/tokens/iOVM_L2DepositedERC20.sol";
 import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
 
 /* Library Imports */
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
 
-abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnabled {
+abstract contract Abs_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnabled {
     
+    uint32 public DEFAULT_FINALIZE_DEPOSIT_L2_GAS = 1200000;
+
     function _handleFinalizeWithdrawal(
         address _to,
         uint256 _amount
@@ -120,15 +122,15 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
         sendCrossDomainMessage(
             l2DepositedERC20,
             data,
-            DEFAULT_FINALIZE_DEPOSIT_L2_GAS
+            getFinalizeDepositL2Gas()
         );
 
         emit DepositInitiated(_from, _to, _amount);
     }
 
-    /*************************************
-     * Cross-chain Function: Withdrawing *
-     *************************************/
+    /*************************
+     * Cross-chain Functions *
+     *************************/
 
     /**
      * @dev Complete a withdrawal from L2 to L1, and credit funds to the recipient's balance of the 
@@ -152,5 +154,16 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
         );
 
         emit WithdrawalFinalized(_to, _amount);
+    }
+
+    function getFinalizeDepositL2Gas()
+        public
+        view
+        override
+        returns(
+            uint32
+        )
+    {
+        return DEFAULT_FINALIZE_DEPOSIT_L2_GAS;
     }
 }

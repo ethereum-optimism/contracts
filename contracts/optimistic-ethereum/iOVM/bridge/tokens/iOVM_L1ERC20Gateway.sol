@@ -48,4 +48,11 @@ interface iOVM_L1ERC20Gateway {
         uint _amount
     )
         external;
+
+    function getFinalizeDepositL2Gas()
+        external
+        view
+        returns(
+            uint32
+        );
 }

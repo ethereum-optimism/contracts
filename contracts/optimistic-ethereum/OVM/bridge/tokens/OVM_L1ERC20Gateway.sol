@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
 import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Gateway.sol";
-import { Abs_L1TokenGateway } from "./Abs_L1TokenGateway.sol";
+import { Abs_L1ERC20Gateway } from "./Abs_L1ERC20Gateway.sol";
 import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
 
 /**
@@ -14,7 +14,7 @@ import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
  * It synchronizes a corresponding L2 ERC20 Gateway, informing it of deposits, and listening to it
  * for newly finalized withdrawals.
  *
- * NOTE: This contract extends Abs_L1TokenGateway, which is where we
+ * NOTE: This contract extends Abs_L1ERC20Gateway, which is where we
  * takes care of most of the initialization and the cross-chain logic.
  * If you are looking to implement your own deposit/withdrawal contracts, you
  * may also want to extend this contract in a similar manner.
@@ -22,7 +22,7 @@ import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
  * Compiler used: solc
  * Runtime target: EVM
  */
-contract OVM_L1ERC20Gateway is Abs_L1TokenGateway {
+contract OVM_L1ERC20Gateway is Abs_L1ERC20Gateway {
     
     /********************************
      * External Contract References *
@@ -43,7 +43,7 @@ contract OVM_L1ERC20Gateway is Abs_L1TokenGateway {
         address _l2DepositedERC20,
         address _l1messenger 
     )
-        Abs_L1TokenGateway(
+        Abs_L1ERC20Gateway(
             _l2DepositedERC20,
             _l1messenger
         )
@@ -97,6 +97,4 @@ contract OVM_L1ERC20Gateway is Abs_L1TokenGateway {
         // Transfer withdrawn funds out to withdrawer
         l1ERC20.transfer(_to, _amount);
     }
-
-    // function _estimateCrossDomainGas()
 }

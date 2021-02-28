@@ -21,6 +21,12 @@ import { Lib_AddressResolver } from "../../../libraries/resolver/Lib_AddressReso
  */
 contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_AddressResolver {
 
+    /********************
+     * Public Constants *
+     ********************/
+
+    uint32 public constant override getFinalizeDepositL2Gas = 1200000;
+
     /********************************
      * External Contract References *
      ********************************/
@@ -98,7 +104,7 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
         sendCrossDomainMessage(
             l2ERC20Gateway,
             data,
-            DEFAULT_FINALIZE_DEPOSIT_L2_GAS
+            getFinalizeDepositL2Gas
         );
 
         emit DepositInitiated(_from, _to, msg.value);

@@ -20,8 +20,7 @@ import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomai
  */
 abstract contract Abs_L2DepositedERC20 is iOVM_L2DepositedERC20, OVM_CrossDomainEnabled {
     
-    // TODO: remove this override
-    uint32 public constant DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS = 100000;
+    uint32 constant DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS = 100000;
 
     /*******************
      * Contract Events *
@@ -124,15 +123,20 @@ abstract contract Abs_L2DepositedERC20 is iOVM_L2DepositedERC20, OVM_CrossDomain
         sendCrossDomainMessage(
             address(l1ERC20Gateway),
             data,
-            _getL1FinalizeWithdrawalGasCost()
+            getFinalizeWithdrawalL1Gas()
         );
 
         emit WithdrawalInitiated(msg.sender, _to, _amount);
     }
 
-    function _getL1FinalizeWithdrawalGasCost()
-        internal
-        returns(uint32)
+    function getFinalizeWithdrawalL1Gas()
+        public
+        view
+        virtual
+        override
+        returns(
+            uint32
+        )
     {
         return DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS;
     }
