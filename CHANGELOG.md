@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.10
+
+Cleaning up Gateway contracts, cleaning up CI
+
+- remove uniswapv2ERC20 interface import
+- [Fix] CI on merge
+- [Fix] Run integration tests in forked context
+- bump limit
+- Update naming: l2ERC20Gateway -> l2DepositedERC20
+- gitflow: push to integrations repo
+
+
 ## v0.1.9
 
 Standardized ETH and ERC20 Gateways.
