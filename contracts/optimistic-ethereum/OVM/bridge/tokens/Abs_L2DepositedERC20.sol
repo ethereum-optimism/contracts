@@ -54,6 +54,7 @@ abstract contract Abs_L2DepositedERC20 is iOVM_L2DepositedERC20, OVM_CrossDomain
      *
      * @param _l1ERC20Gateway Address of the corresponding L1 gateway deployed to the main chain
      */
+
     function init(
         iOVM_L1ERC20Gateway _l1ERC20Gateway
     )

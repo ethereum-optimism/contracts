@@ -23,7 +23,7 @@ const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
   'OVM_XCHAIN: wrong sender of cross-domain message'
 
-describe.only('OVM_L1ETHGateway', () => {
+describe('OVM_L1ETHGateway', () => {
   // init signers
   let l1MessengerImpersonator: Signer
   let alice: Signer

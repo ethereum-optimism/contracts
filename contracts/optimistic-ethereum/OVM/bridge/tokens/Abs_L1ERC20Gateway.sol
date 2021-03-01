@@ -6,35 +6,24 @@ pragma experimental ABIEncoderV2;
 /* Interface Imports */
 import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Gateway.sol";
 import { iOVM_L2DepositedERC20 } from "../../../iOVM/bridge/tokens/iOVM_L2DepositedERC20.sol";
-import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
 
 /* Library Imports */
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
 
+/**
+ * @title Abs_L1ERC20Gateway
+ * @dev In OVM-speak, the L1 ERC20 Gateway is a contract which stores deposited L1 funds that are in use on L2.
+ * It synchronizes a corresponding L2 ERC20 Gateway, informing it of deposits, and listening to it
+ * for newly finalized withdrawals.
+ *
+ * NOTE: This abstract contract gives all the core functionality of an L1 ERC20 implementation except for the
+ * ERC20 functionality itself.  This gives developers an easy way to implement deposits with their own ERC20 code.
+ * 
+ *
+ * Compiler used: solc
+ * Runtime target: EVM
+ */
 abstract contract Abs_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnabled {
-    
-    uint32 public DEFAULT_FINALIZE_DEPOSIT_L2_GAS = 1200000;
-
-    function _handleFinalizeWithdrawal(
-        address _to,
-        uint256 _amount
-    )
-        internal
-        virtual
-    {
-        revert("Implement me in child contracts");
-    }
-
-    function _handleInitiateDeposit(
-        address _from,
-        address _to,
-        uint256 _amount
-    )
-        internal
-        virtual
-    {
-        revert("Implement me in child contracts");
-    }
 
     /********************************
      * External Contract References *
@@ -47,7 +36,7 @@ abstract contract Abs_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnab
      ***************/
 
     /**
-     * @param _l2DepositedERC20 L2 Gateway address on the chain being deposited into
+     * @param _l2DepositedERC20 iOVM_L2DepositedERC20-compatible address on the chain being deposited into.
      * @param _l1messenger L1 Messenger address being used for cross-chain communications.
      */
     constructor(
@@ -57,6 +46,68 @@ abstract contract Abs_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnab
         OVM_CrossDomainEnabled(_l1messenger)
     {
         l2DepositedERC20 = _l2DepositedERC20;
+    }
+
+    /********************************
+     * Overridable Accounting logic *
+     ********************************/
+
+    // Default gas value which can be overridden if more complex logic runs on L2.
+    uint32 public DEFAULT_FINALIZE_DEPOSIT_L2_GAS = 1200000;
+
+    /**
+     * @dev Core logic to be performed when a withdrawal on L1 is finalized.
+     * In most cases, this will simply send locked funds to the withdrawer.
+     *
+     * @param _to Address being withdrawn to
+     * @param _amount Amount being withdrawn
+     */
+
+    function _handleFinalizeWithdrawal(
+        address _to,
+        uint256 _amount
+    )
+        internal
+        virtual
+    {
+        revert("Implement me in child contracts");
+    }
+
+    /**
+     * @dev Core logic to be performed when a deposit on L1 is initiated.
+     * In most cases, this will simply send locked funds to the withdrawer.
+     *
+     * @param _from Address being deposited from on L1.
+     * @param _to Address being deposited into on L2.
+     * @param _amount Amount being deposited
+     */
+
+    function _handleInitiateDeposit(
+        address _from,
+        address _to,
+        uint256 _amount
+    )
+        internal
+        virtual
+    {
+        revert("Implement me in child contracts");
+    }
+
+    /**
+     * @dev Overridable getter for the L2 gas limit, in the case it may be
+     * dynamic, and the above public constant does not suffice.
+     *
+     */
+
+    function getFinalizeDepositL2Gas()
+        public
+        view
+        override
+        returns(
+            uint32
+        )
+    {
+        return DEFAULT_FINALIZE_DEPOSIT_L2_GAS;
     }
 
     /**************
@@ -105,6 +156,7 @@ abstract contract Abs_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnab
     )
         internal
     {
+        // Call our deposit accounting handler implemented by child contracts.
         _handleInitiateDeposit(
             _from,
             _to,
@@ -148,22 +200,12 @@ abstract contract Abs_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnab
         override 
         onlyFromCrossDomainAccount(l2DepositedERC20)
     {
+        // Call our withdrawal accounting handler implemented by child contracts.
         _handleFinalizeWithdrawal(
             _to,
             _amount
         );
 
         emit WithdrawalFinalized(_to, _amount);
-    }
-
-    function getFinalizeDepositL2Gas()
-        public
-        view
-        override
-        returns(
-            uint32
-        )
-    {
-        return DEFAULT_FINALIZE_DEPOSIT_L2_GAS;
     }
 }

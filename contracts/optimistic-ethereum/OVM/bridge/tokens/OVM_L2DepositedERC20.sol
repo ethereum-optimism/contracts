@@ -22,8 +22,16 @@ import { Abs_L2DepositedERC20 } from "./Abs_L2DepositedERC20.sol";
  */
 contract OVM_L2DepositedERC20 is Abs_L2DepositedERC20, UniswapV2ERC20 {
 
-    uint32 public constant MY_FINALIZE_WITHDRAWAL_L1_GAS = 100000;
+    /***************
+     * Constructor *
+     ***************/
 
+    /**
+     * @param _l2CrossDomainMessenger Cross-domain messenger used by this contract.
+     * @param _decimals ERC20 decimals
+     * @param _name ERC20 name
+     * @param _symbol ERC20 symbol
+     */
     constructor(
         address _l2CrossDomainMessenger,
         uint8 _decimals,
@@ -53,16 +61,5 @@ contract OVM_L2DepositedERC20 is Abs_L2DepositedERC20, UniswapV2ERC20 {
         override
     {
         _mint(_to, _amount);
-    }
-
-    function getFinalizeWithdrawalL1Gas()
-        public
-        view
-        override
-        returns(
-            uint32
-        )
-    {
-        return MY_FINALIZE_WITHDRAWAL_L1_GAS;
     }
 }
