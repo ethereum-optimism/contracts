@@ -9,7 +9,7 @@ import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Gat
 import { UniswapV2ERC20 } from "../../../libraries/standards/UniswapV2ERC20.sol";
 
 /* Library Imports */
-import { Abs_L2DepositedERC20 } from "./Abs_L2DepositedERC20.sol";
+import { Abs_L2DepositedToken } from "./Abs_L2DepositedToken.sol";
 
 /**
  * @title OVM_L2DepositedERC20
@@ -20,7 +20,7 @@ import { Abs_L2DepositedERC20 } from "./Abs_L2DepositedERC20.sol";
  * Compiler used: optimistic-solc
  * Runtime target: OVM
  */
-contract OVM_L2DepositedERC20 is Abs_L2DepositedERC20, UniswapV2ERC20 {
+contract OVM_L2DepositedERC20 is Abs_L2DepositedToken, UniswapV2ERC20 {
 
     /***************
      * Constructor *
@@ -39,7 +39,7 @@ contract OVM_L2DepositedERC20 is Abs_L2DepositedERC20, UniswapV2ERC20 {
         string memory _symbol
     )
         public
-        Abs_L2DepositedERC20(_l2CrossDomainMessenger)
+        Abs_L2DepositedToken(_l2CrossDomainMessenger)
         UniswapV2ERC20(_decimals, _name, _symbol)
     {}
 

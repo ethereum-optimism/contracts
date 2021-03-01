@@ -10,17 +10,18 @@ import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Gat
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
 
 /**
- * @title OVM_L2DepositedERC20
- * @dev The L2 Deposited ERC20 is an ERC20 implementation which represents L1 assets deposited into L2.
- * This contract mints new tokens when it hears about deposits into the L1 ERC20 gateway.
+ * @title Abs_L2DepositedToken
+ * @dev An L2 Deposited Token is an L2 representation of funds which were deposited from L1.
+ * Usually contract mints new tokens when it hears about deposits into the L1 ERC20 gateway.
  * This contract also burns the tokens intended for withdrawal, informing the L1 gateway to release L1 funds.
+ *
+ * NOTE: This abstract contract gives all the core functionality of a deposited token implementation except for the
+ * accounting functionality itself.  This gives developers an easy way to implement children with their own token code.
  *
  * Compiler used: optimistic-solc
  * Runtime target: OVM
  */
-abstract contract Abs_L2DepositedERC20 is iOVM_L2DepositedERC20, OVM_CrossDomainEnabled {
-    
-    uint32 constant DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS = 100000;
+abstract contract Abs_L2DepositedToken is iOVM_L2DepositedERC20, OVM_CrossDomainEnabled {
 
     /*******************
      * Contract Events *
@@ -76,6 +77,67 @@ abstract contract Abs_L2DepositedERC20 is iOVM_L2DepositedERC20, OVM_CrossDomain
         _;
     }
 
+    /********************************
+     * Overridable Accounting logic *
+     ********************************/
+
+    // Default gas value which can be overridden if more complex logic runs on L2.
+    uint32 constant DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS = 100000;
+
+    /**
+     * @dev Core logic to be performed when a withdrawal from L2 is initialized.
+     * In most cases, this will simply burn the withdrawn L2 funds.
+     *
+     * @param _to Address being withdrawn to
+     * @param _amount Amount being withdrawn
+     */
+
+    function _handleInitiateWithdrawal(
+        address _to,
+        uint _amount
+    )
+        internal
+        virtual
+    {
+        revert("Accounting must be implemented by child contract.");
+    }
+
+    /**
+     * @dev Core logic to be performed when a deposit from L2 is finalized on L2.
+     * In most cases, this will simply _mint() to credit L2 funds to the recipient.
+     *
+     * @param _to Address being deposited to on L2
+     * @param _amount Amount which was deposited on L1
+     */
+    function _handleFinalizeDeposit(
+        address _to,
+        uint _amount
+    )
+        internal
+        virtual
+    {
+        revert("Accounting must be implemented by child contract.");
+    }
+
+    /**
+     * @dev Overridable getter for the L1 gas limit of settling the withdrawal, in the case it may be
+     * dynamic, and the above public constant does not suffice.
+     *
+     */
+
+    function getFinalizeWithdrawalL1Gas()
+        public
+        view
+        virtual
+        override
+        returns(
+            uint32
+        )
+    {
+        return DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS;
+    }
+
+
     /***************
      * Withdrawing *
      ***************/
@@ -110,7 +172,7 @@ abstract contract Abs_L2DepositedERC20 is iOVM_L2DepositedERC20, OVM_CrossDomain
      * @param _amount Amount of the ERC20 to withdraw
      */
     function _initiateWithdrawal(address _to, uint _amount) internal {
-        // burn L2 funds so they can't be used more on L2
+        // Call our withdrawal accounting handler implemented by child contracts (usually a _burn)
         _handleInitiateWithdrawal(_to, _amount);
 
         // Construct calldata for l1ERC20Gateway.finalizeWithdrawal(_to, _amount)
@@ -128,38 +190,6 @@ abstract contract Abs_L2DepositedERC20 is iOVM_L2DepositedERC20, OVM_CrossDomain
         );
 
         emit WithdrawalInitiated(msg.sender, _to, _amount);
-    }
-
-    function getFinalizeWithdrawalL1Gas()
-        public
-        view
-        virtual
-        override
-        returns(
-            uint32
-        )
-    {
-        return DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS;
-    }
-
-    function _handleInitiateWithdrawal(
-        address _to,
-        uint _amount
-    )
-        internal
-        virtual
-    {
-        revert("Accounting must be implemented by child contract.");
-    }
-
-    function _handleFinalizeDeposit(
-        address _to,
-        uint _amount
-    )
-        internal
-        virtual
-    {
-        revert("Accounting must be implemented by child contract.");
     }
 
     /************************************

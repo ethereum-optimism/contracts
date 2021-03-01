@@ -11,19 +11,19 @@ import { iOVM_L2DepositedERC20 } from "../../../iOVM/bridge/tokens/iOVM_L2Deposi
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
 
 /**
- * @title Abs_L1ERC20Gateway
- * @dev In OVM-speak, the L1 ERC20 Gateway is a contract which stores deposited L1 funds that are in use on L2.
- * It synchronizes a corresponding L2 ERC20 Gateway, informing it of deposits, and listening to it
- * for newly finalized withdrawals.
+ * @title Abs_L1TokenGateway
+ * @dev An L1 Token Gateway is a contract which stores deposited L1 funds that are in use on L2.
+ * It synchronizes a corresponding L2 representation of the "deposited token", informing it
+ * of new deposits and releasing L1 funds when there are newly finalized withdrawals.
  *
- * NOTE: This abstract contract gives all the core functionality of an L1 ERC20 implementation except for the
- * ERC20 functionality itself.  This gives developers an easy way to implement deposits with their own ERC20 code.
- * 
+ * NOTE: This abstract contract gives all the core functionality of an L1 token gateway, 
+ * but provides easy hooks in case developers need extensions in child contracts.
+ * In many cases, the default OVM_L1ERC20Gateway will suffice.
  *
  * Compiler used: solc
  * Runtime target: EVM
  */
-abstract contract Abs_L1ERC20Gateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnabled {
+abstract contract Abs_L1TokenGateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnabled {
 
     /********************************
      * External Contract References *
