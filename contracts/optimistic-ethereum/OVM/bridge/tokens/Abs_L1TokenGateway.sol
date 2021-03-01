@@ -29,23 +29,23 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
      * External Contract References *
      ********************************/
 
-    address public l2DepositedERC20;
+    address public l2DepositedToken;
 
     /***************
      * Constructor *
      ***************/
 
     /**
-     * @param _l2DepositedERC20 iOVM_L2DepositedToken-compatible address on the chain being deposited into.
+     * @param _l2DepositedToken iOVM_L2DepositedToken-compatible address on the chain being deposited into.
      * @param _l1messenger L1 Messenger address being used for cross-chain communications.
      */
     constructor(
-        address _l2DepositedERC20,
+        address _l2DepositedToken,
         address _l1messenger 
     )
         OVM_CrossDomainEnabled(_l1messenger)
     {
-        l2DepositedERC20 = _l2DepositedERC20;
+        l2DepositedToken = _l2DepositedToken;
     }
 
     /********************************
@@ -163,7 +163,7 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
             _amount
         );
 
-        // Construct calldata for l2DepositedERC20.finalizeDeposit(_to, _amount)
+        // Construct calldata for l2DepositedToken.finalizeDeposit(_to, _amount)
         bytes memory data = abi.encodeWithSelector(
             iOVM_L2DepositedToken.finalizeDeposit.selector,
             _to,
@@ -172,7 +172,7 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
 
         // Send calldata into L2
         sendCrossDomainMessage(
-            l2DepositedERC20,
+            l2DepositedToken,
             data,
             getFinalizeDepositL2Gas()
         );
@@ -198,7 +198,7 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
     )
         external
         override 
-        onlyFromCrossDomainAccount(l2DepositedERC20)
+        onlyFromCrossDomainAccount(l2DepositedToken)
     {
         // Call our withdrawal accounting handler implemented by child contracts.
         _handleFinalizeWithdrawal(
