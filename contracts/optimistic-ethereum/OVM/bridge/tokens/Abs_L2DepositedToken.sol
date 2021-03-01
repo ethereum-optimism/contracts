@@ -3,8 +3,8 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import { iOVM_L2DepositedERC20 } from "../../../iOVM/bridge/tokens/iOVM_L2DepositedERC20.sol";
-import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Gateway.sol";
+import { iOVM_L2DepositedToken } from "../../../iOVM/bridge/tokens/iOVM_L2DepositedToken.sol";
+import { iOVM_L1TokenGateway } from "../../../iOVM/bridge/tokens/iOVM_L1TokenGateway.sol";
 
 /* Library Imports */
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
@@ -21,19 +21,19 @@ import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomai
  * Compiler used: optimistic-solc
  * Runtime target: OVM
  */
-abstract contract Abs_L2DepositedToken is iOVM_L2DepositedERC20, OVM_CrossDomainEnabled {
+abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomainEnabled {
 
     /*******************
      * Contract Events *
      *******************/
 
-    event Initialized(iOVM_L1ERC20Gateway _l1ERC20Gateway);
+    event Initialized(iOVM_L1TokenGateway _l1ERC20Gateway);
 
     /********************************
      * External Contract References *
      ********************************/
 
-    iOVM_L1ERC20Gateway l1ERC20Gateway;
+    iOVM_L1TokenGateway l1ERC20Gateway;
 
     /********************************
      * Constructor & Initialization *
@@ -57,7 +57,7 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedERC20, OVM_CrossDomain
      */
 
     function init(
-        iOVM_L1ERC20Gateway _l1ERC20Gateway
+        iOVM_L1TokenGateway _l1ERC20Gateway
     )
         public
     {
@@ -177,7 +177,7 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedERC20, OVM_CrossDomain
 
         // Construct calldata for l1ERC20Gateway.finalizeWithdrawal(_to, _amount)
         bytes memory data = abi.encodeWithSelector(
-            iOVM_L1ERC20Gateway.finalizeWithdrawal.selector,
+            iOVM_L1TokenGateway.finalizeWithdrawal.selector,
             _to,
             _amount
         );

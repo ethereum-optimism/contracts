@@ -4,8 +4,8 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import { iOVM_L1ERC20Gateway } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Gateway.sol";
-import { iOVM_L2DepositedERC20 } from "../../../iOVM/bridge/tokens/iOVM_L2DepositedERC20.sol";
+import { iOVM_L1TokenGateway } from "../../../iOVM/bridge/tokens/iOVM_L1TokenGateway.sol";
+import { iOVM_L2DepositedToken } from "../../../iOVM/bridge/tokens/iOVM_L2DepositedToken.sol";
 
 /* Library Imports */
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
@@ -23,7 +23,7 @@ import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomai
  * Compiler used: solc
  * Runtime target: EVM
  */
-abstract contract Abs_L1TokenGateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnabled {
+abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnabled {
 
     /********************************
      * External Contract References *
@@ -36,7 +36,7 @@ abstract contract Abs_L1TokenGateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnab
      ***************/
 
     /**
-     * @param _l2DepositedERC20 iOVM_L2DepositedERC20-compatible address on the chain being deposited into.
+     * @param _l2DepositedERC20 iOVM_L2DepositedToken-compatible address on the chain being deposited into.
      * @param _l1messenger L1 Messenger address being used for cross-chain communications.
      */
     constructor(
@@ -165,7 +165,7 @@ abstract contract Abs_L1TokenGateway is iOVM_L1ERC20Gateway, OVM_CrossDomainEnab
 
         // Construct calldata for l2DepositedERC20.finalizeDeposit(_to, _amount)
         bytes memory data = abi.encodeWithSelector(
-            iOVM_L2DepositedERC20.finalizeDeposit.selector,
+            iOVM_L2DepositedToken.finalizeDeposit.selector,
             _to,
             _amount
         );
