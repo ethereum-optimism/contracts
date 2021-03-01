@@ -56,11 +56,11 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
     uint32 public DEFAULT_FINALIZE_DEPOSIT_L2_GAS = 1200000;
 
     /**
-     * @dev Core logic to be performed when a withdrawal on L1 is finalized.
+     * @dev Core logic to be performed when a withdrawal is finalized on L1.
      * In most cases, this will simply send locked funds to the withdrawer.
      *
-     * @param _to Address being withdrawn to
-     * @param _amount Amount being withdrawn
+     * @param _to Address being withdrawn to.
+     * @param _amount Amount being withdrawn.
      */
 
     function _handleFinalizeWithdrawal(
@@ -74,12 +74,12 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
     }
 
     /**
-     * @dev Core logic to be performed when a deposit on L1 is initiated.
+     * @dev Core logic to be performed when a deposit is initiated on L1.
      * In most cases, this will simply send locked funds to the withdrawer.
      *
      * @param _from Address being deposited from on L1.
      * @param _to Address being deposited into on L2.
-     * @param _amount Amount being deposited
+     * @param _amount Amount being deposited.
      */
 
     function _handleInitiateDeposit(
@@ -143,7 +143,8 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
     }
 
     /**
-     * @dev Performs the logic for deposits by storing the ERC20 and informing the L2 Deposited ERC20 contract of the deposit.
+     * @dev Performs the logic for deposits by informing the L2 Deposited Token
+     * contract of the deposit and calling a handler to lock the L1 funds. (e.g. transferFrom)
      *
      * @param _from Account to pull the deposit from on L1
      * @param _to Account to give the deposit to on L2

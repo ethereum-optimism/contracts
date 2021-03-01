@@ -16,7 +16,7 @@ import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomai
  * This contract also burns the tokens intended for withdrawal, informing the L1 gateway to release L1 funds.
  *
  * NOTE: This abstract contract gives all the core functionality of a deposited token implementation except for the
- * accounting functionality itself.  This gives developers an easy way to implement children with their own token code.
+ * token's internal accounting itself.  This gives developers an easy way to implement children with their own token code.
  *
  * Compiler used: optimistic-solc
  * Runtime target: OVM
@@ -27,13 +27,13 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * Contract Events *
      *******************/
 
-    event Initialized(iOVM_L1TokenGateway _l1ERC20Gateway);
+    event Initialized(iOVM_L1TokenGateway _l1TokenGateway);
 
     /********************************
      * External Contract References *
      ********************************/
 
-    iOVM_L1TokenGateway l1ERC20Gateway;
+    iOVM_L1TokenGateway l1TokenGateway;
 
     /********************************
      * Constructor & Initialization *
@@ -49,23 +49,23 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
     {}
 
     /**
-     * @dev Initialize this gateway with the L1 gateway address
-     * The assumed flow is that this contract is deployed on L2, then the L1 
-     * gateway is dpeloyed, and its address passed here to init.
+     * @dev Initialize this contract with the L1 token gateway address.
+     * The flow: 1) this contract gets deployed on L2, 2) the L1
+     * gateway is dpeloyed with addr from (1), 3) L1 gatweway address passed here.
      *
-     * @param _l1ERC20Gateway Address of the corresponding L1 gateway deployed to the main chain
+     * @param _l1TokenGateway Address of the corresponding L1 gateway deployed to the main chain
      */
 
     function init(
-        iOVM_L1TokenGateway _l1ERC20Gateway
+        iOVM_L1TokenGateway _l1TokenGateway
     )
         public
     {
-        require(address(l1ERC20Gateway) == address(0), "Contract has already been initialized");
+        require(address(l1TokenGateway) == address(0), "Contract has already been initialized");
 
-        l1ERC20Gateway = _l1ERC20Gateway;
+        l1TokenGateway = _l1TokenGateway;
         
-        emit Initialized(l1ERC20Gateway);
+        emit Initialized(l1TokenGateway);
     }
 
     /**********************
@@ -73,7 +73,7 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      **********************/
 
     modifier onlyInitialized() {
-        require(address(l1ERC20Gateway) != address(0), "Contract has not yet been initialized");
+        require(address(l1TokenGateway) != address(0), "Contract has not yet been initialized");
         _;
     }
 
@@ -120,7 +120,7 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
     }
 
     /**
-     * @dev Overridable getter for the L1 gas limit of settling the withdrawal, in the case it may be
+     * @dev Overridable getter for the *L1* gas limit of settling the withdrawal, in the case it may be
      * dynamic, and the above public constant does not suffice.
      *
      */
@@ -143,8 +143,8 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      ***************/
 
     /**
-     * @dev initiate a withdraw of some ERC20 to the caller's account on L1
-     * @param _amount Amount of the ERC20 to withdraw
+     * @dev initiate a withdraw of some tokens to the caller's account on L1
+     * @param _amount Amount of the token to withdraw
      */
     function withdraw(
         uint _amount
@@ -157,25 +157,25 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
     }
 
     /**
-     * @dev initiate a withdraw of some ERC20 to a recipient's account on L1
+     * @dev initiate a withdraw of some token to a recipient's account on L1
      * @param _to L1 adress to credit the withdrawal to
-     * @param _amount Amount of the ERC20 to withdraw
+     * @param _amount Amount of the token to withdraw
      */
     function withdrawTo(address _to, uint _amount) external override onlyInitialized() {
         _initiateWithdrawal(_to, _amount);
     }
 
     /**
-     * @dev Performs the logic for deposits by storing the ERC20 and informing the L2 ERC20 Gateway of the deposit.
+     * @dev Performs the logic for deposits by storing the token and informing the L2 token Gateway of the deposit.
      *
      * @param _to Account to give the withdrawal to on L1
-     * @param _amount Amount of the ERC20 to withdraw
+     * @param _amount Amount of the token to withdraw
      */
     function _initiateWithdrawal(address _to, uint _amount) internal {
         // Call our withdrawal accounting handler implemented by child contracts (usually a _burn)
         _handleInitiateWithdrawal(_to, _amount);
 
-        // Construct calldata for l1ERC20Gateway.finalizeWithdrawal(_to, _amount)
+        // Construct calldata for l1TokenGateway.finalizeWithdrawal(_to, _amount)
         bytes memory data = abi.encodeWithSelector(
             iOVM_L1TokenGateway.finalizeWithdrawal.selector,
             _to,
@@ -184,7 +184,7 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
 
         // Send message up to L1 gateway
         sendCrossDomainMessage(
-            address(l1ERC20Gateway),
+            address(l1TokenGateway),
             data,
             getFinalizeWithdrawalL1Gas()
         );
@@ -198,14 +198,14 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
 
     /**
      * @dev Complete a deposit from L1 to L2, and credits funds to the recipient's balance of this 
-     * L2 ERC20 token. 
-     * This call will fail if it did not originate from a corresponding deposit in OVM_L1ERC20Gateway. 
+     * L2 token. 
+     * This call will fail if it did not originate from a corresponding deposit in OVM_l1TokenGateway. 
      *
      * @param _to Address to receive the withdrawal at
-     * @param _amount Amount of the ERC20 to withdraw
+     * @param _amount Amount of the token to withdraw
      */
     function finalizeDeposit(address _to, uint _amount) external override onlyInitialized()
-        onlyFromCrossDomainAccount(address(l1ERC20Gateway))
+        onlyFromCrossDomainAccount(address(l1TokenGateway))
     {
         _handleFinalizeDeposit(_to, _amount);
         emit DepositFinalized(_to, _amount);

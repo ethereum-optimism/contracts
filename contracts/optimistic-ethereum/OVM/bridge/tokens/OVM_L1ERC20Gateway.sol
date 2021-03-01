@@ -17,13 +17,13 @@ import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
  * NOTE: This contract extends Abs_L1TokenGateway, which is where we
  * takes care of most of the initialization and the cross-chain logic.
  * If you are looking to implement your own deposit/withdrawal contracts, you
- * may also want to extend this contract in a similar manner.
+ * may also want to extend the abstract contract in a similar manner.
  *
  * Compiler used: solc
  * Runtime target: EVM
  */
 contract OVM_L1ERC20Gateway is Abs_L1TokenGateway {
-    
+
     /********************************
      * External Contract References *
      ********************************/
