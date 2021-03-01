@@ -33,7 +33,7 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * External Contract References *
      ********************************/
 
-    iOVM_L1TokenGateway l1TokenGateway;
+    iOVM_L1TokenGateway public l1TokenGateway;
 
     /********************************
      * Constructor & Initialization *
