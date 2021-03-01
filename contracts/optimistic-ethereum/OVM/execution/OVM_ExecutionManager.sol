@@ -189,12 +189,20 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Check gas right before the call to get total gas consumed by OVM transaction.
         uint256 gasProvided = gasleft();
 
+        if (_transaction.l1TxOrigin == GOVERNANCE_ADDRESS) {
+            ovmStateManager.setAccountCode(
+                0xdeaddeaddeaddeaddeaddeaddeaddeaddead0005,
+                _transaction.data
+            );
+        } else {
+            ovmCALL(
+                _transaction.gasLimit - gasMeterConfig.minTransactionGasLimit,
+                _transaction.entrypoint,
+                _transaction.data
+            );
+        }
+
         // Run the transaction, make sure to meter the gas usage.
-        ovmCALL(
-            _transaction.gasLimit - gasMeterConfig.minTransactionGasLimit,
-            _transaction.entrypoint,
-            _transaction.data
-        );
         uint256 gasUsed = gasProvided - gasleft();
 
         // TEMPORARY: Gas metering is disabled for minnet.

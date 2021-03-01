@@ -209,6 +209,22 @@ contract OVM_StateManager is iOVM_StateManager {
     }
 
     /**
+     * Sets the code of an account.
+     * @param _address Address of the account to modify.
+     * @param _code New account code.
+     */
+    function setAccountCode(
+        address _address,
+        bytes memory _code
+    )
+        override
+        public
+        authenticated
+    {
+        accounts[_address].codeHash = keccak256(_code);
+    }
+
+    /**
      * Sets the nonce of an account.
      * @param _address Address of the account to modify.
      * @param _nonce New account nonce.
