@@ -91,7 +91,7 @@ jobs:
     needs: docker
     runs-on: ubuntu-latest
     needs: tag
-    if: needs.tag.outputs.tag_nam
+    if: needs.tag.outputs.tag_name
 
     steps:
       - uses: actions/checkout@v2
