@@ -34,7 +34,6 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, Abs_BaseCros
     constructor(
         address _libAddressManager
     )
-        public
         Lib_AddressResolver(_libAddressManager)
     {}
 

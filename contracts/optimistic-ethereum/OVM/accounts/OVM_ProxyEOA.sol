@@ -27,7 +27,6 @@ contract OVM_ProxyEOA {
     constructor(
         address _implementation
     )
-        public
     {
         _setImplementation(_implementation);
     }

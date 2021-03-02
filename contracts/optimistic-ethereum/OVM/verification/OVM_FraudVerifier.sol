@@ -47,7 +47,6 @@ contract OVM_FraudVerifier is Lib_AddressResolver, Abs_FraudContributor, iOVM_Fr
     constructor(
         address _libAddressManager
     )
-        public
         Lib_AddressResolver(_libAddressManager)
     {}
 
