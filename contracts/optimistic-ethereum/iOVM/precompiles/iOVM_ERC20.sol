@@ -17,6 +17,9 @@ interface iOVM_ERC20 {
     /// total amount of tokens
     function totalSupply() external view returns (uint256);
 
+    /// @return How many decimal places the token has
+    function decimals() external view returns (uint8);
+
     /// @param _owner The address from which the balance will be retrieved
     /// @return balance The balance
     function balanceOf(address _owner) external view returns (uint256 balance);

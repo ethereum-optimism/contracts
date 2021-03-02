@@ -38,7 +38,8 @@
     "@ethersproject/hardware-wallets": "^5.0.8",
     "@openzeppelin/contracts": "^3.3.0",
     "ganache-core": "^2.12.1",
-    "glob": "^7.1.6"
+    "glob": "^7.1.6",
+    "hardhat-erc1820": "^0.1.0"
   },
   "devDependencies": {
     "@eth-optimism/plugins": "^0.0.16",
