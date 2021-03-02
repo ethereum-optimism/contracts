@@ -31,19 +31,17 @@ contract OVM_L2DepositedERC20 is Abs_L2DepositedToken, UniswapV2ERC20 {
 
     /**
      * @param _l2CrossDomainMessenger Cross-domain messenger used by this contract.
-     * @param _decimals ERC20 decimals
      * @param _name ERC20 name
      * @param _symbol ERC20 symbol
      */
     constructor(
         address _l2CrossDomainMessenger,
-        uint8 _decimals,
         string memory _name,
         string memory _symbol
     )
         public
         Abs_L2DepositedToken(_l2CrossDomainMessenger)
-        UniswapV2ERC20(_decimals, _name, _symbol)
+        UniswapV2ERC20(_name, _symbol)
     {}
 
     // When a withdrawal is initiated, we burn the withdrawer's funds to prevent subsequent L2 usage.

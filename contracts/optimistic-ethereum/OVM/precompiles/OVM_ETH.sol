@@ -25,7 +25,6 @@ contract OVM_ETH is OVM_L2DepositedERC20 {
     ) 
         OVM_L2DepositedERC20(
             _l2CrossDomainMessenger,
-            18, // WETH decimals
             "ovmWETH",
             "oWETH"
         )
