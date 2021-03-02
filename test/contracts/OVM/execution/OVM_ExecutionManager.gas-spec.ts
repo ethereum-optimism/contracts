@@ -54,7 +54,7 @@ let DUMMY_TRANSACTION = {
   data: 0
 }
 
-describe('OVM_ExecutionManager gas consumption', () => {
+describe('Gas Benchmarks: OVM_ExecutionManager', () => {
   let wallet: Signer
   before(async () => {
     ;[wallet] = await ethers.getSigners()
@@ -71,8 +71,8 @@ describe('OVM_ExecutionManager gas consumption', () => {
       'OVM_ExecutionManager'
     )
     
-    // Deploy a simple contract that just returns successfully with no data
-    targetContractAddress = await deployContractCode('60206001f3', wallet, 10_000_000)
+    // Deploy a simple contract containing only `STOP`
+    targetContractAddress = await deployContractCode('00', wallet, 10_000_000)
     DUMMY_TRANSACTION.entrypoint = targetContractAddress
 
     AddressManager = await makeAddressManager()
@@ -111,15 +111,15 @@ describe('OVM_ExecutionManager gas consumption', () => {
     ).connect(wallet)
   })
 
-  describe('Measure cost of a very simple contract', async () => {
-    it('Gas cost of run', async () => {
+  describe('OVM_ExecutionManager.run(): gas benchmarks', async () => {
+    it('Execution of a minimal contract (`0x00`)', async () => {
       let gasCost = await gasMeasurement.getGasCost(
         OVM_ExecutionManager, 'run', 
         [DUMMY_TRANSACTION, MOCK__STATE_MANAGER.address]
       )
-      console.log(`calculated gas cost of ${gasCost}`)
+      console.log(`          calculated gas cost of ${gasCost}`)
       
-      let benchmark:number = 226_516
+      let benchmark:number = 96_000
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
