@@ -1,26 +1,26 @@
-export const a = null
-// export const measure = (
-//   methodName: string,
-//   methodArgs: Array<any> = [],
-//   doFirst: () => Promise<any> = async () => {
-//     return
-//   }
-// ) => {
-//   it('measured consumption!', async () => {
-//     await doFirst()
-//     await getSMGasCost(methodName, methodArgs)
-//   })
-// }
+import { ethers } from 'hardhat'
+import { Contract, Signer } from 'ethers'
 
-// export const getSMGasCost = async (
-//   methodName: string,
-//   methodArgs: Array<any> = []
-// ): Promise<number> => {
-//   const gasCost: number = await Helper_GasMeasurer.callStatic.measureCallGas(
-//     OVM_ExecutionManager.address,
-//     OVM_ExecutionManager.interface.encodeFunctionData(methodName, methodArgs)
-//   )
-//   console.log(`          calculated gas cost of ${gasCost}`)
+export class GasMeasurement {
+  GasMeasurementContract: Contract
 
-//   return gasCost
-// }
+  public async init(wallet: Signer){
+    this.GasMeasurementContract = await (
+      await (await ethers.getContractFactory('Helper_GasMeasurer')).deploy()
+    ).connect(wallet)
+  }
+
+  public async getGasCost(
+    targetContract: Contract,
+    methodName: string,
+    methodArgs: Array<any> = []
+  ): Promise<number> 
+  {
+    const gasCost: number = await this.GasMeasurementContract.callStatic.measureCallGas(
+      targetContract.address,
+      targetContract.interface.encodeFunctionData(methodName, methodArgs)
+    )
+
+    return gasCost
+  }
+}

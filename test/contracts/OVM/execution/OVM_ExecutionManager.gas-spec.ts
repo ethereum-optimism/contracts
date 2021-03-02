@@ -8,7 +8,6 @@ import { smoddit, smockit, MockContract } from '@eth-optimism/smock'
 import _ from 'lodash'
 
 
-
 /* Internal Imports */
 import {
   makeAddressManager,
@@ -19,7 +18,8 @@ import {
   NON_ZERO_ADDRESS,
   NON_NULL_BYTES32,
   STORAGE_XOR_VALUE,
-  setProxyTarget
+  setProxyTarget,
+  GasMeasurement
 } from '../../../helpers'
 import { Address } from 'cluster'
 
@@ -65,14 +65,11 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
   let Helper_GasMeasurer: Contract
   let AddressManager: Contract
   let targetContractAddress: string
+  let gasMeasurement: GasMeasurement
   before(async () => {
     Factory__OVM_ExecutionManager = await ethers.getContractFactory(
       'OVM_ExecutionManager'
     )
-
-    Helper_GasMeasurer = await (
-      await (await ethers.getContractFactory('Helper_GasMeasurer')).deploy()
-    ).connect(wallet)
     
     // Deploy a simple contract that just returns successfully with no data
     targetContractAddress = await deployContractCode('60206001f3', wallet, 10_000_000)
@@ -87,6 +84,7 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
       ).deploy(NON_ZERO_ADDRESS)
     )
     
+    // Setup the SM to satisfy all the checks executed during EM.run()
     MOCK__STATE_MANAGER.smocked.isAuthenticated.will.return.with(true)
     MOCK__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(targetContractAddress)
     MOCK__STATE_MANAGER.smocked.hasAccount.will.return.with(true)
@@ -96,6 +94,9 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
       'OVM_StateManagerFactory',
       MOCK__STATE_MANAGER.address
     )
+
+    gasMeasurement = new GasMeasurement()
+    await gasMeasurement.init(wallet)
   })
 
 
@@ -103,46 +104,20 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
   beforeEach(async () => {
     OVM_ExecutionManager = (
       await Factory__OVM_ExecutionManager.deploy(
-        AddressManager.address, // safetychecker won't be called for very simple test cases
+        AddressManager.address,
         DUMMY_GASMETERCONFIG,
         DUMMY_GLOBALCONTEXT
       )
     ).connect(wallet)
   })
 
-  const getSMGasCost = async (
-    methodName: string,
-    methodArgs: Array<any> = []
-  ): Promise<number> => {
-    const gasCost: number = await Helper_GasMeasurer.callStatic.measureCallGas(
-      OVM_ExecutionManager.address,
-      OVM_ExecutionManager.interface.encodeFunctionData(methodName, methodArgs)
-    )
-    console.log(`          calculated gas cost of ${gasCost}`)
-
-    return gasCost
-  }
-
-  const measure = async (
-    methodName: string,
-    // methodArgs: Array<any>,
-    getMethodArgs: () => Promise<Array<any>>,
-    doFirst: () => Promise<any> = async () => {
-      return
-    }
-  ) => {
-    it('measured consumption!', async () => {
-      await doFirst()
-      await getSMGasCost(methodName, await getMethodArgs())
-      // await getSMGasCost(methodName, methodArgs)
-    })
-  }
-
-
   describe('Measure cost of a very simple contract', async () => {
-    console.log('MOCK__STATE_MANAGER.address: ', MOCK__STATE_MANAGER)
-    measure('run', async () => {
-      return [DUMMY_TRANSACTION, MOCK__STATE_MANAGER.address]
+    it('Gas cost of run', async () => {
+      let gasCost = await gasMeasurement.getGasCost(
+        OVM_ExecutionManager, 'run', 
+        [DUMMY_TRANSACTION, MOCK__STATE_MANAGER.address]
+      )
+      console.log(`calculated gas cost of ${gasCost}`)
     })
   })
 })
