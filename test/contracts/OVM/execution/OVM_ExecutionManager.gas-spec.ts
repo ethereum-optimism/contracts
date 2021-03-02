@@ -54,7 +54,7 @@ let DUMMY_TRANSACTION = {
   data: 0
 }
 
-describe.only('OVM_ExecutionManager gas consumption', () => {
+describe('OVM_ExecutionManager gas consumption', () => {
   let wallet: Signer
   before(async () => {
     ;[wallet] = await ethers.getSigners()
