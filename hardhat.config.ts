@@ -9,6 +9,7 @@ import {
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import 'hardhat-typechain'
+import 'hardhat-erc1820'
 import '@eth-optimism/plugins/hardhat/compiler'
 import '@eth-optimism/smock/build/src/plugins/hardhat-storagelayout'
 
