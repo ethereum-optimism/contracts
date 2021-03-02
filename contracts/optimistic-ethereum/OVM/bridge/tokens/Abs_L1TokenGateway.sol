@@ -62,7 +62,6 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
      * @param _to Address being withdrawn to.
      * @param _amount Amount being withdrawn.
      */
-
     function _handleFinalizeWithdrawal(
         address _to,
         uint256 _amount
@@ -81,7 +80,6 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
      * @param _to Address being deposited into on L2.
      * @param _amount Amount being deposited.
      */
-
     function _handleInitiateDeposit(
         address _from,
         address _to,
