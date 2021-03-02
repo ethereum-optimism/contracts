@@ -3,7 +3,7 @@ import { deployContractCode } from '../../../helpers/utils'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Contract, ContractFactory, Signer, BigNumber } from 'ethers'
+import { Contract, ContractFactory, Signer } from 'ethers'
 import { smoddit, smockit, MockContract } from '@eth-optimism/smock'
 import _ from 'lodash'
 
@@ -19,7 +19,7 @@ import {
   NON_NULL_BYTES32,
   STORAGE_XOR_VALUE,
   setProxyTarget,
-  GasMeasurement
+  GasMeasurement,
 } from '../../../helpers'
 import { Address } from 'cluster'
 
@@ -118,6 +118,13 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
         [DUMMY_TRANSACTION, MOCK__STATE_MANAGER.address]
       )
       console.log(`calculated gas cost of ${gasCost}`)
+      
+      let benchmark:number = 226_516
+      expect(gasCost).to.be.lte(benchmark)
+      expect(gasCost).to.be.gte(
+        benchmark - 1_000,
+        "Gas cost has significantly decreased, consider updating the benchmark to reflect the change"
+      )
     })
   })
 })
