@@ -8,7 +8,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
 
     string public override name;
     string public override symbol;
-    uint8 public override decimals;
+    uint8 public override immutable decimals;
     uint public override totalSupply;
     mapping(address => uint) public override balanceOf;
     mapping(address => mapping(address => uint)) public override allowance;
