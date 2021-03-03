@@ -69,7 +69,7 @@ const test_ovmCREATEEOA: TestDefinition = {
             address: '0x17ec8597ff92C3F44523bDc65BF0f1bE632917ff',
           },
           expectedReturnStatus: true,
-          expectedReturnValue: 1678,
+          expectedReturnValue: 1827, // TODO: We should be getting this from the artifact.
         },
       ],
     },
