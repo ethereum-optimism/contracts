@@ -2,13 +2,8 @@ import { expect } from '../../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Signer, ContractFactory, Contract, BigNumber, providers } from 'ethers'
-import {
-  smockit,
-  MockContract,
-  smoddit,
-  ModifiableContract,
-} from '@eth-optimism/smock'
+import { Signer, Contract } from 'ethers'
+import { smockit, MockContract } from '@eth-optimism/smock'
 
 /* Internal Imports */
 import {
@@ -59,7 +54,7 @@ describe('OVM_L1ETHGateway', () => {
       await ethers.getContractFactory('OVM_L1ETHGateway')
     ).deploy(AddressManager.address, Mock__OVM_L2DepositedERC20.address)
 
-    finalizeDepositGasLimit = await OVM_L1ETHGateway.DEFAULT_FINALIZE_DEPOSIT_L2_GAS()
+    finalizeDepositGasLimit = await OVM_L1ETHGateway.getFinalizeDepositL2Gas()
   })
 
   describe('finalizeWithdrawal', () => {
@@ -120,10 +115,14 @@ describe('OVM_L1ETHGateway', () => {
         await OVM_L1ETHGateway.provider.getTransactionReceipt(res.hash)
       ).gasUsed
 
+      // Deploy this just for the getter
+      const OVM_L2DepositedERC20 = await (
+        await ethers.getContractFactory('OVM_L2DepositedERC20')
+      ).deploy(ZERO_ADDRESS, '', '')
+
       await expect(
         gasUsed.gt(
-          ((await OVM_L1ETHGateway.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()) * 11) /
-            10
+          ((await OVM_L2DepositedERC20.getFinalizeWithdrawalL1Gas()) * 11) / 10
         )
       )
     })
