@@ -4,10 +4,19 @@ import { expect } from '../../../setup'
 /* External Imports */
 import { ethers } from 'hardhat'
 import { Contract, Signer } from 'ethers'
-import { fromHexString } from '@eth-optimism/core-utils'
+import { fromHexString, toHexString } from '@eth-optimism/core-utils'
 
 /* Internal Imports */
-import { ZERO_ADDRESS, makeHexString, getHexSlice } from '../../../helpers'
+import { ZERO_ADDRESS } from '../../../helpers'
+
+// Leaving this here for now. If it's sufficiently useful we can throw it in core-utils.
+const getHexSlice = (
+  input: Buffer | string,
+  start: number,
+  length: number
+): string => {
+  return toHexString(fromHexString(input).slice(start, start + length))
+}
 
 describe('Lib_EthUtils', () => {
   let signer: Signer
@@ -38,7 +47,7 @@ describe('Lib_EthUtils', () => {
               offset,
               length
             )
-          ).to.equal(makeHexString('00', length))
+          ).to.equal('0x' + '00'.repeat(length))
         })
       })
 
@@ -54,7 +63,7 @@ describe('Lib_EthUtils', () => {
               offset,
               length
             )
-          ).to.equal(makeHexString('00', length))
+          ).to.equal('0x' + '00'.repeat(length))
         })
       })
     })
@@ -77,7 +86,7 @@ describe('Lib_EthUtils', () => {
               offset,
               length
             )
-          ).to.equal(makeHexString('00', length))
+          ).to.equal('0x' + '00'.repeat(length))
         })
       })
 
@@ -93,7 +102,7 @@ describe('Lib_EthUtils', () => {
               offset,
               length
             )
-          ).to.equal(makeHexString('00', length))
+          ).to.equal('0x' + '00'.repeat(length))
         })
       })
     })
@@ -287,7 +296,7 @@ describe('Lib_EthUtils', () => {
                 offset,
                 length
               )
-            ).to.equal(makeHexString('00', length))
+            ).to.equal('0x' + '00'.repeat(length))
           })
         })
       })
