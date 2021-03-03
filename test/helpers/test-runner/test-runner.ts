@@ -212,6 +212,7 @@ export class ExecutionManagerTestRunner {
 
     const MockSafetyCache = await smockit(SafetyCache)
     MockSafetyCache.smocked.isRegisteredSafeBytecode.will.return.with(true)
+    MockSafetyCache.smocked.checkAndRegisterSafeBytecode.will.return.with(true)
 
     this.contracts.OVM_SafetyCache = MockSafetyCache
     
