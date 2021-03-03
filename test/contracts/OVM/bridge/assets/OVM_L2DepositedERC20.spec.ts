@@ -2,7 +2,7 @@ import { expect } from '../../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
+import { Signer, ContractFactory, Contract } from 'ethers'
 import {
   smockit,
   MockContract,
@@ -12,8 +12,6 @@ import {
 
 /* Internal Imports */
 import { NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../../helpers'
-
-const decimals = 1
 
 const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
@@ -50,17 +48,12 @@ describe('OVM_L2DepositedERC20', () => {
     // Deploy the contract under test
     OVM_L2DepositedERC20 = await (
       await ethers.getContractFactory('OVM_L2DepositedERC20')
-    ).deploy(
-      Mock__OVM_L2CrossDomainMessenger.address,
-      decimals,
-      'ovmWETH',
-      'oWETH'
-    )
+    ).deploy(Mock__OVM_L2CrossDomainMessenger.address, 'ovmWETH', 'oWETH')
 
     // initialize the L2 Gateway with the L1G ateway addrss
     await OVM_L2DepositedERC20.init(MOCK_L1GATEWAY_ADDRESS)
 
-    finalizeWithdrawalGasLimit = await OVM_L2DepositedERC20.DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS()
+    finalizeWithdrawalGasLimit = await OVM_L2DepositedERC20.getFinalizeWithdrawalL1Gas()
   })
 
   // test the transfer flow of moving a token from L2 to L1
@@ -69,7 +62,7 @@ describe('OVM_L2DepositedERC20', () => {
       // Deploy new gateway, initialize with random messenger
       OVM_L2DepositedERC20 = await (
         await ethers.getContractFactory('OVM_L2DepositedERC20')
-      ).deploy(NON_ZERO_ADDRESS, decimals, 'ovmWETH', 'oWETH')
+      ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', 'oWETH')
       await OVM_L2DepositedERC20.init(NON_ZERO_ADDRESS)
 
       await expect(
@@ -117,12 +110,7 @@ describe('OVM_L2DepositedERC20', () => {
       // Deploy a smodded gateway so we can give some balances to withdraw
       SmoddedL2Gateway = await (
         await smoddit('OVM_L2DepositedERC20', alice)
-      ).deploy(
-        Mock__OVM_L2CrossDomainMessenger.address,
-        decimals,
-        'ovmWETH',
-        'oWETH'
-      )
+      ).deploy(Mock__OVM_L2CrossDomainMessenger.address, 'ovmWETH', 'oWETH')
       await SmoddedL2Gateway.init(MOCK_L1GATEWAY_ADDRESS)
 
       // Populate the initial state with a total supply and some money in alice's balance
