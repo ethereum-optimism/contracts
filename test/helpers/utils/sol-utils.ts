@@ -1,4 +1,4 @@
-import ethers from 'ethers'
+import { ethers } from 'ethers'
 
 const errorABI = new ethers.utils.Interface([
   {
