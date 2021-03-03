@@ -64,6 +64,7 @@ contract OVM_SafetyCache is iOVM_SafetyCache, Lib_AddressResolver {
     function checkAndRegisterSafeBytecode(
         bytes memory _code
     ) 
+        override
         external
         returns (
             bool
@@ -83,6 +84,7 @@ contract OVM_SafetyCache is iOVM_SafetyCache, Lib_AddressResolver {
     function isRegisteredSafeBytecode(
         bytes32 _codehash
     ) 
+        override
         external
         view
         returns (

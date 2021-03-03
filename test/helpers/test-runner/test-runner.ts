@@ -43,6 +43,7 @@ export class ExecutionManagerTestRunner {
   private snapshot: string
   private contracts: {
     OVM_SafetyChecker: Contract
+    OVM_SafetyCache: Contract
     OVM_StateManager: ModifiableContract
     OVM_ExecutionManager: ModifiableContract
     Helper_TestRunner: Contract
@@ -50,6 +51,7 @@ export class ExecutionManagerTestRunner {
     OVM_DeployerWhitelist: Contract
   } = {
     OVM_SafetyChecker: undefined,
+    OVM_SafetyCache: undefined,
     OVM_StateManager: undefined,
     OVM_ExecutionManager: undefined,
     Helper_TestRunner: undefined,
@@ -89,7 +91,7 @@ export class ExecutionManagerTestRunner {
     )),
       (test.postState = test.postState || {})
 
-    describe(`OVM_ExecutionManager Test: ${test.name}`, () => {
+    describe.only(`OVM_ExecutionManager Test: ${test.name}`, () => {
       test.subTests?.map((subTest) => {
         this.run({
           ...subTest,
@@ -188,6 +190,7 @@ export class ExecutionManagerTestRunner {
       await ethers.getContractFactory('Lib_AddressManager')
     ).deploy()
 
+    // Setup SafetyChecker
     const SafetyChecker = await (
       await ethers.getContractFactory('OVM_SafetyChecker')
     ).deploy()
@@ -202,12 +205,29 @@ export class ExecutionManagerTestRunner {
       this.contracts.OVM_SafetyChecker.address
     )
 
+    // Setup SafetyCache
+    const SafetyCache = await (
+      await ethers.getContractFactory('OVM_SafetyCache')
+    ).deploy(AddressManager.address)
+
+    const MockSafetyCache = await smockit(SafetyCache)
+    MockSafetyCache.smocked.isRegisteredSafeBytecode.will.return.with(true)
+
+    this.contracts.OVM_SafetyCache = MockSafetyCache
+    
+    await AddressManager.setAddress(
+      'OVM_SafetyCache',
+      this.contracts.OVM_SafetyCache.address
+    )
+
+    // Setup DeployerWhitelist
     const DeployerWhitelist = await (
       await ethers.getContractFactory('OVM_DeployerWhitelist')
     ).deploy()
 
     this.contracts.OVM_DeployerWhitelist = DeployerWhitelist
 
+    // Setup EM
     this.contracts.OVM_ExecutionManager = await (
       await smoddit('OVM_ExecutionManager')
     ).deploy(
@@ -223,6 +243,7 @@ export class ExecutionManagerTestRunner {
       }
     )
 
+    // Setup SM
     this.contracts.OVM_StateManager = await (
       await smoddit('OVM_StateManager')
     ).deploy(await this.contracts.OVM_ExecutionManager.signer.getAddress())
@@ -251,6 +272,8 @@ export class ExecutionManagerTestRunner {
         return this.contracts.OVM_ExecutionManager.address
       } else if (kv === '$OVM_STATE_MANAGER') {
         return this.contracts.OVM_StateManager.address
+      } else if (kv === '$OVM_SAFETY_CACHE') {
+        return this.contracts.OVM_SafetyCache.address
       } else if (kv === '$OVM_SAFETY_CHECKER') {
         return this.contracts.OVM_SafetyChecker.address
       } else if (kv === '$OVM_CALL_HELPER') {

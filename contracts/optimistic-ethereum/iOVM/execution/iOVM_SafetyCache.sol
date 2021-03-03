@@ -6,11 +6,11 @@ pragma solidity >0.5.0 <0.8.0;
  */
 interface iOVM_SafetyCache {
 
-    /********************
-     * External Functions *
-     ********************/
-    function checkAndRegisterSafeBytecode(bytes memory _code) external returns (bool)
+    /*********************
+    * External Functions *
+    **********************/
+    function checkAndRegisterSafeBytecode(bytes memory _code) external returns (bool);
 
-    function isRegisteredSafeBytecode(bytes32 _codehash) external view returns (bool)
+    function isRegisteredSafeBytecode(bytes32 _codehash) external view returns (bool);
 
 }

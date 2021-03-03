@@ -3,6 +3,9 @@
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
+
+
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
@@ -14,6 +17,7 @@ import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManage
 /* External Interface Imports */
 import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
 import { iOVM_SafetyCache } from "../../iOVM/execution/iOVM_SafetyCache.sol";
+import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol";
 
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
@@ -42,6 +46,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      ********************************/
 
     iOVM_SafetyCache internal ovmSafetyCache;
+    iOVM_SafetyChecker internal ovmSafetyChecker;
     iOVM_StateManager internal ovmStateManager;
 
 
@@ -802,6 +807,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             return;
         }
 
+        console.log(1);
+
         // We need to be sure that the user isn't trying to use a contract creation to overwrite
         // some existing contract. On L1, users will prove that no contract exists at the address
         // and the OVM_FraudVerifier will populate the code hash of this address with a special
@@ -810,10 +817,13 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
 
+        console.log(2);
+
         // Check the creation bytecode against the Safety Cache and Safety Checker.
         if (ovmSafetyCache.checkAndRegisterSafeBytecode(_bytecode) == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
+        console.log(3);
 
         // We always need to initialize the contract with the default account values.
         _initPendingAccount(_address);
@@ -831,6 +841,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (ethAddress == address(0)) {
             _revertWithFlag(RevertFlag.CREATE_EXCEPTION);
         }
+        console.log(4);
 
         // Here we pull out the revert flag that would've been set during creation code. Now that
         // we're out of creation code again, we can just revert normally while passing the flag
