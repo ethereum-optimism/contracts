@@ -102,7 +102,7 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
       )
     })
 
-    it('Gas cost of run', async () => {
+    it('Gas cost of run()', async () => {
       const gasCost = await gasMeasurement.getGasCost(
         OVM_ExecutionManager,
         'run',
@@ -110,7 +110,7 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
       )
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 229_371
+      const benchmark: number = 226_516
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
@@ -121,21 +121,11 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
 
   describe('Measure cost of deploying a very simple contract', async () => {
     
-    let targetContractAddress: string
-    before(async () => {
-      // Deploy a simple OVM-safe contract that just deploys another contract
-      targetContractAddress = await deployContractCode(
-        '60206001f3',
-        wallet,
-        10_000_000
-      )
-      DUMMY_TRANSACTION.entrypoint = targetContractAddress
-      MOCK__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(
-        targetContractAddress
-      )
-    })
+    
 
-    it('Gas cost of run', async () => {
+    it('Gas cost of basic contract deployment', async () => {
+      // what does the DUMMY_TRANSACTION need to be to deploy a simple transaction?
+      // Do I need to go through a proxy EOA?
       const gasCost = await gasMeasurement.getGasCost(
         OVM_ExecutionManager,
         'run',
@@ -143,7 +133,7 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
       )
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 229_371
+      const benchmark: number = 226_516
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
