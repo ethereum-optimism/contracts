@@ -21,7 +21,7 @@ export const mineBlock = async (
   provider: any,
   timestamp?: number
 ): Promise<void> => {
-  await provider.send('evm_mine', [timestamp])
+  await provider.send('evm_mine', timestamp ? [timestamp] : [])
 }
 
 export const getBlockTime = async (
