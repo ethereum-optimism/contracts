@@ -40,29 +40,17 @@ const DUMMY_TRANSACTION = {
   data: 0,
 }
 
-describe('OVM_ExecutionManager gas consumption', () => {
+describe.only('OVM_ExecutionManager gas consumption', () => {
   let wallet: Signer
-  before(async () => {
-    ;[wallet] = await ethers.getSigners()
-  })
-
   let Factory__OVM_ExecutionManager: ContractFactory
   let MOCK__STATE_MANAGER: MockContract
   let AddressManager: Contract
-  let targetContractAddress: string
   let gasMeasurement: GasMeasurement
   before(async () => {
+    ;[wallet] = await ethers.getSigners()
     Factory__OVM_ExecutionManager = await ethers.getContractFactory(
       'OVM_ExecutionManager'
     )
-
-    // Deploy a simple contract that just returns successfully with no data
-    targetContractAddress = await deployContractCode(
-      '60206001f3',
-      wallet,
-      10_000_000
-    )
-    DUMMY_TRANSACTION.entrypoint = targetContractAddress
 
     AddressManager = await makeAddressManager()
 
@@ -75,9 +63,6 @@ describe('OVM_ExecutionManager gas consumption', () => {
 
     // Setup the SM to satisfy all the checks executed during EM.run()
     MOCK__STATE_MANAGER.smocked.isAuthenticated.will.return.with(true)
-    MOCK__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(
-      targetContractAddress
-    )
     MOCK__STATE_MANAGER.smocked.hasAccount.will.return.with(true)
     MOCK__STATE_MANAGER.smocked.testAndSetAccountLoaded.will.return.with(true)
 
@@ -102,15 +87,63 @@ describe('OVM_ExecutionManager gas consumption', () => {
   })
 
   describe('Measure cost of a very simple contract', async () => {
+
+    let targetContractAddress: string
+    before(async () => {
+      // Deploy a simple OVM-safe contract that just deploys a another contract
+      targetContractAddress = await deployContractCode(
+        '60206001f3',
+        wallet,
+        10_000_000
+      )
+      DUMMY_TRANSACTION.entrypoint = targetContractAddress
+      MOCK__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(
+        targetContractAddress
+      )
+    })
+
     it('Gas cost of run', async () => {
       const gasCost = await gasMeasurement.getGasCost(
         OVM_ExecutionManager,
         'run',
         [DUMMY_TRANSACTION, MOCK__STATE_MANAGER.address]
       )
-      console.log(`calculated gas cost of ${gasCost}`)
+      console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 226_516
+      const benchmark: number = 229_371
+      expect(gasCost).to.be.lte(benchmark)
+      expect(gasCost).to.be.gte(
+        benchmark - 1_000,
+        'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
+      )
+    })
+  })
+
+  describe('Measure cost of deploying a very simple contract', async () => {
+    
+    let targetContractAddress: string
+    before(async () => {
+      // Deploy a simple OVM-safe contract that just deploys another contract
+      targetContractAddress = await deployContractCode(
+        '60206001f3',
+        wallet,
+        10_000_000
+      )
+      DUMMY_TRANSACTION.entrypoint = targetContractAddress
+      MOCK__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(
+        targetContractAddress
+      )
+    })
+
+    it('Gas cost of run', async () => {
+      const gasCost = await gasMeasurement.getGasCost(
+        OVM_ExecutionManager,
+        'run',
+        [DUMMY_TRANSACTION, MOCK__STATE_MANAGER.address]
+      )
+      console.log(`      calculated gas cost of ${gasCost}`)
+
+      const benchmark: number = 229_371
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
