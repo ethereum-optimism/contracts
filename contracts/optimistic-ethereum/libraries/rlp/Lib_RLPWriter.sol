@@ -34,10 +34,7 @@ library Lib_RLPWriter {
         if (_in.length == 1 && uint8(_in[0]) < 128) {
             encoded = _in;
         } else {
-            encoded = abi.encodePacked(
-                _writeLength(_in.length, 128),
-                _in
-            );
+            encoded = abi.encodePacked(_writeLength(_in.length, 128), _in);
         }
 
         return encoded;
@@ -58,10 +55,7 @@ library Lib_RLPWriter {
         )
     {
         bytes memory list = _flatten(_in);
-        return abi.encodePacked(
-            _writeLength(list.length, 192),
-            list
-        );
+        return abi.encodePacked(_writeLength(list.length, 192), list);
     }
 
     /**
