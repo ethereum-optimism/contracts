@@ -29,7 +29,6 @@ describe('OVM_StateManager gas consumption', () => {
   })
 
   let Factory__OVM_StateManager: ContractFactory
-  let Helper_GasMeasurer: Contract
   let gasMeasurement: GasMeasurement
   before(async () => {
     Factory__OVM_StateManager = await ethers.getContractFactory(
@@ -39,14 +38,15 @@ describe('OVM_StateManager gas consumption', () => {
     await gasMeasurement.init(owner)
   })
 
-
   let OVM_StateManager: Contract
   beforeEach(async () => {
     OVM_StateManager = (
       await Factory__OVM_StateManager.deploy(await owner.getAddress())
     ).connect(owner)
 
-    await OVM_StateManager.setExecutionManager(gasMeasurement.GasMeasurementContract.address)
+    await OVM_StateManager.setExecutionManager(
+      gasMeasurement.GasMeasurementContract.address
+    )
   })
 
   const measure = (
@@ -58,7 +58,11 @@ describe('OVM_StateManager gas consumption', () => {
   ) => {
     it('measured consumption!', async () => {
       await doFirst()
-      let gasCost = await gasMeasurement.getGasCost(OVM_StateManager, methodName, methodArgs)
+      const gasCost = await gasMeasurement.getGasCost(
+        OVM_StateManager,
+        methodName,
+        methodArgs
+      )
       console.log(`          calculated gas cost of ${gasCost}`)
     })
   }
