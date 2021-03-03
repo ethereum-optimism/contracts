@@ -4,14 +4,10 @@ import { expect } from '../../../setup'
 /* External Imports */
 import { ethers } from 'hardhat'
 import { Contract, Signer } from 'ethers'
+import { fromHexString } from '@eth-optimism/core-utils'
 
 /* Internal Imports */
-import {
-  ZERO_ADDRESS,
-  makeHexString,
-  fromHexString,
-  getHexSlice,
-} from '../../../helpers'
+import { ZERO_ADDRESS, makeHexString, getHexSlice } from '../../../helpers'
 
 describe('Lib_EthUtils', () => {
   let signer: Signer

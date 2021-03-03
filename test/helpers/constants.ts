@@ -1,10 +1,11 @@
 /* External Imports */
 import { ethers } from 'ethers'
 import { defaultAccounts } from 'ethereum-waffle'
+import { fromHexString, toHexString } from '@eth-optimism/core-utils'
 import xor from 'buffer-xor'
 
 /* Internal Imports */
-import { makeHexString, makeAddress, fromHexString, toHexString } from './utils'
+import { makeHexString, makeAddress } from './utils'
 
 export const DEFAULT_ACCOUNTS = defaultAccounts
 export const DEFAULT_ACCOUNTS_HARDHAT = defaultAccounts.map((account) => {
