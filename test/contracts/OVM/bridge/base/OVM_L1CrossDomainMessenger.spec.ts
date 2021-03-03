@@ -231,7 +231,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
         true
       )
 
-      proof = {
+      const proof1 = {
         stateRoot: NULL_BYTES32,
         stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
         stateRootProof: DUMMY_BATCH_PROOFS[0],
@@ -245,7 +245,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
           sender,
           message,
           0,
-          proof
+          proof1
         )
       ).to.be.revertedWith('Provided message could not be verified.')
     })
@@ -255,7 +255,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
         false
       )
 
-      proof = {
+      const proof1 = {
         stateRoot: NULL_BYTES32,
         stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
         stateRootProof: DUMMY_BATCH_PROOFS[0],
@@ -269,7 +269,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
           sender,
           message,
           0,
-          proof
+          proof1
         )
       ).to.be.revertedWith('Provided message could not be verified.')
     })
