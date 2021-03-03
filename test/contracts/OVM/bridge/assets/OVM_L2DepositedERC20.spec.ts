@@ -52,7 +52,6 @@ describe('OVM_L2DepositedERC20', () => {
       await ethers.getContractFactory('OVM_L2DepositedERC20')
     ).deploy(
       Mock__OVM_L2CrossDomainMessenger.address,
-      decimals,
       'ovmWETH',
       'oWETH'
     )
@@ -69,7 +68,7 @@ describe('OVM_L2DepositedERC20', () => {
       // Deploy new gateway, initialize with random messenger
       OVM_L2DepositedERC20 = await (
         await ethers.getContractFactory('OVM_L2DepositedERC20')
-      ).deploy(NON_ZERO_ADDRESS, decimals, 'ovmWETH', 'oWETH')
+      ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', 'oWETH')
       await OVM_L2DepositedERC20.init(NON_ZERO_ADDRESS)
 
       await expect(
@@ -119,7 +118,6 @@ describe('OVM_L2DepositedERC20', () => {
         await smoddit('OVM_L2DepositedERC20', alice)
       ).deploy(
         Mock__OVM_L2CrossDomainMessenger.address,
-        decimals,
         'ovmWETH',
         'oWETH'
       )

@@ -123,7 +123,7 @@ describe('OVM_L1ETHGateway', () => {
       // Deploy this just for the getter
       const OVM_L2DepositedERC20 = await (
         await ethers.getContractFactory('OVM_L2DepositedERC20')
-      ).deploy(ZERO_ADDRESS, 0, '', '')
+      ).deploy(ZERO_ADDRESS, '', '')
 
       await expect(
         gasUsed.gt(
