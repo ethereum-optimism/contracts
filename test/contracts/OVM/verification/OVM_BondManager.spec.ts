@@ -6,7 +6,7 @@ import { smoddit, smockit } from '@eth-optimism/smock'
 import { ethers, Contract, BigNumber } from 'ethers'
 
 /* Internal Imports */
-import { mineBlock } from 'test/helpers'
+import { mineBlock } from '../../../helpers'
 
 describe('OVM_BondManager', () => {
   const provider = waffle.provider
