@@ -1,8 +1,8 @@
-import { expect } from '../../../setup'
+import '../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Contract, ContractFactory, Signer, BigNumber } from 'ethers'
+import { Contract, ContractFactory, Signer } from 'ethers'
 import _ from 'lodash'
 
 /* Internal Imports */
@@ -389,8 +389,8 @@ describe('OVM_StateManager gas consumption', () => {
 
   describe('putContractStorage', () => {
     const relevantValues = [DUMMY_VALUE_1, DUMMY_VALUE_2, STORAGE_XOR_VALUE]
-    for (let preValue of relevantValues) {
-      for (let postValue of relevantValues) {
+    for (const preValue of relevantValues) {
+      for (const postValue of relevantValues) {
         describe(`when overwriting ${preValue} with ${postValue}`, () => {
           measure(
             'putContractStorage',

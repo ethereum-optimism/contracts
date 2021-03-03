@@ -10,7 +10,6 @@ import {
   makeAddressManager,
   setProxyTarget,
   NON_NULL_BYTES32,
-  ZERO_ADDRESS,
   NON_ZERO_ADDRESS,
   NULL_BYTES32,
   DUMMY_BATCH_HEADERS,
@@ -232,7 +231,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
         true
       )
 
-      const proof = {
+      proof = {
         stateRoot: NULL_BYTES32,
         stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
         stateRootProof: DUMMY_BATCH_PROOFS[0],
@@ -256,7 +255,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
         false
       )
 
-      const proof = {
+      proof = {
         stateRoot: NULL_BYTES32,
         stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
         stateRootProof: DUMMY_BATCH_PROOFS[0],
