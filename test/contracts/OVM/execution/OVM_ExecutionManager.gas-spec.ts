@@ -4,29 +4,16 @@ import { deployContractCode } from '../../../helpers/utils'
 /* External Imports */
 import { ethers } from 'hardhat'
 import { Contract, ContractFactory, Signer } from 'ethers'
-import { smoddit, smockit, MockContract } from '@eth-optimism/smock'
-import _ from 'lodash'
+import { smockit, MockContract } from '@eth-optimism/smock'
 
 
 /* Internal Imports */
 import {
   makeAddressManager,
-  DUMMY_ACCOUNTS,
-  DUMMY_BYTES32,
-  ZERO_ADDRESS,
-  EMPTY_ACCOUNT_CODE_HASH,
   NON_ZERO_ADDRESS,
   NON_NULL_BYTES32,
-  STORAGE_XOR_VALUE,
-  setProxyTarget,
   GasMeasurement,
 } from '../../../helpers'
-import { Address } from 'cluster'
-
-const DUMMY_ACCOUNT = DUMMY_ACCOUNTS[0]
-const DUMMY_KEY = DUMMY_BYTES32[0]
-const DUMMY_VALUE_1 = DUMMY_BYTES32[1]
-const DUMMY_VALUE_2 = DUMMY_BYTES32[2]
 
 const DUMMY_GASMETERCONFIG = {
   minTransactionGasLimit: 0,
@@ -62,7 +49,6 @@ describe('OVM_ExecutionManager gas consumption', () => {
 
   let Factory__OVM_ExecutionManager: ContractFactory
   let MOCK__STATE_MANAGER: MockContract
-  let Helper_GasMeasurer: Contract
   let AddressManager: Contract
   let targetContractAddress: string
   let gasMeasurement: GasMeasurement
