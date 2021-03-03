@@ -48,6 +48,13 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
      * Depositing *
      **************/
 
+    receive()
+        external
+        payable
+    {
+        _initiateDeposit(msg.sender, msg.sender);
+    }
+
     /**
      * @dev deposit an amount of the ERC20 to the caller's balance on L2
      */
