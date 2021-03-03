@@ -4,16 +4,17 @@ import { expect } from '../../../setup'
 import { ethers, waffle } from 'hardhat'
 import { ContractFactory, Contract, Wallet } from 'ethers'
 import { MockContract, smockit } from '@eth-optimism/smock'
-import { NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../helpers/constants'
+
+/* Internal Imports */
+import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
 import {
   serializeNativeTransaction,
   signNativeTransaction,
   DEFAULT_EIP155_TX,
   serializeEthSignTransaction,
   signEthSignMessage,
-  EIP155Transaction,
+  decodeSolidityError,
 } from '../../../helpers'
-import { defaultAbiCoder } from 'ethers/lib/utils'
 
 const callPrecompile = async (
   Helper_PrecompileCaller: Contract,
@@ -182,7 +183,7 @@ describe('OVM_ECDSAContractAccount', () => {
       )
       const ovmREVERT: any =
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
-      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+      expect(decodeSolidityError(ovmREVERT._data)).to.equal(
         'Signature provided for EOA transaction execution is invalid.'
       )
     })
@@ -209,7 +210,7 @@ describe('OVM_ECDSAContractAccount', () => {
       )
       const ovmREVERT: any =
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
-      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+      expect(decodeSolidityError(ovmREVERT._data)).to.equal(
         'Transaction nonce does not match the expected nonce.'
       )
     })
@@ -236,7 +237,7 @@ describe('OVM_ECDSAContractAccount', () => {
       )
       const ovmREVERT: any =
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
-      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+      expect(decodeSolidityError(ovmREVERT._data)).to.equal(
         'Transaction chainId does not match expected OVM chainId.'
       )
     })
@@ -266,7 +267,7 @@ describe('OVM_ECDSAContractAccount', () => {
 
       const ovmREVERT: any =
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
-      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+      expect(decodeSolidityError(ovmREVERT._data)).to.equal(
         'Gas is not sufficient to execute the transaction.'
       )
     })
@@ -292,7 +293,7 @@ describe('OVM_ECDSAContractAccount', () => {
 
       const ovmREVERT: any =
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
-      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+      expect(decodeSolidityError(ovmREVERT._data)).to.equal(
         'Fee was not transferred to relayer.'
       )
     })
