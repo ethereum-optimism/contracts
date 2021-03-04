@@ -51,7 +51,6 @@ contract OVM_L2DepositedERC20 is iOVM_L2DepositedERC20, UniswapV2ERC20, OVM_Cros
         string memory _name,
         string memory _symbol
     )
-        public
         OVM_CrossDomainEnabled(_l2CrossDomainMessenger)
         UniswapV2ERC20(_decimals, _name, _symbol)
     {}
