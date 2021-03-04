@@ -340,7 +340,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         override
         public
     {
-        // TEMPORARY: Disable `appendQueueBatch` for minnet
+        // Disable `appendQueueBatch` for mainnet
         revert("appendQueueBatch is currently disabled.");
 
         // _numQueuedTransactions = Lib_Math.min(_numQueuedTransactions, getNumPendingQueueElements());

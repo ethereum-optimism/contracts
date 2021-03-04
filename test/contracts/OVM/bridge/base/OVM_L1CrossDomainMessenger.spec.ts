@@ -1,38 +1,25 @@
-import { expect } from '../../../setup'
+import { expect } from '../../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
 import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
 import { smockit, MockContract } from '@eth-optimism/smock'
+import { remove0x, toHexString } from '@eth-optimism/core-utils'
 
 /* Internal Imports */
 import {
   makeAddressManager,
   setProxyTarget,
   NON_NULL_BYTES32,
-  ZERO_ADDRESS,
   NON_ZERO_ADDRESS,
   NULL_BYTES32,
   DUMMY_BATCH_HEADERS,
   DUMMY_BATCH_PROOFS,
   TrieTestGenerator,
-  toHexString,
   getNextBlockNumber,
-  remove0x,
-} from '../../../helpers'
-import { getContractInterface } from '../../../../src'
+  getXDomainCalldata,
+} from '../../../../helpers'
 import { keccak256 } from 'ethers/lib/utils'
-
-const getXDomainCalldata = (
-  sender: string,
-  target: string,
-  message: string,
-  messageNonce: number
-): string => {
-  return getContractInterface(
-    'OVM_L2CrossDomainMessenger'
-  ).encodeFunctionData('relayMessage', [target, sender, message, messageNonce])
-}
 
 const deployProxyXDomainMessenger = async (
   addressManager: Contract,
@@ -243,7 +230,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
         true
       )
 
-      const proof = {
+      const proof1 = {
         stateRoot: NULL_BYTES32,
         stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
         stateRootProof: DUMMY_BATCH_PROOFS[0],
@@ -257,7 +244,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
           sender,
           message,
           0,
-          proof
+          proof1
         )
       ).to.be.revertedWith('Provided message could not be verified.')
     })
@@ -267,7 +254,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
         false
       )
 
-      const proof = {
+      const proof1 = {
         stateRoot: NULL_BYTES32,
         stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
         stateRootProof: DUMMY_BATCH_PROOFS[0],
@@ -281,7 +268,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
           sender,
           message,
           0,
-          proof
+          proof1
         )
       ).to.be.revertedWith('Provided message could not be verified.')
     })

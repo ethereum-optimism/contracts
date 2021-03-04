@@ -29,7 +29,7 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
  * OVM operation, which will read state from the State Manager contract.
  * The EM relies on the Safety Checker to verify that code deployed to Layer 2 does not contain any
  * context-dependent operations.
-  * 
+ *
  * Compiler used: solc
  * Runtime target: EVM
  */
@@ -85,6 +85,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         ovmSafetyChecker = iOVM_SafetyChecker(resolve("OVM_SafetyChecker"));
         gasMeterConfig = _gasMeterConfig;
         globalContext = _globalContext;
+        _resetContext();
     }
 
 
@@ -183,6 +184,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Make sure the transaction's gas limit is valid. We don't revert here because we reserve
         // reverts for INVALID_STATE_ACCESS.
         if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
+            _resetContext();
             return;
         }
 
@@ -891,7 +893,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         if (!isAllowed || !success) {
             _revertWithFlag(RevertFlag.CREATOR_NOT_ALLOWED);
-        }   
+        }
     }
 
     /********************************************
@@ -967,7 +969,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // We reserve addresses of the form 0xdeaddeaddead...NNNN for the container contracts in L2 geth.
         // So, we block calls to these addresses since they are not safe to run as an OVM contract itself.
         if (
-            (uint256(_contract) & uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000)) 
+            (uint256(_contract) & uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000))
             == uint256(0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000)
         ) {
             return (true, hex'');
@@ -1051,7 +1053,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 _revertWithFlag(flag);
             }
 
-            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_ALLOWED aren't 
+            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_ALLOWED aren't
             // dependent on the input state, so we can just handle them like standard reverts. Our only change here
             // is to record the gas refund reported by the call (enforced by safety checking).
             if (
@@ -1804,5 +1806,39 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         messageRecord.nuisanceGasLeft = 0;
         messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
+    }
+
+    /*****************************
+     * L2-only Helper Functions *
+     *****************************/
+
+    /**
+     * Unreachable helper function for simulating eth_calls with an OVM message context.
+     * This function will throw an exception in all cases other than when used as a custom entrypoint in L2 Geth to simulate eth_call.
+     * @param _transaction the message transaction to simulate.
+     * @param _from the OVM account the simulated call should be from.
+     */
+    function simulateMessage(
+        Lib_OVMCodec.Transaction memory _transaction,
+        address _from,
+        iOVM_StateManager _ovmStateManager
+    )
+        external
+        returns (
+            bool,
+            bytes memory
+        )
+    {
+        // Prevent this call from having any effect unless in a custom-set VM frame
+        require(msg.sender == address(0));
+
+        ovmStateManager = _ovmStateManager;
+        _initContext(_transaction);
+
+        messageRecord.nuisanceGasLeft = uint(-1);
+        messageContext.ovmADDRESS = _transaction.entrypoint;
+        messageContext.ovmCALLER = _from;
+
+        return _transaction.entrypoint.call{gas: _transaction.gasLimit}(_transaction.data);
     }
 }
