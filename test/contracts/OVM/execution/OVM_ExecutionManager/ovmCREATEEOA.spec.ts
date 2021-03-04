@@ -1,3 +1,6 @@
+/* External Imports */
+import { fromHexString } from '@eth-optimism/core-utils'
+
 /* Internal Imports */
 import {
   ExecutionManagerTestRunner,
@@ -6,6 +9,7 @@ import {
   NON_NULL_BYTES32,
   VERIFIED_EMPTY_CONTRACT_HASH,
 } from '../../../../helpers'
+import { getContractDefinition } from '../../../../../src'
 
 const test_ovmCREATEEOA: TestDefinition = {
   name: 'Basic tests for CREATEEOA',
@@ -68,7 +72,9 @@ const test_ovmCREATEEOA: TestDefinition = {
             address: '0x17ec8597ff92C3F44523bDc65BF0f1bE632917ff',
           },
           expectedReturnStatus: true,
-          expectedReturnValue: 1678,
+          expectedReturnValue: fromHexString(
+            getContractDefinition('OVM_ProxyEOA').deployedBytecode
+          ).length,
         },
       ],
     },
