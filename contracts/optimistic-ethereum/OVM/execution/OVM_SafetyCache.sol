@@ -70,12 +70,15 @@ contract OVM_SafetyCache is iOVM_SafetyCache, Lib_AddressResolver {
             bool
     ) {
         bytes32 codehash = keccak256(abi.encode(_code));
-
         if(isSafeCodehash[codehash] == true) {
             return true;
-        } else {
-            return ovmSafetyChecker.isBytecodeSafe(_code);
         }
+
+        bool safe = ovmSafetyChecker.isBytecodeSafe(_code);
+        if(safe) {
+            isSafeCodehash[codehash] = true;
+        }
+        return safe;
     }
 
     /** Used to check if bytecode has already been recorded as safe.
@@ -91,6 +94,6 @@ contract OVM_SafetyCache is iOVM_SafetyCache, Lib_AddressResolver {
             bool
         )
     {
-        return (isSafeCodehash[_codehash] == true);
+        return isSafeCodehash[_codehash] == true;
     }
 }

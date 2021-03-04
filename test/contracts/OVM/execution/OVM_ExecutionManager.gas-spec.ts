@@ -42,15 +42,13 @@ const DUMMY_TRANSACTION = {
 
 describe.only('OVM_ExecutionManager gas consumption', () => {
   let wallet: Signer
-  let Factory__OVM_ExecutionManager: ContractFactory
   let MOCK__STATE_MANAGER: MockContract
   let AddressManager: Contract
   let gasMeasurement: GasMeasurement
+  let Factory__OVM_ExecutionManager: ContractFactory
+  let OVM_ExecutionManager: Contract
   before(async () => {
     ;[wallet] = await ethers.getSigners()
-    Factory__OVM_ExecutionManager = await ethers.getContractFactory(
-      'OVM_ExecutionManager'
-    )
 
     AddressManager = await makeAddressManager()
 
@@ -71,12 +69,10 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
       MOCK__STATE_MANAGER.address
     )
 
-    gasMeasurement = new GasMeasurement()
-    await gasMeasurement.init(wallet)
-  })
-
-  let OVM_ExecutionManager: Contract
-  beforeEach(async () => {
+    // Setup the EM
+    Factory__OVM_ExecutionManager = await ethers.getContractFactory(
+      'OVM_ExecutionManager'
+    )
     OVM_ExecutionManager = (
       await Factory__OVM_ExecutionManager.deploy(
         AddressManager.address,
@@ -84,15 +80,19 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
         DUMMY_GLOBALCONTEXT
       )
     ).connect(wallet)
+
+    // Deploy GasMeasurement utility
+    gasMeasurement = new GasMeasurement()
+    await gasMeasurement.init(wallet)
   })
 
-  describe('Measure cost of a very simple contract', async () => {
+  describe('Measure cost of executing a very simple contract', async () => {
 
     let targetContractAddress: string
     before(async () => {
-      // Deploy a simple OVM-safe contract that just deploys a another contract
+      // Deploy a simple OVM-safe contract which is just `STOP`
       targetContractAddress = await deployContractCode(
-        '60206001f3',
+        '00',
         wallet,
         10_000_000
       )
@@ -102,7 +102,9 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
       )
     })
 
-    it('Gas cost of run()', async () => {
+    it('Gas benchmark: cost of run()', async () => {
+      // by setting the entrypoint to our minimal contract, and smocking the SM
+      // we measure mostly the overhead of EM.run()
       const gasCost = await gasMeasurement.getGasCost(
         OVM_ExecutionManager,
         'run',
@@ -119,13 +121,37 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
     })
   })
 
-  describe('Measure cost of deploying a very simple contract', async () => {
-    
-    
+  describe('Measure cost of deploying a simple contract', async () => {
+    let simpleDeployer: Contract
+    before(async () => {
+      // Deploy a simple OVM-safe contract that just deploys a another contract
+      simpleDeployer = await (
+        await ethers.getContractFactory('Helper_SimpleOvmDeployer')
+      ).deploy()
+      DUMMY_TRANSACTION.entrypoint = simpleDeployer.address
 
-    it('Gas cost of basic contract deployment', async () => {
-      // what does the DUMMY_TRANSACTION need to be to deploy a simple transaction?
-      // Do I need to go through a proxy EOA?
+      MOCK__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(
+        simpleDeployer.address
+      )
+    })
+
+    it('Benchmark un-chached contract deployment', async () => {
+      const gasCost = await gasMeasurement.getGasCost(
+        OVM_ExecutionManager,
+        'run',
+        [DUMMY_TRANSACTION, MOCK__STATE_MANAGER.address]
+      )
+      console.log(`      calculated gas cost of ${gasCost}`)
+
+      const benchmark: number = 3_488_629
+      expect(gasCost).to.be.lte(benchmark)
+      expect(gasCost).to.be.gte(
+        benchmark - 1_000,
+        'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
+      )
+    })
+    
+    it('Gas benchmark: deploying a cached contract', async () => {
       const gasCost = await gasMeasurement.getGasCost(
         OVM_ExecutionManager,
         'run',
@@ -139,6 +165,12 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
         benchmark - 1_000,
         'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
       )
+    })
+  })
+  describe.skip('Measure cost of deploying a larger contract', async () => {
+    it('Benchmark un-chached contract deployment', async () => {
+    })
+    it('Gas benchmark: deploying a cached contract', async () => {
     })
   })
 })
