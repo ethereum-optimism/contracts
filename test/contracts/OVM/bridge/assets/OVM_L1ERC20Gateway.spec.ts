@@ -81,7 +81,7 @@ describe('OVM_L1ERC20Gateway', () => {
       )
 
       await expect(
-        OVM_L1ERC20Gateway.finalizeWithdrawal(ZERO_ADDRESS, 1)
+        OVM_L1ERC20Gateway.finalizeWithdrawal(ZERO_ADDRESS, 1, "0x")
       ).to.be.revertedWith(ERR_INVALID_MESSENGER)
     })
 
@@ -91,7 +91,7 @@ describe('OVM_L1ERC20Gateway', () => {
       )
 
       await expect(
-        OVM_L1ERC20Gateway.finalizeWithdrawal(ZERO_ADDRESS, 1, {
+        OVM_L1ERC20Gateway.finalizeWithdrawal(ZERO_ADDRESS, 1, "0x", {
           from: Mock__OVM_L1CrossDomainMessenger.address,
         })
       ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
@@ -111,6 +111,7 @@ describe('OVM_L1ERC20Gateway', () => {
       const res = await OVM_L1ERC20Gateway.finalizeWithdrawal(
         NON_ZERO_ADDRESS,
         withdrawalAmount,
+        "0x",
         { from: Mock__OVM_L1CrossDomainMessenger.address }
       )
 

@@ -89,7 +89,8 @@ contract OVM_L1ERC20Gateway is Abs_L1TokenGateway {
      */
     function _handleFinalizeWithdrawal(
         address _to,
-        uint _amount
+        uint _amount,
+        bytes memory // The extra data does not need to do anything. It just gets used to commit to additional info in the L2.
     )
         internal
         override

@@ -147,13 +147,14 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * @param _amount Amount of the token to withdraw
      */
     function withdraw(
-        uint _amount
+        uint _amount,
+        bytes memory extraData
     )
         external
         override
         onlyInitialized()
     {
-        _initiateWithdrawal(msg.sender, _amount);
+        _initiateWithdrawal(msg.sender, _amount, extraData);
     }
 
     /**
@@ -161,8 +162,8 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * @param _to L1 adress to credit the withdrawal to
      * @param _amount Amount of the token to withdraw
      */
-    function withdrawTo(address _to, uint _amount) external override onlyInitialized() {
-        _initiateWithdrawal(_to, _amount);
+    function withdrawTo(address _to, uint _amount, bytes memory extraData) external override onlyInitialized() {
+        _initiateWithdrawal(_to, _amount, extraData);
     }
 
     /**
@@ -171,15 +172,16 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * @param _to Account to give the withdrawal to on L1
      * @param _amount Amount of the token to withdraw
      */
-    function _initiateWithdrawal(address _to, uint _amount) internal {
+    function _initiateWithdrawal(address _to, uint _amount, bytes memory extraData) internal {
         // Call our withdrawal accounting handler implemented by child contracts (usually a _burn)
         _handleInitiateWithdrawal(_to, _amount);
 
-        // Construct calldata for l1TokenGateway.finalizeWithdrawal(_to, _amount)
+        // Construct calldata for l1TokenGateway.finalizeWithdrawal(_to, _amount, extraData)
         bytes memory data = abi.encodeWithSelector(
             iOVM_L1TokenGateway.finalizeWithdrawal.selector,
             _to,
-            _amount
+            _amount,
+            extraData
         );
 
         // Send message up to L1 gateway
@@ -189,7 +191,7 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
             getFinalizeWithdrawalL1Gas()
         );
 
-        emit WithdrawalInitiated(msg.sender, _to, _amount);
+        emit WithdrawalInitiated(msg.sender, _to, _amount, extraData);
     }
 
     /************************************

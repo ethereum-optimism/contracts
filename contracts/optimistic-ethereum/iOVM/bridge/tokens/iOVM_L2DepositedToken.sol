@@ -14,7 +14,8 @@ interface iOVM_L2DepositedToken {
     event WithdrawalInitiated(
         address indexed _from,
         address _to,
-        uint256 _amount
+        uint256 _amount,
+        bytes extraData
     );
 
     event DepositFinalized(
@@ -28,13 +29,15 @@ interface iOVM_L2DepositedToken {
      ********************/
 
     function withdraw(
-        uint _amount
+        uint _amount,
+        bytes memory extraData
     )
         external;
 
     function withdrawTo(
         address _to,
-        uint _amount
+        uint _amount,
+        bytes memory extraData
     )
         external;
 

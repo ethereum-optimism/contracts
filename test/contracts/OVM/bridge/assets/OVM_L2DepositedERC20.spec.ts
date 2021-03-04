@@ -12,6 +12,7 @@ import {
 
 /* Internal Imports */
 import { NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../../helpers'
+import {defaultAbiCoder} from '@ethersproject/abi'
 
 const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
@@ -124,7 +125,7 @@ describe('OVM_L2DepositedERC20', () => {
     })
 
     it('withdraw() burns and sends the correct withdrawal message', async () => {
-      await SmoddedL2Gateway.withdraw(withdrawAmount)
+      await SmoddedL2Gateway.withdraw(withdrawAmount, "0x")
       const withdrawalCallToMessenger =
         Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
 
@@ -149,7 +150,7 @@ describe('OVM_L2DepositedERC20', () => {
       expect(withdrawalCallToMessenger._message).to.equal(
         await Factory__OVM_L1ERC20Gateway.interface.encodeFunctionData(
           'finalizeWithdrawal',
-          [await alice.getAddress(), withdrawAmount]
+          [await alice.getAddress(), withdrawAmount, '0x']
         )
       )
       // Hardcoded gaslimit should be correct
@@ -159,7 +160,7 @@ describe('OVM_L2DepositedERC20', () => {
     })
 
     it('withdrawTo() burns and sends the correct withdrawal message', async () => {
-      await SmoddedL2Gateway.withdrawTo(await bob.getAddress(), withdrawAmount)
+      await SmoddedL2Gateway.withdrawTo(await bob.getAddress(), withdrawAmount, "0x")
       const withdrawalCallToMessenger =
         Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
 
@@ -184,12 +185,34 @@ describe('OVM_L2DepositedERC20', () => {
       expect(withdrawalCallToMessenger._message).to.equal(
         await Factory__OVM_L1ERC20Gateway.interface.encodeFunctionData(
           'finalizeWithdrawal',
-          [await bob.getAddress(), withdrawAmount]
+          [await bob.getAddress(), withdrawAmount, '0x']
         )
       )
       // Hardcoded gaslimit should be correct
       expect(withdrawalCallToMessenger._gasLimit).to.equal(
         finalizeWithdrawalGasLimit
+      )
+    })
+
+    it('can pass arbitrary data to the L2 messenger', async () => {
+      // pass some data, e.g. the original msg.sender of the call (otherwise not
+      // accessible from L1) and some extra info e.g. the fee % they're willing to
+      // pay in a fast withdrawal
+      const data = defaultAbiCoder.encode(
+        ["address", "uint256"],
+        [await alice.getAddress(), 100]
+      )
+      await SmoddedL2Gateway.withdrawTo(await bob.getAddress(), withdrawAmount, data)
+      const withdrawalCallToMessenger =
+        Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
+
+      // Assert the correct cross-chain call was sent.
+      expect(withdrawalCallToMessenger._target).to.equal(MOCK_L1GATEWAY_ADDRESS)
+      expect(withdrawalCallToMessenger._message).to.equal(
+        Factory__OVM_L1ERC20Gateway.interface.encodeFunctionData(
+          'finalizeWithdrawal',
+          [await bob.getAddress(), withdrawAmount, data]
+        )
       )
     })
   })

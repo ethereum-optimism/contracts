@@ -19,7 +19,8 @@ interface iOVM_L1TokenGateway {
   
     event WithdrawalFinalized(
         address indexed _to,
-        uint256 _amount
+        uint256 _amount,
+        bytes extraData
     );
 
 
@@ -45,7 +46,8 @@ interface iOVM_L1TokenGateway {
 
     function finalizeWithdrawal(
         address _to,
-        uint _amount
+        uint _amount,
+        bytes memory extraData
     )
         external;
 

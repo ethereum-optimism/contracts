@@ -64,7 +64,8 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
      */
     function _handleFinalizeWithdrawal(
         address _to,
-        uint256 _amount
+        uint256 _amount,
+        bytes memory extraData
     )
         internal
         virtual
@@ -190,10 +191,12 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
      *
      * @param _to L1 address to credit the withdrawal to
      * @param _amount Amount of the ERC20 to withdraw
+     * @param _extraData Any additional data to be committed to as part of the withdrawal message. The data does not need to be interpreted or executed on L1, it just needs to be hashed into the `relayedMessages` array in the L1 messenger so that 
      */
     function finalizeWithdrawal(
         address _to,
-        uint _amount
+        uint _amount,
+        bytes memory _extraData
     )
         external
         override 
@@ -202,9 +205,10 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
         // Call our withdrawal accounting handler implemented by child contracts.
         _handleFinalizeWithdrawal(
             _to,
-            _amount
+            _amount,
+            _extraData
         );
 
-        emit WithdrawalFinalized(_to, _amount);
+        emit WithdrawalFinalized(_to, _amount, _extraData);
     }
 }
