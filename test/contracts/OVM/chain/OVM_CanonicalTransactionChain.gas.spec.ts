@@ -1,5 +1,3 @@
-import { expect } from '../../../setup'
-
 /* External Imports */
 import { ethers } from 'hardhat'
 import { Signer, ContractFactory, Contract } from 'ethers'
