@@ -10,6 +10,9 @@ import { iOVM_SafetyCache } from "../../iOVM/execution/iOVM_SafetyCache.sol";
 /* Inherited Interface Imports */
 import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol";
 
+import "hardhat/console.sol";
+
+
 /**
  * @title OVM_SafetyCache
  * @dev This contract implements a simple registry for caching the hash of any bytecode strings which have
@@ -70,11 +73,15 @@ contract OVM_SafetyCache is iOVM_SafetyCache, Lib_AddressResolver {
             bool
     ) {
         bytes32 codehash = keccak256(abi.encode(_code));
+        console.log("codehash: ");
+        console.logBytes32(codehash);
+        console.log(uint(codehash));
         if(isSafeCodehash[codehash] == true) {
             return true;
         }
 
         bool safe = ovmSafetyChecker.isBytecodeSafe(_code);
+        console.log("safe: ", safe);
         if(safe) {
             isSafeCodehash[codehash] = true;
         }

@@ -3,6 +3,9 @@
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
+
+
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
@@ -86,6 +89,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         public
         Lib_AddressResolver(_libAddressManager)
     {
+        console.log('constructor');
         ovmSafetyCache = iOVM_SafetyCache(resolve("OVM_SafetyCache"));
         gasMeterConfig = _gasMeterConfig;
         globalContext = _globalContext;
@@ -812,6 +816,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
 
+        console.log('pre-check');
         // Check the creation bytecode against the Safety Cache and Safety Checker.
         if (ovmSafetyCache.checkAndRegisterSafeBytecode(_bytecode) == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
@@ -1179,7 +1184,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         )
     {
         _checkAccountLoad(_address);
-        return ovmStateManager.getAccountEthAddress(_address);
+        address gotten = ovmStateManager.getAccountEthAddress(_address);
+        // console.log('_getAccountEthAddress', _address, gotten);
+        return gotten;
     }
 
     /**
