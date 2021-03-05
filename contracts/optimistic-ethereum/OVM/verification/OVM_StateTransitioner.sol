@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+// @unsupported: ovm
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -20,12 +21,23 @@ import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
 import { iOVM_StateManagerFactory } from "../../iOVM/execution/iOVM_StateManagerFactory.sol";
 
 /* Contract Imports */
-import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
+import { Abs_FraudContributor } from "./Abs_FraudContributor.sol";
 
 /**
  * @title OVM_StateTransitioner
+ * @dev The State Transitioner coordinates the execution of a state transition during the evaluation of a
+ * fraud proof. It feeds verified input to the Execution Manager's run(), and controls a State Manager (which is
+ * uniquely created for each fraud proof).
+ * Once a fraud proof has been initialized, this contract is provided with the pre-state root and verifies
+ * that the OVM storage slots committed to the State Mangager are contained in that state
+ * This contract controls the State Manager and Execution Manager, and uses them to calculate the
+ * post-state root by applying the transaction. The Fraud Verifier can then check for fraud by comparing
+ * the calculated post-state root with the proposed post-state root.
+ * 
+ * Compiler used: solc
+ * Runtime target: EVM
  */
-contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOVM_StateTransitioner {
+contract OVM_StateTransitioner is Lib_AddressResolver, Abs_FraudContributor, iOVM_StateTransitioner {
 
     /*******************
      * Data Structures *
@@ -80,6 +92,7 @@ contract OVM_StateTransitioner is Lib_AddressResolver, OVM_FraudContributor, iOV
         bytes32 _preStateRoot,
         bytes32 _transactionHash
     )
+        public
         Lib_AddressResolver(_libAddressManager)
     {
         stateTransitionIndex = _stateTransitionIndex;

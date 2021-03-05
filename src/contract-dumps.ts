@@ -3,10 +3,10 @@ import * as path from 'path'
 import { ethers } from 'ethers'
 import * as Ganache from 'ganache-core'
 import { keccak256 } from 'ethers/lib/utils'
+import { fromHexString, toHexString, remove0x } from '@eth-optimism/core-utils'
 
 /* Internal Imports */
 import { deploy, RollupDeployConfig } from './contract-deployment'
-import { fromHexString, toHexString, remove0x } from './utils'
 import { getContractDefinition } from './contract-defs'
 
 interface StorageDump {
@@ -114,7 +114,7 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
     deploymentSigner: signer,
     ovmGasMeteringConfig: {
       minTransactionGasLimit: 0,
-      maxTransactionGasLimit: 1_000_000_000,
+      maxTransactionGasLimit: 9_000_000,
       maxGasPerQueuePerEpoch: 1_000_000_000_000,
       secondsPerEpoch: 0,
     },
@@ -137,10 +137,8 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
       allowArbitraryContractDeployment: true,
     },
     l1CrossDomainMessengerConfig: {},
-    ethConfig: {
-      initialAmount: 0,
-    },
     dependencies: [
+      'ERC1820Registry',
       'Lib_AddressManager',
       'OVM_DeployerWhitelist',
       'OVM_L1MessageSender',
@@ -156,6 +154,8 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
       'OVM_ETH',
       'mockOVM_ECDSAContractAccount',
     ],
+    deployOverrides: {},
+    waitForReceipts: false,
   }
 
   config = { ...config, ...cfg }
@@ -170,6 +170,7 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
     OVM_ETH: '0x4200000000000000000000000000000000000006',
     OVM_L2CrossDomainMessenger: '0x4200000000000000000000000000000000000007',
     Lib_AddressManager: '0x4200000000000000000000000000000000000008',
+    ERC1820Registry: '0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24',
   }
 
   const ovmCompiled = [

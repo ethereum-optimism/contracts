@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// +build ovm
 pragma solidity >0.5.0 <0.8.0;
 
 /* Contract Imports */
@@ -9,6 +8,15 @@ import { Ownable } from "./Lib_Ownable.sol";
  * @title Lib_AddressManager
  */
 contract Lib_AddressManager is Ownable {
+
+    /**********
+     * Events *
+     **********/
+
+    event AddressSet(
+        string _name,
+        address _newAddress
+    );
 
     /*******************************************
      * Contract Variables: Internal Accounting *
@@ -28,6 +36,7 @@ contract Lib_AddressManager is Ownable {
         public
         onlyOwner
     {
+        emit AddressSet(_name, _address);
         addresses[_getNameHash(_name)] = _address;
     }
 

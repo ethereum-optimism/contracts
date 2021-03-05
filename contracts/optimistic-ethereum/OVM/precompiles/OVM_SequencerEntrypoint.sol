@@ -1,4 +1,5 @@
-pragma solidity ^0.7.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >0.5.0 <0.8.0;
 
 /* Library Imports */
 import { Lib_BytesUtils } from "../../libraries/utils/Lib_BytesUtils.sol";
@@ -8,6 +9,14 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 
 /**
  * @title OVM_SequencerEntrypoint
+ * @dev The Sequencer Entrypoint is a predeploy which, despite its name, can in fact be called by 
+ * any account. It accepts a more efficient compressed calldata format, which it decompresses and 
+ * encodes to the standard EIP155 transaction format.
+ * This contract is the implementation referenced by the Proxy Sequencer Entrypoint, thus enabling
+ * the Optimism team to upgrade the decompression of calldata from the Sequencer.
+ * 
+ * Compiler used: solc
+ * Runtime target: OVM
  */
 contract OVM_SequencerEntrypoint {
 
@@ -30,6 +39,7 @@ contract OVM_SequencerEntrypoint {
      * calldata[00:01]: transaction type (0 == EIP 155, 2 == Eth Sign Message)
      * calldata[01:33]: signature "r" parameter
      * calldata[33:65]: signature "s" parameter
+     * calldata[65:66]: signature "v" parameter
      * calldata[66:69]: transaction gas limit
      * calldata[69:72]: transaction gas price
      * calldata[72:75]: transaction nonce

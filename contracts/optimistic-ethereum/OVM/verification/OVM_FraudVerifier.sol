@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -15,9 +15,20 @@ import { iOVM_StateCommitmentChain } from "../../iOVM/chain/iOVM_StateCommitment
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
 
 /* Contract Imports */
-import { OVM_FraudContributor } from "./OVM_FraudContributor.sol";
+import { Abs_FraudContributor } from "./Abs_FraudContributor.sol";
 
-contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_FraudVerifier {
+
+
+/**
+ * @title OVM_FraudVerifier
+ * @dev The Fraud Verifier contract coordinates the entire fraud proof verification process. 
+ * If the fraud proof was successful it prunes any state batches from State Commitment Chain
+ * which were published after the fraudulent state root.
+ * 
+ * Compiler used: solc
+ * Runtime target: EVM
+ */
+contract OVM_FraudVerifier is Lib_AddressResolver, Abs_FraudContributor, iOVM_FraudVerifier {
 
     /*******************************************
      * Contract Variables: Internal Accounting *
@@ -36,6 +47,7 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
     constructor(
         address _libAddressManager
     )
+        public
         Lib_AddressResolver(_libAddressManager)
     {}
 
@@ -125,6 +137,13 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
         );
 
         _deployTransitioner(_preStateRoot, _txHash, _preStateRootProof.index);
+
+        emit FraudProofInitialized(
+            _preStateRoot,
+            _preStateRootProof.index,
+            _txHash,
+            msg.sender
+        );
     }
 
     /**
@@ -192,6 +211,13 @@ contract OVM_FraudVerifier is Lib_AddressResolver, OVM_FraudContributor, iOVM_Fr
 
         // TEMPORARY: Remove the transitioner; for minnet.
         transitioners[keccak256(abi.encodePacked(_preStateRoot, _txHash))] = iOVM_StateTransitioner(0x0000000000000000000000000000000000000000);
+
+        emit FraudProofFinalized(
+            _preStateRoot,
+            _preStateRootProof.index,
+            _txHash,
+            msg.sender
+        );
     }
 
 

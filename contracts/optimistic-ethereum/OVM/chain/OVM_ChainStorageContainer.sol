@@ -1,4 +1,5 @@
-pragma solidity ^0.7.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >0.5.0 <0.8.0;
 
 /* Library Imports */
 import { Lib_RingBuffer } from "../../libraries/utils/Lib_RingBuffer.sol";
@@ -9,6 +10,17 @@ import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageCo
 
 /**
  * @title OVM_ChainStorageContainer
+ * @dev The Chain Storage Container provides its owner contract with read, write and delete functionality.
+ * This provides gas efficiency gains by enabling it to overwrite storage slots which can no longer be used
+ * in a fraud proof due to the fraud window having passed, and the associated chain state or
+ * transactions being finalized.
+ * Three distinct Chain Storage Containers will be deployed on Layer 1:
+ * 1. Stores transaction batches for the Canonical Transaction Chain
+ * 2. Stores queued transactions for the Canonical Transaction Chain
+ * 3. Stores chain state batches for the State Commitment Chain
+ *
+ * Compiler used: solc
+ * Runtime target: EVM
  */
 contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressResolver {
 
@@ -30,7 +42,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
     /***************
      * Constructor *
      ***************/
-    
+
     /**
      * @param _libAddressManager Address of the Address Manager.
      * @param _owner Name of the contract that owns this container (will be resolved later).
@@ -39,6 +51,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
         address _libAddressManager,
         string memory _owner
     )
+        public
         Lib_AddressResolver(_libAddressManager)
     {
         owner = _owner;
@@ -48,7 +61,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
     /**********************
      * Function Modifiers *
      **********************/
-    
+
     modifier onlyOwner() {
         require(
             msg.sender == resolve(owner),
@@ -174,7 +187,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
     {
         return buffer.get(uint40(_index));
     }
-    
+
     /**
      * @inheritdoc iOVM_ChainStorageContainer
      */
@@ -189,7 +202,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
             uint40(_index)
         );
     }
-    
+
     /**
      * @inheritdoc iOVM_ChainStorageContainer
      */

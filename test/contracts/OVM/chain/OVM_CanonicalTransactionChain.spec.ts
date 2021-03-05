@@ -1,10 +1,11 @@
 import { expect } from '../../../setup'
 
 /* External Imports */
-import { ethers } from '@nomiclabs/buidler'
-import { Signer, ContractFactory, Contract, BigNumber, providers } from 'ethers'
+import { ethers } from 'hardhat'
+import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { smockit, MockContract } from '@eth-optimism/smock'
+import { remove0x } from '@eth-optimism/core-utils'
 import _ from 'lodash'
 
 /* Internal Imports */
@@ -15,12 +16,12 @@ import {
   FORCE_INCLUSION_PERIOD_BLOCKS,
   setEthTime,
   NON_ZERO_ADDRESS,
-  remove0x,
   getEthTime,
   getNextBlockNumber,
   increaseEthTime,
   getBlockTime,
   ZERO_ADDRESS,
+  mineBlock,
 } from '../../../helpers'
 import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
 
@@ -171,11 +172,11 @@ describe('OVM_CanonicalTransactionChain', () => {
       DECOMPRESSION_ADDRESS
     )
 
-    Mock__OVM_ExecutionManager = smockit(
+    Mock__OVM_ExecutionManager = await smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 
-    Mock__OVM_StateCommitmentChain = smockit(
+    Mock__OVM_StateCommitmentChain = await smockit(
       await ethers.getContractFactory('OVM_StateCommitmentChain')
     )
 
@@ -245,7 +246,6 @@ describe('OVM_CanonicalTransactionChain', () => {
   describe('enqueue', () => {
     const target = NON_ZERO_ADDRESS
     const gasLimit = 500_000
-    const data = '0x' + '12'.repeat(1234)
 
     it('should revert when trying to input more data than the max data size', async () => {
       const MAX_ROLLUP_TX_SIZE = await OVM_CanonicalTransactionChain.MAX_ROLLUP_TX_SIZE()
@@ -270,19 +270,21 @@ describe('OVM_CanonicalTransactionChain', () => {
 
     it('should revert if gas limit parameter is not at least MIN_ROLLUP_TX_GAS', async () => {
       const MIN_ROLLUP_TX_GAS = await OVM_CanonicalTransactionChain.MIN_ROLLUP_TX_GAS()
-      const gasLimit = MIN_ROLLUP_TX_GAS / 2
+      const customGasLimit = MIN_ROLLUP_TX_GAS / 2
+      const data = '0x' + '12'.repeat(1234)
 
       await expect(
-        OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+        OVM_CanonicalTransactionChain.enqueue(target, customGasLimit, data)
       ).to.be.revertedWith('Transaction gas limit too low to enqueue.')
     })
 
     it('should revert if transaction gas limit does not cover rollup burn', async () => {
       const L2_GAS_DISCOUNT_DIVISOR = await OVM_CanonicalTransactionChain.L2_GAS_DISCOUNT_DIVISOR()
+      const data = '0x' + '12'.repeat(1234)
 
       await expect(
         OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data, {
-          gasLimit: gasLimit / L2_GAS_DISCOUNT_DIVISOR - 1,
+          gasLimit: gasLimit / L2_GAS_DISCOUNT_DIVISOR + 30_000, // offset constant overhead
         })
       ).to.be.revertedWith('Insufficient gas for L2 rate limiting burn.')
     })
@@ -290,6 +292,8 @@ describe('OVM_CanonicalTransactionChain', () => {
     describe('with valid input parameters', () => {
       it('should emit a TransactionEnqueued event', async () => {
         const timestamp = (await getEthTime(ethers.provider)) + 100
+        const data = '0x' + '12'.repeat(1234)
+
         await setEthTime(ethers.provider, timestamp)
 
         await expect(
@@ -298,6 +302,8 @@ describe('OVM_CanonicalTransactionChain', () => {
       })
 
       describe('when enqueing multiple times', () => {
+        const data = '0x' + '12'.repeat(1234)
+
         for (const size of ELEMENT_TEST_SIZES) {
           it(`should be able to enqueue ${size} elements`, async () => {
             for (let i = 0; i < size; i++) {
@@ -675,8 +681,8 @@ describe('OVM_CanonicalTransactionChain', () => {
             {
               numSequencedTransactions: 1,
               numSubsequentQueueTransactions: 0,
-              timestamp: timestamp,
-              blockNumber: blockNumber,
+              timestamp,
+              blockNumber,
             },
           ],
           transactions: [data],
@@ -717,7 +723,7 @@ describe('OVM_CanonicalTransactionChain', () => {
     })
   })
 
-  describe.skip('appendSequencerBatch', () => {
+  describe('appendSequencerBatch', () => {
     beforeEach(() => {
       OVM_CanonicalTransactionChain = OVM_CanonicalTransactionChain.connect(
         sequencer
@@ -726,7 +732,7 @@ describe('OVM_CanonicalTransactionChain', () => {
 
     it('should allow for a lower bound per-tx gas usage of <400 gas [GAS BENCHMARK]', async () => {
       const timestamp = (await getEthTime(ethers.provider)) - 100
-      const blockNumber = (await getNextBlockNumber(ethers.provider)) + 100
+      const blockNumber = await getNextBlockNumber(ethers.provider)
 
       // do two batch appends for no reason
       await appendSequencerBatch(OVM_CanonicalTransactionChain, {
@@ -995,6 +1001,8 @@ describe('OVM_CanonicalTransactionChain', () => {
             })
             it('should revert if the first context timestamp is > the head queue element timestamp', async () => {
               const timestamp = (await getEthTime(ethers.provider)) + 100
+              const blockNumber =
+                (await getNextBlockNumber(ethers.provider)) - 1
 
               await expect(
                 appendSequencerBatch(OVM_CanonicalTransactionChain, {
@@ -1003,8 +1011,8 @@ describe('OVM_CanonicalTransactionChain', () => {
                     {
                       numSequencedTransactions: 1,
                       numSubsequentQueueTransactions: 0,
-                      timestamp: timestamp,
-                      blockNumber: 0,
+                      timestamp,
+                      blockNumber,
                     },
                   ],
                   shouldStartAtElement: 0,
@@ -1027,8 +1035,8 @@ describe('OVM_CanonicalTransactionChain', () => {
                     {
                       numSequencedTransactions: 1,
                       numSubsequentQueueTransactions: 0,
-                      timestamp: timestamp,
-                      blockNumber: blockNumber,
+                      timestamp,
+                      blockNumber,
                     },
                   ],
                   shouldStartAtElement: 0,
@@ -1041,8 +1049,8 @@ describe('OVM_CanonicalTransactionChain', () => {
           })
           describe('adding multiple sequencer transactions with multiple pending queue elements', () => {
             const numQueuedTransactions = 10
-            let queueElements = []
-            let validContexts = []
+            const queueElements = []
+            const validContexts = []
             beforeEach(async () => {
               for (let i = 0; i < numQueuedTransactions; i++) {
                 await OVM_CanonicalTransactionChain.enqueue(
@@ -1073,7 +1081,7 @@ describe('OVM_CanonicalTransactionChain', () => {
             })
 
             it('reverts if wrong timestamp in middle', async () => {
-              let invalidTimestampContexts = [...validContexts]
+              const invalidTimestampContexts = [...validContexts]
               // put a bigger timestamp early
               invalidTimestampContexts[6].timestamp =
                 invalidTimestampContexts[8].timestamp
@@ -1091,7 +1099,7 @@ describe('OVM_CanonicalTransactionChain', () => {
             })
 
             it('reverts if wrong block number in the middle', async () => {
-              let invalidBlockNumberContexts = [...validContexts]
+              const invalidBlockNumberContexts = [...validContexts]
               // put a bigger block number early
               invalidBlockNumberContexts[6].blockNumber =
                 invalidBlockNumberContexts[8].blockNumber
@@ -1214,7 +1222,7 @@ describe('OVM_CanonicalTransactionChain', () => {
           const timestamp = await getEthTime(ethers.provider)
 
           for (let i = 0; i < FORCE_INCLUSION_PERIOD_BLOCKS + 1; i++) {
-            await ethers.provider.send('evm_mine', [])
+            await mineBlock(ethers.provider)
           }
 
           await expect(
@@ -1225,13 +1233,13 @@ describe('OVM_CanonicalTransactionChain', () => {
                   numSequencedTransactions: 1,
                   numSubsequentQueueTransactions: 0,
                   timestamp,
-                  blockNumber: 0,
+                  blockNumber: 10,
                 },
               ],
               shouldStartAtElement: 0,
               totalElementsToAppend: 1,
             })
-          ).to.be.revertedWith('Context timestamp too far in the past.')
+          ).to.be.revertedWith('Context block number too far in the past.')
         })
       })
 
@@ -1370,6 +1378,8 @@ describe('OVM_CanonicalTransactionChain', () => {
           FORCE_INCLUSION_PERIOD_SECONDS * 2
         )
 
+        const blockNumber = (await ethers.provider.getBlockNumber()) - 1
+
         const validTimestamp = (await getBlockTime(ethers.provider)) + 100
 
         await expect(
@@ -1380,7 +1390,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 numSequencedTransactions: 1,
                 numSubsequentQueueTransactions: 0,
                 timestamp: validTimestamp,
-                blockNumber: 0,
+                blockNumber,
               },
             ],
             shouldStartAtElement: 0,
@@ -1411,8 +1421,8 @@ describe('OVM_CanonicalTransactionChain', () => {
                 {
                   numSequencedTransactions: size,
                   numSubsequentQueueTransactions: 0,
-                  timestamp: timestamp,
-                  blockNumber: blockNumber,
+                  timestamp,
+                  blockNumber,
                 },
               ]
 
@@ -1462,7 +1472,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 return {
                   numSequencedTransactions: 1,
                   numSubsequentQueueTransactions: 1,
-                  timestamp: timestamp,
+                  timestamp,
                   blockNumber: Math.max(blockNumber, 0),
                 }
               })
@@ -1502,7 +1512,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 return {
                   numSequencedTransactions: size / spacing,
                   numSubsequentQueueTransactions: 1,
-                  timestamp: timestamp,
+                  timestamp,
                   blockNumber: Math.max(blockNumber, 0),
                 }
               })
@@ -1548,7 +1558,7 @@ describe('OVM_CanonicalTransactionChain', () => {
             {
               numSequencedTransactions: size,
               numSubsequentQueueTransactions: 0,
-              timestamp: timestamp,
+              timestamp,
               blockNumber: Math.max(blockNumber, 0),
             },
           ]

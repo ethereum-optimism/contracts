@@ -1,5 +1,5 @@
 /* External Imports */
-import { Signer, Contract, ContractFactory } from 'ethers'
+import { Contract } from 'ethers'
 
 /* Internal Imports */
 import { RollupDeployConfig, makeContractDeployConfig } from './config'
@@ -32,6 +32,9 @@ export const deploy = async (
       'Lib_AddressManager',
       config.deploymentSigner
     ).deploy()
+    if (config.waitForReceipts) {
+      await AddressManager.deployTransaction.wait()
+    }
   }
 
   const contractDeployConfig = await makeContractDeployConfig(
@@ -56,9 +59,15 @@ export const deploy = async (
         .connect(config.deploymentSigner)
         .deploy(
           ...(contractDeployParameters.params || []),
-          config.deployOverrides || {}
+          config.deployOverrides
         )
-      await AddressManager.setAddress(name, contracts[name].address)
+      if (config.waitForReceipts) {
+        await contracts[name].deployTransaction.wait()
+      }
+      const res = await AddressManager.setAddress(name, contracts[name].address)
+      if (config.waitForReceipts) {
+        await res.wait()
+      }
     } catch (err) {
       console.error(`Error deploying ${name}: ${err}`)
       failedDeployments.push(name)

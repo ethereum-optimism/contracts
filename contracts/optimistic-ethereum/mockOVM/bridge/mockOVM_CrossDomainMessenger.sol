@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Contract Imports */
-import { iOVM_BaseCrossDomainMessenger } from "../../iOVM/bridge/iOVM_BaseCrossDomainMessenger.sol";
+import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/messaging/iAbs_BaseCrossDomainMessenger.sol";
 
 /**
  * @title mockOVM_CrossDomainMessenger
  */
-contract mockOVM_CrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
+contract mockOVM_CrossDomainMessenger is iAbs_BaseCrossDomainMessenger {
 
     /***********
      * Structs *
@@ -45,7 +45,9 @@ contract mockOVM_CrossDomainMessenger is iOVM_BaseCrossDomainMessenger {
      */
     constructor(
         uint256 _delay
-    ) {
+    )
+        public
+    {
         delay = _delay;
     }
 

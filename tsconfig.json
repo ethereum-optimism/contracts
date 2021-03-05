@@ -4,6 +4,7 @@
     "target": "es2017",
     "declaration": true,
     "noImplicitAny": false,
+    "noUnusedLocals": true,
     "removeComments": true,
     "noLib": false,
     "emitDecoratorMetadata": true,
@@ -19,15 +20,5 @@
     "typeRoots": [
       "node_modules/@types"
     ]
-  },
-  "include": [
-    "src/**/*.ts",
-    "plugins/**/*.ts",
-    "artifacts/*.json",
-    "./buidler.config.ts",
-    "./buidler-env.d.ts",
-    "./node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts",
-    "./node_modules/@nomiclabs/buidler-waffle/src/type-extensions.d.ts",
-    "./node_modules/buidler-typechain/src/type-extensions.d.ts"
-  ]
+  }
 }

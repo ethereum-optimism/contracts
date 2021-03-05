@@ -1,7 +1,7 @@
 import { expect } from '../../../setup'
 
 /* External Imports */
-import { ethers } from '@nomiclabs/buidler'
+import { ethers } from 'hardhat'
 import { Signer, ContractFactory, Contract } from 'ethers'
 import { smockit, MockContract } from '@eth-optimism/smock'
 
@@ -15,7 +15,6 @@ import {
   NULL_BYTES32,
   increaseEthTime,
 } from '../../../helpers'
-import { keccak256, defaultAbiCoder } from 'ethers/lib/utils'
 
 describe('OVM_StateCommitmentChain', () => {
   let sequencer: Signer
@@ -32,7 +31,7 @@ describe('OVM_StateCommitmentChain', () => {
   let Mock__OVM_CanonicalTransactionChain: MockContract
   let Mock__OVM_BondManager: MockContract
   before(async () => {
-    Mock__OVM_CanonicalTransactionChain = smockit(
+    Mock__OVM_CanonicalTransactionChain = await smockit(
       await ethers.getContractFactory('OVM_CanonicalTransactionChain')
     )
 
@@ -42,7 +41,7 @@ describe('OVM_StateCommitmentChain', () => {
       Mock__OVM_CanonicalTransactionChain
     )
 
-    Mock__OVM_BondManager = smockit(
+    Mock__OVM_BondManager = await smockit(
       await ethers.getContractFactory('OVM_BondManager')
     )
 
@@ -205,7 +204,7 @@ describe('OVM_StateCommitmentChain', () => {
         batch.length
       )
       await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
-      batchHeader.extraData = defaultAbiCoder.encode(
+      batchHeader.extraData = ethers.utils.defaultAbiCoder.encode(
         ['uint256', 'address'],
         [await getEthTime(ethers.provider), await sequencer.getAddress()]
       )

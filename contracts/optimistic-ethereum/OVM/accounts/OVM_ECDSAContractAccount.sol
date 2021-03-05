@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
@@ -13,11 +13,24 @@ import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrappe
 
 /**
  * @title OVM_ECDSAContractAccount
+ * @dev The ECDSA Contract Account can be used as the implementation for a ProxyEOA deployed by the
+ * ovmCREATEEOA operation. It enables backwards compatibility with Ethereum's Layer 1, by 
+ * providing eth_sign and EIP155 formatted transaction encodings.
+ *
+ * Compiler used: solc
+ * Runtime target: OVM
  */
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
+    /*************
+     * Constants *
+     *************/
+
+    // TODO: should be the amount sufficient to cover the gas costs of all of the transactions up
+    // to and including the CALL/CREATE which forms the entrypoint of the transaction.
+    uint256 constant EXECUTION_VALIDATION_GAS_OVERHEAD = 25000;
     address constant ETH_ERC20_ADDRESS = 0x4200000000000000000000000000000000000006;
-    uint256 constant EXECUTION_VALIDATION_GAS_OVERHEAD = 25000; // TODO: should be the amount sufficient to cover the gas costs of all of the transactions up to and including the CALL/CREATE which forms the entrypoint of the transaction.
+
 
     /********************
      * Public Functions *
@@ -30,8 +43,8 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
      * @param _v Signature `v` parameter.
      * @param _r Signature `r` parameter.
      * @param _s Signature `s` parameter.
-     * @return _success Whether or not the call returned (rather than reverted).
-     * @return _returndata Data returned by the call.
+     * @return Whether or not the call returned (rather than reverted).
+     * @return Data returned by the call.
      */
     function execute(
         bytes memory _transaction,
@@ -43,8 +56,8 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         override
         public
         returns (
-            bool _success,
-            bytes memory _returndata
+            bool,
+            bytes memory
         )
     {
         bool isEthSign = _signatureType == Lib_OVMCodec.EOASignatureType.ETH_SIGNED_MESSAGE;
@@ -78,7 +91,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             "Transaction nonce does not match the expected nonce."
         );
 
-        // TEMPORARY: Disable gas checks for minnet.
+        // TEMPORARY: Disable gas checks for mainnet.
         // // Need to make sure that the gas is sufficient to execute the transaction.
         // Lib_SafeExecutionManagerWrapper.safeREQUIRE(
         //    gasleft() >= Lib_SafeMathWrapper.add(decodedTx.gasLimit, EXECUTION_VALIDATION_GAS_OVERHEAD),
@@ -87,7 +100,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
         // Transfer fee to relayer.
         address relayer = Lib_SafeExecutionManagerWrapper.safeCALLER();
-        uint256 fee = decodedTx.gasLimit * decodedTx.gasPrice;
+        uint256 fee = Lib_SafeMathWrapper.mul(decodedTx.gasLimit, decodedTx.gasPrice);
         (bool success, ) = Lib_SafeExecutionManagerWrapper.safeCALL(
             gasleft(),
             ETH_ERC20_ADDRESS,

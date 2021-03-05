@@ -1,12 +1,14 @@
 import { expect } from '../../../setup'
 
 /* External Imports */
-import { ethers } from '@nomiclabs/buidler'
+import { ethers } from 'hardhat'
 import { ContractFactory, Contract } from 'ethers'
 import { MockContract, smockit } from '@eth-optimism/smock'
-import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
+import { remove0x } from '@eth-optimism/core-utils'
 import { keccak256 } from 'ethers/lib/utils'
-import { remove0x } from '../../../helpers'
+
+/* Internal Imports */
+import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
 
 const ELEMENT_TEST_SIZES = [1, 2, 4, 8, 16]
 
@@ -25,7 +27,7 @@ const callPrecompile = async (
 describe('OVM_L2ToL1MessagePasser', () => {
   let Mock__OVM_ExecutionManager: MockContract
   before(async () => {
-    Mock__OVM_ExecutionManager = smockit(
+    Mock__OVM_ExecutionManager = await smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
   })

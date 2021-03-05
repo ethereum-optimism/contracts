@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 
 /* Library Imports */
 import { Lib_Bytes32Utils } from "../../libraries/utils/Lib_Bytes32Utils.sol";
@@ -10,7 +10,13 @@ import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_Sa
 
 /**
  * @title OVM_DeployerWhitelist
- * @dev L2 CONTRACT (NOT COMPILED)
+ * @dev The Deployer Whitelist is a temporary predeploy used to provide additional safety during the
+ * initial phases of our mainnet roll out. It is owned by the Optimism team, and defines accounts
+ * which are allowed to deploy contracts on Layer2. The Execution Manager will only allow an 
+ * ovmCREATE or ovmCREATE2 operation to proceed if the deployer's address whitelisted.
+ * 
+ * Compiler used: solc
+ * Runtime target: OVM
  */
 contract OVM_DeployerWhitelist is iOVM_DeployerWhitelist {
 

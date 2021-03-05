@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 
 /* Library Imports */
 import { Lib_BytesUtils } from "../utils/Lib_BytesUtils.sol";
@@ -897,7 +897,7 @@ library Lib_MerkleTrie {
         uint8 offset = uint8(_key.length % 2);
         bytes memory prefixed = new bytes(2 - offset);
         prefixed[0] = bytes1(prefix + offset);
-        return Lib_BytesUtils.concat(prefixed, _key);
+        return abi.encodePacked(prefixed, _key);
     }
 
     /**

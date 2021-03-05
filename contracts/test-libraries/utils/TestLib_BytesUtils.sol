@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
@@ -19,7 +19,7 @@ contract TestLib_BytesUtils {
         pure
         returns (bytes memory)
     {
-        return Lib_BytesUtils.concat(
+        return abi.encodePacked(
             _preBytes,
             _postBytes
         );

@@ -1,18 +1,13 @@
 import { expect } from '../../../setup'
 
 /* External Imports */
-import { ethers, waffle } from '@nomiclabs/buidler'
+import { ethers, waffle } from 'hardhat'
 import { ContractFactory, Contract, Wallet } from 'ethers'
 import { MockContract, smockit } from '@eth-optimism/smock'
-import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
-import { AbiCoder, keccak256 } from 'ethers/lib/utils'
-import {
-  DEFAULT_EIP155_TX,
-  remove0x,
-  serializeNativeTransaction,
-  signNativeTransaction,
-} from '../../../helpers'
-import { getContractInterface } from '../../../../src'
+import { remove0x } from '@eth-optimism/core-utils'
+
+/* Internal Imports */
+import { decodeSolidityError } from '../../../helpers'
 
 const callPrecompile = async (
   Helper_PrecompileCaller: Contract,
@@ -51,7 +46,7 @@ describe('OVM_ProxyEOA', () => {
   let Mock__OVM_ECDSAContractAccount: MockContract
   let Helper_PrecompileCaller: Contract
   before(async () => {
-    Mock__OVM_ExecutionManager = smockit(
+    Mock__OVM_ExecutionManager = await smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 
@@ -61,7 +56,7 @@ describe('OVM_ProxyEOA', () => {
 
     Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
 
-    Mock__OVM_ECDSAContractAccount = smockit(
+    Mock__OVM_ECDSAContractAccount = await smockit(
       await ethers.getContractFactory('OVM_ECDSAContractAccount')
     )
   })
@@ -123,7 +118,7 @@ describe('OVM_ProxyEOA', () => {
       ])
       const ovmREVERT: any =
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
-      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+      expect(decodeSolidityError(ovmREVERT._data)).to.equal(
         'EOAs can only upgrade their own EOA implementation'
       )
     })

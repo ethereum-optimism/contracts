@@ -1,7 +1,7 @@
 import { expect } from '../../setup'
 
 /* External Imports */
-import { ethers } from '@nomiclabs/buidler'
+import { ethers } from 'hardhat'
 import { Contract, BigNumber, ContractFactory } from 'ethers'
 import { cloneDeep, merge } from 'lodash'
 import { smoddit, smockit, ModifiableContract } from '@eth-optimism/smock'
@@ -83,6 +83,7 @@ export class ExecutionManagerTestRunner {
   }
 
   public run(test: TestDefinition) {
+    // tslint:disable-next-line:ban-comma-operator
     ;(test.preState = merge(
       cloneDeep(this.defaultPreState),
       cloneDeep(test.preState)
@@ -151,7 +152,13 @@ export class ExecutionManagerTestRunner {
           ).to.equal(true)
         })
 
-        const itfn = parameter.focus ? it.only : it
+        let itfn: any = it
+        if (parameter.focus) {
+          itfn = it.only
+        } else if (parameter.skip) {
+          itfn = it.skip
+        }
+
         itfn(`should execute: ${parameter.name}`, async () => {
           try {
             for (const step of replacedParameter.steps) {
@@ -186,7 +193,7 @@ export class ExecutionManagerTestRunner {
       await ethers.getContractFactory('OVM_SafetyChecker')
     ).deploy()
 
-    const MockSafetyChecker = smockit(SafetyChecker)
+    const MockSafetyChecker = await smockit(SafetyChecker)
     MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(true)
 
     this.contracts.OVM_SafetyChecker = MockSafetyChecker
@@ -249,7 +256,7 @@ export class ExecutionManagerTestRunner {
         return this.contracts.OVM_SafetyChecker.address
       } else if (kv === '$OVM_CALL_HELPER') {
         return this.contracts.Helper_TestRunner.address
-      } else if (kv == '$OVM_DEPLOYER_WHITELIST') {
+      } else if (kv === '$OVM_DEPLOYER_WHITELIST') {
         return this.contracts.OVM_DeployerWhitelist.address
       } else if (kv.startsWith('$DUMMY_OVM_ADDRESS_')) {
         return ExecutionManagerTestRunner.getDummyAddress(kv)
