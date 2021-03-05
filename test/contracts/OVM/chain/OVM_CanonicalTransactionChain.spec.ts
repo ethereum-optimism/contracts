@@ -5,6 +5,7 @@ import { ethers } from 'hardhat'
 import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { smockit, MockContract } from '@eth-optimism/smock'
+import { remove0x } from '@eth-optimism/core-utils'
 import _ from 'lodash'
 
 /* Internal Imports */
@@ -15,12 +16,12 @@ import {
   FORCE_INCLUSION_PERIOD_BLOCKS,
   setEthTime,
   NON_ZERO_ADDRESS,
-  remove0x,
   getEthTime,
   getNextBlockNumber,
   increaseEthTime,
   getBlockTime,
   ZERO_ADDRESS,
+  mineBlock,
 } from '../../../helpers'
 import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
 
@@ -1221,7 +1222,7 @@ describe('OVM_CanonicalTransactionChain', () => {
           const timestamp = await getEthTime(ethers.provider)
 
           for (let i = 0; i < FORCE_INCLUSION_PERIOD_BLOCKS + 1; i++) {
-            await ethers.provider.send('evm_mine', [])
+            await mineBlock(ethers.provider)
           }
 
           await expect(
