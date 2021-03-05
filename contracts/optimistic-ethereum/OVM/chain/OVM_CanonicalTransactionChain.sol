@@ -319,6 +319,9 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             timestampAndBlockNumber
         );
 
+        // The underlying queue data structure stores 2 elements
+        // per insertion, so to get the real queue length we need
+        // to divide by 2. See the usage of `push2(..)`.
         uint256 queueIndex = queueRef.length() / 2;
         emit TransactionEnqueued(
             msg.sender,
@@ -739,6 +742,9 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             Lib_OVMCodec.QueueElement memory _element
         )
     {
+        // The underlying queue data structure stores 2 elements
+        // per insertion, so to get the actual desired queue index
+        // we need to multiply by 2. See the usage of `push2(..)`.
         (
             bytes32 queueRoot,
             bytes32 timestampAndBlockNumber
@@ -796,6 +802,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             bytes32
         )
     {
+        // Only allocate more memory if we didn't reserve enough to begin with.
         if (BYTES_TILL_TX_DATA + _txDataLength > _hashMemory.length) {
             _hashMemory = new bytes(BYTES_TILL_TX_DATA + _txDataLength);
         }
