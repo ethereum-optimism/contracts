@@ -175,6 +175,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Make sure this function can't be called by anyone except the owner of the
         // OVM_StateManager (expected to be an OVM_StateTransitioner). We can revert here because
         // this would make the `run` itself invalid.
+        console.log('pre-auth');
         require(
             // This method may return false during fraud proofs, but always returns true in L2 nodes' State Manager precompile.
             ovmStateManager.isAuthenticated(msg.sender),
@@ -184,7 +185,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Initialize the execution context, must be initialized before we perform any gas metering
         // or we'll throw a nuisance gas error.
         _initContext(_transaction);
-
         // TEMPORARY: Gas metering is disabled for minnet.
         // // Check whether we need to start a new epoch, do so if necessary.
         // _checkNeedsNewEpoch(_transaction.timestamp);
@@ -195,7 +195,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _resetContext();
             return;
         }
-
+        console.log('post valid gas limit');
         // Check gas right before the call to get total gas consumed by OVM transaction.
         uint256 gasProvided = gasleft();
 
@@ -206,7 +206,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _transaction.data
         );
         uint256 gasUsed = gasProvided - gasleft();
-
+        console.log('post omvcall');
         // TEMPORARY: Gas metering is disabled for minnet.
         // // Update the cumulative gas based on the amount of gas used.
         // _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);

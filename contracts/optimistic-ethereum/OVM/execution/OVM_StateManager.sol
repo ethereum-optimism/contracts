@@ -72,6 +72,9 @@ contract OVM_StateManager is iOVM_StateManager {
     modifier authenticated() {
         // owner is the State Transitioner
         console.log('caller: ', msg.sender);
+        console.log('owner:', owner);
+        console.log('ovmExecutionManager:', ovmExecutionManager);
+        console.log(msg.sender == owner || msg.sender == ovmExecutionManager);
         require(
             msg.sender == owner || msg.sender == ovmExecutionManager,
             "Function can only be called by authenticated addresses"

@@ -9,7 +9,7 @@ pragma solidity >0.5.0 <0.8.0;
 contract Helper_SimpleOvmDeployer {
     
     constructor(){
-        console.log('Helper_SimpleOvmDeployer');
+        console.log('deployed Helper_SimpleOvmDeployer');
     }
 
     fallback()
