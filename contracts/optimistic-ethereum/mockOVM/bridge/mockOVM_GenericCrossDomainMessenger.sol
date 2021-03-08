@@ -40,8 +40,7 @@ contract mockOVM_GenericCrossDomainMessenger {
         public
     {
         xDomainMessageSender = _sender;
-        (bool success,) =  _target.call{gas: _gasLimit}(_message);
-        require(success,'Call reverted');
+        _target.call{gas: _gasLimit}(_message);
         xDomainMessageSender = address(0);
     }
 }

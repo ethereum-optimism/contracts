@@ -20,27 +20,21 @@ import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
  */
 contract OVM_StateManager is iOVM_StateManager {
 
-    /**********************
-     * Contract Constants *
-     **********************/
+    /*************
+     * Constants *
+     *************/
 
     bytes32 constant internal EMPTY_ACCOUNT_STORAGE_ROOT = 0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421;
     bytes32 constant internal EMPTY_ACCOUNT_CODE_HASH =    0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
     bytes32 constant internal STORAGE_XOR_VALUE =          0xFEEDFACECAFEBEEFFEEDFACECAFEBEEFFEEDFACECAFEBEEFFEEDFACECAFEBEEF;
 
 
-    /*******************************************
-     * Contract Variables: Contract References *
-     *******************************************/
+    /*************
+     * Variables *
+     *************/
 
     address override public owner;
     address override public ovmExecutionManager;
-
-
-    /****************************************
-     * Contract Variables: Internal Storage *
-     ****************************************/
-
     mapping (address => Lib_OVMCodec.Account) internal accounts;
     mapping (address => mapping (bytes32 => bytes32)) internal contractStorage;
     mapping (address => mapping (bytes32 => bool)) internal verifiedContractStorage;
@@ -81,25 +75,27 @@ contract OVM_StateManager is iOVM_StateManager {
         _;
     }
 
-    /***************************
-     * Public Functions: Misc *
-     ***************************/
+    /********************
+     * Public Functions *
+     ********************/
 
-
+    /**
+     * Checks whether a given address is allowed to modify this contract.
+     * @param _address Address to check.
+     * @return Whether or not the address can modify this contract.
+     */
     function isAuthenticated(
         address _address
     )
         override
         public
         view
-        returns (bool)
+        returns (
+            bool
+        )
     {
         return (_address == owner || _address == ovmExecutionManager);
     }
-
-    /***************************
-     * Public Functions: Setup *
-     ***************************/
 
     /**
      * Sets the address of the OVM_ExecutionManager.
@@ -114,11 +110,6 @@ contract OVM_StateManager is iOVM_StateManager {
     {
         ovmExecutionManager = _ovmExecutionManager;
     }
-
-
-    /************************************
-     * Public Functions: Account Access *
-     ************************************/
 
     /**
      * Inserts an account into the state.
@@ -155,14 +146,16 @@ contract OVM_StateManager is iOVM_StateManager {
     /**
      * Retrieves an account from the state.
      * @param _address Address of the account to retrieve.
-     * @return _account Account for the given address.
+     * @return Account for the given address.
      */
-    function getAccount(address _address)
+    function getAccount(
+        address _address
+    )
         override
         public
         view
         returns (
-            Lib_OVMCodec.Account memory _account
+            Lib_OVMCodec.Account memory
         )
     {
         return accounts[_address];
@@ -171,7 +164,7 @@ contract OVM_StateManager is iOVM_StateManager {
     /**
      * Checks whether the state has a given account.
      * @param _address Address of the account to check.
-     * @return _exists Whether or not the state has the account.
+     * @return Whether or not the state has the account.
      */
     function hasAccount(
         address _address
@@ -180,7 +173,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         view
         returns (
-            bool _exists
+            bool
         )
     {
         return accounts[_address].codeHash != bytes32(0);
@@ -189,7 +182,7 @@ contract OVM_StateManager is iOVM_StateManager {
     /**
      * Checks whether the state has a given known empty account.
      * @param _address Address of the account to check.
-     * @return _exists Whether or not the state has the empty account.
+     * @return Whether or not the state has the empty account.
      */
     function hasEmptyAccount(
         address _address
@@ -198,7 +191,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         view
         returns (
-            bool _exists
+            bool
         )
     {
         return (
@@ -226,7 +219,7 @@ contract OVM_StateManager is iOVM_StateManager {
     /**
      * Gets the nonce of an account.
      * @param _address Address of the account to access.
-     * @return _nonce Nonce of the account.
+     * @return Nonce of the account.
      */
     function getAccountNonce(
         address _address
@@ -235,7 +228,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         view
         returns (
-            uint256 _nonce
+            uint256
         )
     {
         return accounts[_address].nonce;
@@ -244,7 +237,7 @@ contract OVM_StateManager is iOVM_StateManager {
     /**
      * Retrieves the Ethereum address of an account.
      * @param _address Address of the account to access.
-     * @return _ethAddress Corresponding Ethereum address.
+     * @return Corresponding Ethereum address.
      */
     function getAccountEthAddress(
         address _address
@@ -253,7 +246,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         view
         returns (
-            address _ethAddress
+            address
         )
     {
         return accounts[_address].ethAddress;
@@ -262,7 +255,7 @@ contract OVM_StateManager is iOVM_StateManager {
     /**
      * Retrieves the storage root of an account.
      * @param _address Address of the account to access.
-     * @return _storageRoot Corresponding storage root.
+     * @return Corresponding storage root.
      */
     function getAccountStorageRoot(
         address _address
@@ -271,7 +264,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         view
         returns (
-            bytes32 _storageRoot
+            bytes32
         )
     {
         return accounts[_address].storageRoot;
@@ -318,7 +311,7 @@ contract OVM_StateManager is iOVM_StateManager {
     /**
      * Checks whether an account has already been retrieved, and marks it as retrieved if not.
      * @param _address Address of the account to check.
-     * @return _wasAccountAlreadyLoaded Whether or not the account was already loaded.
+     * @return Whether or not the account was already loaded.
      */
     function testAndSetAccountLoaded(
         address _address
@@ -327,7 +320,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         authenticated
         returns (
-            bool _wasAccountAlreadyLoaded
+            bool
         )
     {
         return _testAndSetItemState(
@@ -339,7 +332,7 @@ contract OVM_StateManager is iOVM_StateManager {
     /**
      * Checks whether an account has already been modified, and marks it as modified if not.
      * @param _address Address of the account to check.
-     * @return _wasAccountAlreadyChanged Whether or not the account was already modified.
+     * @return Whether or not the account was already modified.
      */
     function testAndSetAccountChanged(
         address _address
@@ -348,7 +341,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         authenticated
         returns (
-            bool _wasAccountAlreadyChanged
+            bool
         )
     {
         return _testAndSetItemState(
@@ -360,7 +353,7 @@ contract OVM_StateManager is iOVM_StateManager {
     /**
      * Attempts to mark an account as committed.
      * @param _address Address of the account to commit.
-     * @return _wasAccountCommitted Whether or not the account was committed.
+     * @return Whether or not the account was committed.
      */
     function commitAccount(
         address _address
@@ -369,7 +362,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         authenticated
         returns (
-            bool _wasAccountCommitted
+            bool
         )
     {
         bytes32 item = _getItemHash(_address);
@@ -396,14 +389,14 @@ contract OVM_StateManager is iOVM_StateManager {
 
     /**
      * Gets the total number of uncommitted accounts.
-     * @return _total Total uncommitted accounts.
+     * @return Total uncommitted accounts.
      */
     function getTotalUncommittedAccounts()
         override
         public
         view
         returns (
-            uint256 _total
+            uint256
         )
     {
         return totalUncommittedAccounts;
@@ -486,7 +479,7 @@ contract OVM_StateManager is iOVM_StateManager {
      * Retrieves a contract storage slot value.
      * @param _contract Address of the contract to access.
      * @param _key 32 byte storage slot key.
-     * @return _value 32 byte storage slot value.
+     * @return 32 byte storage slot value.
      */
     function getContractStorage(
         address _contract,
@@ -496,7 +489,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         view
         returns (
-            bytes32 _value
+            bytes32
         )
     {
         // Storage XOR system doesn't work for newly created contracts that haven't set this
@@ -516,7 +509,7 @@ contract OVM_StateManager is iOVM_StateManager {
      * Checks whether a contract storage slot exists in the state.
      * @param _contract Address of the contract to access.
      * @param _key 32 byte storage slot key.
-     * @return _exists Whether or not the key was set in the state.
+     * @return Whether or not the key was set in the state.
      */
     function hasContractStorage(
         address _contract,
@@ -526,7 +519,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         view
         returns (
-            bool _exists
+            bool
         )
     {
         return verifiedContractStorage[_contract][_key] || accounts[_contract].isFresh;
@@ -536,7 +529,7 @@ contract OVM_StateManager is iOVM_StateManager {
      * Checks whether a storage slot has already been retrieved, and marks it as retrieved if not.
      * @param _contract Address of the contract to check.
      * @param _key 32 byte storage slot key.
-     * @return _wasContractStorageAlreadyLoaded Whether or not the slot was already loaded.
+     * @return Whether or not the slot was already loaded.
      */
     function testAndSetContractStorageLoaded(
         address _contract,
@@ -546,7 +539,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         authenticated
         returns (
-            bool _wasContractStorageAlreadyLoaded
+            bool
         )
     {
         return _testAndSetItemState(
@@ -559,7 +552,7 @@ contract OVM_StateManager is iOVM_StateManager {
      * Checks whether a storage slot has already been modified, and marks it as modified if not.
      * @param _contract Address of the contract to check.
      * @param _key 32 byte storage slot key.
-     * @return _wasContractStorageAlreadyChanged Whether or not the slot was already modified.
+     * @return Whether or not the slot was already modified.
      */
     function testAndSetContractStorageChanged(
         address _contract,
@@ -569,7 +562,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         authenticated
         returns (
-            bool _wasContractStorageAlreadyChanged
+            bool
         )
     {
         return _testAndSetItemState(
@@ -582,7 +575,7 @@ contract OVM_StateManager is iOVM_StateManager {
      * Attempts to mark a storage slot as committed.
      * @param _contract Address of the account to commit.
      * @param _key 32 byte slot key to commit.
-     * @return _wasContractStorageCommitted Whether or not the slot was committed.
+     * @return Whether or not the slot was committed.
      */
     function commitContractStorage(
         address _contract,
@@ -592,7 +585,7 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         authenticated
         returns (
-            bool _wasContractStorageCommitted
+            bool
         )
     {
         bytes32 item = _getItemHash(_contract, _key);
@@ -619,14 +612,14 @@ contract OVM_StateManager is iOVM_StateManager {
 
     /**
      * Gets the total number of uncommitted storage slots.
-     * @return _total Total uncommitted storage slots.
+     * @return Total uncommitted storage slots.
      */
     function getTotalUncommittedContractStorage()
         override
         public
         view
         returns (
-            uint256 _total
+            uint256
         )
     {
         return totalUncommittedContractStorage;
@@ -723,7 +716,7 @@ contract OVM_StateManager is iOVM_StateManager {
      * item to the provided state if not.
      * @param _item 32 byte item ID to check.
      * @param _minItemState Minimum state that must be satisfied by the item.
-     * @return _wasItemState Whether or not the item was already in the state.
+     * @return Whether or not the item was already in the state.
      */
     function _testAndSetItemState(
         bytes32 _item,
@@ -731,7 +724,7 @@ contract OVM_StateManager is iOVM_StateManager {
     )
         internal
         returns (
-            bool _wasItemState
+            bool
         )
     {
         bool wasItemState = itemStates[_item] >= _minItemState;

@@ -88,13 +88,13 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * @dev Core logic to be performed when a withdrawal from L2 is initialized.
      * In most cases, this will simply burn the withdrawn L2 funds.
      *
-     * param _to Address being withdrawn to
-     * param _amount Amount being withdrawn
+     * @param _to Address being withdrawn to
+     * @param _amount Amount being withdrawn
      */
 
     function _handleInitiateWithdrawal(
-        address, // _to,
-        uint // _amount
+        address _to,
+        uint _amount
     )
         internal
         virtual
@@ -106,12 +106,12 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * @dev Core logic to be performed when a deposit from L2 is finalized on L2.
      * In most cases, this will simply _mint() to credit L2 funds to the recipient.
      *
-     * param _to Address being deposited to on L2
-     * param _amount Amount which was deposited on L1
+     * @param _to Address being deposited to on L2
+     * @param _amount Amount which was deposited on L1
      */
     function _handleFinalizeDeposit(
-        address, //_to,
-        uint //_amount
+        address _to,
+        uint _amount
     )
         internal
         virtual
@@ -129,7 +129,6 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
         public
         view
         virtual
-        override
         returns(
             uint32
         )
@@ -161,7 +160,14 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * @param _to L1 adress to credit the withdrawal to
      * @param _amount Amount of the token to withdraw
      */
-    function withdrawTo(address _to, uint _amount) external override onlyInitialized() {
+    function withdrawTo(
+        address _to,
+        uint _amount
+    )
+        external
+        override
+        onlyInitialized()
+    {
         _initiateWithdrawal(_to, _amount);
     }
 
@@ -171,7 +177,12 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * @param _to Account to give the withdrawal to on L1
      * @param _amount Amount of the token to withdraw
      */
-    function _initiateWithdrawal(address _to, uint _amount) internal {
+    function _initiateWithdrawal(
+        address _to,
+        uint _amount
+    )
+        internal
+    {
         // Call our withdrawal accounting handler implemented by child contracts (usually a _burn)
         _handleInitiateWithdrawal(_to, _amount);
 
@@ -204,7 +215,13 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
      * @param _to Address to receive the withdrawal at
      * @param _amount Amount of the token to withdraw
      */
-    function finalizeDeposit(address _to, uint _amount) external override onlyInitialized()
+    function finalizeDeposit(
+        address _to,
+        uint _amount
+    )
+        external
+        override 
+        onlyInitialized()
         onlyFromCrossDomainAccount(address(l1TokenGateway))
     {
         _handleFinalizeDeposit(_to, _amount);

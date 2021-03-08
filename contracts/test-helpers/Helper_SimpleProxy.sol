@@ -6,6 +6,7 @@ contract Helper_SimpleProxy {
     address internal target;
 
     constructor()
+        public
     {
         owner = msg.sender;
     }
