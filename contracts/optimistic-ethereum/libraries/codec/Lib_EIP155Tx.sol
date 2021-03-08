@@ -44,6 +44,10 @@ library Lib_EIP155Tx {
         // 3. `v - CHAIN_ID * 2 - 35 = recovery_parameter`
         // So we're left with the final formula:
         // `recovery_parameter = v - CHAIN_ID * 2 - 35`
+        // NOTE: This variable is a uint8 because `v` is inherently limited to a uint8. If we
+        // didn't use a uint8, then recovery_parameter would always be a negative number for chain
+        // IDs greater than 110 (`255 - 110 * 2 - 35 = 0`). So we need to wrap around to support
+        // anything larger.
         uint8 recoveryParam; 
 
         // Whether or not the transaction is a creation. Necessary because we can't make an address
