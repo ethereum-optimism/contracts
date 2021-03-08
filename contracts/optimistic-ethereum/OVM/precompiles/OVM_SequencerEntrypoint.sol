@@ -24,6 +24,11 @@ contract OVM_SequencerEntrypoint {
      * Fallback Function *
      *********************/
 
+    /**
+     * Expects an RLP-encoded EIP155 transaction as input. See the EIP for a more detailed
+     * description of this transaction format:
+     * https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
+     */
     fallback()
         external
     {
@@ -32,8 +37,18 @@ contract OVM_SequencerEntrypoint {
             Lib_SafeExecutionManagerWrapper.safeCHAINID()
         );
 
+        // Recovery parameter being something other than 0 or 1 indicates that this transaction was
+        // signed using the wrong chain ID. We really should have this logic inside of the 
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+            transaction.recoveryParam < 2,
+            "OVM_SequencerEntrypoint: Transaction was signed with the wrong chain ID."
+        );
+
+        // Cache this result since we use it twice. Maybe we could move this caching into
+        // Lib_EIP155Tx but I'd rather not make optimizations like that right now.
         address sender = transaction.sender();
 
+        // Create an EOA contract for this account if it doesn't already exist.
         if (Lib_SafeExecutionManagerWrapper.safeEXTCODESIZE(sender) == 0) {
             Lib_SafeExecutionManagerWrapper.safeCREATEEOA(
                 transaction.hash(),
@@ -43,6 +58,7 @@ contract OVM_SequencerEntrypoint {
             );
         }
 
+        // Now call into the EOA contract (which should definitely exist).
         Lib_SafeExecutionManagerWrapper.safeCALL(
             gasleft(),
             sender,

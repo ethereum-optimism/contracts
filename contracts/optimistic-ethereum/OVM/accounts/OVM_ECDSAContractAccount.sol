@@ -10,8 +10,6 @@ import { Lib_EIP155Tx } from "../../libraries/codec/Lib_EIP155Tx.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrapper.sol";
 
-import { console } from "hardhat/console.sol";
-
 /**
  * @title OVM_ECDSAContractAccount
  * @dev The ECDSA Contract Account can be used as the implementation for a ProxyEOA deployed by the
@@ -41,7 +39,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
     /**
      * Executes a signed transaction.
-     * @param _encodedTransaction Signed EOA transaction.
+     * @param _encodedTransaction Signed EIP155 transaction.
      * @return Whether or not the call returned (rather than reverted).
      * @return Data returned by the call.
      */
@@ -58,6 +56,13 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         Lib_EIP155Tx.EIP155Tx memory transaction = Lib_EIP155Tx.decode(
             _encodedTransaction,
             Lib_SafeExecutionManagerWrapper.safeCHAINID()
+        );
+
+        // Recovery parameter being something other than 0 or 1 indicates that this transaction was
+        // signed using the wrong chain ID. We really should have this logic inside of the 
+        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
+            transaction.recoveryParam < 2,
+            "OVM_ECDSAContractAccount: Transaction was signed with the wrong chain ID."
         );
 
         // Address of this contract within the ovm (ovmADDRESS) should be the same as the
@@ -82,14 +87,21 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         //    "Gas is not sufficient to execute the transaction."
         // );
 
-        // Transfer fee to relayer.
+        // Transfer fee to relayer. We assume that whoever called this function is the relayer,
+        // hence the usage of CALLER. Fee is computed as gasLimit * gasPrice.
         address relayer = Lib_SafeExecutionManagerWrapper.safeCALLER();
         uint256 fee = Lib_SafeMathWrapper.mul(transaction.gasLimit, transaction.gasPrice);
         (bool success, ) = Lib_SafeExecutionManagerWrapper.safeCALL(
             gasleft(),
             ETH_ERC20_ADDRESS,
-            abi.encodeWithSignature("transfer(address,uint256)", relayer, fee)
+            abi.encodeWithSignature(
+                "transfer(address,uint256)",
+                relayer,
+                fee
+            )
         );
+
+        // Make sure the transfer was actually successful.
         Lib_SafeExecutionManagerWrapper.safeREQUIRE(
             success == true,
             "Fee was not transferred to relayer."

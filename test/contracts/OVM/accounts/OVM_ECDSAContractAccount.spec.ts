@@ -153,6 +153,23 @@ describe('OVM_ECDSAContractAccount', () => {
       )
     })
 
+    it(`should revert on incorrect chainId`, async () => {
+      const transaction = { ...DEFAULT_EIP155_TX, chainId: 421 }
+      const encodedTransaction = await wallet.signTransaction(transaction)
+
+      await callPrecompile(
+        Helper_PrecompileCaller,
+        OVM_ECDSAContractAccount,
+        'execute',
+        [encodedTransaction]
+      )
+      const ovmREVERT: any =
+        Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
+      expect(decodeSolidityError(ovmREVERT._data)).to.equal(
+        'OVM_ECDSAContractAccount: Transaction was signed with the wrong chain ID.'
+      )
+    })
+
     // TEMPORARY: Skip gas checks for minnet.
     it.skip(`should revert on insufficient gas`, async () => {
       const transaction = { ...DEFAULT_EIP155_TX, gasLimit: 200000000 }
