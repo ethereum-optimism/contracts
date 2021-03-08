@@ -150,12 +150,6 @@ interface iOVM_ExecutionManager {
     function ovmEXTCODEHASH(address _contract) external returns (bytes32 _hash);
 
 
-    /**************************************
-     * Public Functions: Execution Safety *
-     **************************************/
-
-    function safeCREATE(address _address, bytes memory _bytecode) external;
-
     /***************************************
      * Public Functions: Execution Context *
      ***************************************/
