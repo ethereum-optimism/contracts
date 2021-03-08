@@ -236,20 +236,13 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       })
     })
 
-    it('Gas Benchmark: un-chached contract deployment', async () => {
-      MODDABLE__STATE_MANAGER.smodify.set({
-        ovmExecutionManager: OVM_ExecutionManager.address
-      })
-      console.log('ovmem', await MODDABLE__STATE_MANAGER.ovmExecutionManager())
-      console.log('ovmem', OVM_ExecutionManager.address)
-      const gasCost = await gasMeasurement.getGasCost(
-        OVM_ExecutionManager,
-        'run',
-        [DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address]
-      )
+    it('Gas Benchmark: un-cached contract deployment', async () => {
+      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address)
+      await tx.wait()
+      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 3_488_629
+      const benchmark: number = 217758
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
@@ -258,14 +251,12 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     })
     
     it('Gas Benchmark: deploying a cached contract', async () => {
-      const gasCost = await gasMeasurement.getGasCost(
-        OVM_ExecutionManager,
-        'run',
-        [DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address]
-      )
+      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address)
+      await tx.wait()
+      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 226_516
+      const benchmark: number = 217758
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
