@@ -1505,27 +1505,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         bytes memory _data
     )
         internal
+        view
     {
-        // // We don't want to revert when we're inside a CREATE or CREATE2, because those opcodes
-        // // fail silently (we can't pass any data upwards). Instead, we set a flag and return a
-        // // *single* byte, something the OVM_ExecutionManager will not return in any other case.
-        // // We're thereby allowed to communicate failure without allowing contracts to trick us into
-        // // thinking there was a failure.
-        // bool isCreation;
-        // assembly {
-        //     isCreation := eq(extcodesize(caller()), 0)
-        // }
-
-        // if (isCreation) {
-        //     messageRecord.revertFlag = _flag;
-
-        //     assembly {
-        //         return(0, 1)
-        //     }
-        // }
-
-        // If we're not inside a CREATE or CREATE2, we can simply encode the necessary data and
-        // revert normally.
         bytes memory revertdata = _encodeRevertData(
             _flag,
             _data
