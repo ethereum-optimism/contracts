@@ -22,13 +22,14 @@ export interface SignatureParameters {
   s: string
 }
 
+// Used in OVM_ECDSAContractAccount.spec.ts and OVM_SequencerEntrypoint.spec.ts
 export const DEFAULT_EIP155_TX: EIP155Transaction = {
   to: `0x${'12'.repeat(20)}`,
   nonce: 100,
   gasLimit: 1000000,
   gasPrice: 100000000,
   data: `0x${'99'.repeat(10)}`,
-  chainId: 420,
+  chainId: 420, // Encoding chainId. Test in OVM_ECDSAContractAccount.spec.ts
 }
 
 export const getRawSignedComponents = (signed: string): any[] => {

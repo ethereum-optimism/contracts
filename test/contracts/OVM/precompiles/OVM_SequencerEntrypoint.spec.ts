@@ -11,6 +11,8 @@ import {
   encodeSequencerCalldata,
   signNativeTransaction,
   signEthSignMessage,
+  // `DEFAULT_EIP155_TX` comes with `chainId: 420` encoded as a key-value pair,
+  // along with other transaction data
   DEFAULT_EIP155_TX,
   serializeNativeTransaction,
   serializeEthSignTransaction,

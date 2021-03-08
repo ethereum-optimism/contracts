@@ -10,6 +10,8 @@ import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
 import {
   serializeNativeTransaction,
   signNativeTransaction,
+  // `DEFAULT_EIP155_TX` comes with `chainId: 420` encoded as a key-value pair,
+  // along with other transaction data
   DEFAULT_EIP155_TX,
   serializeEthSignTransaction,
   signEthSignMessage,
@@ -216,9 +218,11 @@ describe('OVM_ECDSAContractAccount', () => {
     })
 
     it(`should revert on incorrect chainId`, async () => {
+      // `DEFAULT_EIP155_TX` comes with `chainId: 420` encoded as a key-value
+      //  pair, along with other transaction data.
       const alteredChainIdTx = {
         ...DEFAULT_EIP155_TX,
-        chainId: 421,
+        chainId: 421, // Overwrites the default `chainId: 420`.
       }
       const message = serializeNativeTransaction(alteredChainIdTx)
       const sig = await signNativeTransaction(wallet, alteredChainIdTx)
