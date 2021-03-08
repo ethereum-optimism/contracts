@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_MerkleTree } from "../../libraries/utils/Lib_MerkleTree.sol";
+import { ReplayProtection } from "../../libraries/standards/ReplayProtection.sol";
 
 /* Interface Imports */
 import { iOVM_FraudVerifier } from "../../iOVM/verification/iOVM_FraudVerifier.sol";
@@ -27,7 +28,7 @@ import '@openzeppelin/contracts/math/SafeMath.sol';
  * Compiler used: solc
  * Runtime target: EVM
  */
-contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResolver {
+contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResolver, ReplayProtection {
 
     /*************
      * Constants *
@@ -126,7 +127,9 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
      */
     function appendStateBatch(
         bytes32[] memory _batch,
-        uint256 _shouldStartAtElement
+        uint256 _shouldStartAtElement,
+        uint _nonce,
+        bytes memory _signature
     )
         override
         public
@@ -138,9 +141,18 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
             "Actual batch start index does not match expected start index."
         );
 
+        address signer;
+        if(_signature.length != 0) {
+            // Extract signer's address.
+            bytes32 message = keccak256(abi.encode("appendStateBatch", _batch, _shouldStartAtElement, address(this), _nonce));
+            signer = checkSignatureAndReplayProtection(message, _nonce, _signature); // Throws if signature or replay protection is invalid
+        } else {
+            signer = msg.sender;
+        }
+
         // Proposers must have previously staked at the BondManager
         require(
-            iOVM_BondManager(resolve("OVM_BondManager")).isCollateralized(msg.sender),
+            iOVM_BondManager(resolve("OVM_BondManager")).isCollateralized(signer),
             "Proposer does not have enough collateral posted"
         );
 
@@ -158,7 +170,8 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
         // to be used in the fraud proofs
         _appendBatch(
             _batch,
-            abi.encode(block.timestamp, msg.sender)
+            abi.encode(block.timestamp, signer),
+            signer
         );
     }
 
@@ -166,13 +179,25 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
      * @inheritdoc iOVM_StateCommitmentChain
      */
     function deleteStateBatch(
-        Lib_OVMCodec.ChainBatchHeader memory _batchHeader
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader, 
+        uint _nonce, 
+        bytes memory _signature
     )
         override
         public
     {
+
+        address signer;
+        if(_signature.length != 0) {
+            // Extract signer's address.
+            bytes32 message = keccak256(abi.encode("deleteStateBatch", _batchHeader, address(this), _nonce));
+            signer = checkSignatureAndReplayProtection(message, _nonce, _signature); // Throws if signature or replay protection is invalid
+        } else {
+            signer = msg.sender;
+        }
+
         require(
-            msg.sender == resolve("OVM_FraudVerifier"),
+            signer == resolve("OVM_FraudVerifier"),
             "State batches can only be deleted by the OVM_FraudVerifier."
         );
 
@@ -312,17 +337,19 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
      * Appends a batch to the chain.
      * @param _batch Elements within the batch.
      * @param _extraData Any extra data to append to the batch.
+     * @param _signer Signer's address (verified in parent call).
      */
     function _appendBatch(
         bytes32[] memory _batch,
-        bytes memory _extraData
+        bytes memory _extraData,
+        address _signer
     )
         internal
     {
         address sequencer = resolve("OVM_Sequencer");
         (uint40 totalElements, uint40 lastSequencerTimestamp) = _getBatchExtraData();
 
-        if (msg.sender == sequencer) {
+        if (_signer == sequencer) {
             lastSequencerTimestamp = uint40(block.timestamp);
         } else {
             // We keep track of the last batch submitted by the sequencer so there's a window in

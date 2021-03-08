@@ -287,7 +287,8 @@ contract OVM_L1CrossDomainMessenger is iOVM_L1CrossDomainMessenger, Abs_BaseCros
         iOVM_CanonicalTransactionChain(resolve("OVM_CanonicalTransactionChain")).enqueue(
             resolve("OVM_L2CrossDomainMessenger"),
             _gasLimit,
-            _message
+            _message,
+            0, ""
         );
     }
 }

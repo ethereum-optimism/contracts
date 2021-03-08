@@ -8,6 +8,7 @@ import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_MerkleTree } from "../../libraries/utils/Lib_MerkleTree.sol";
 import { Lib_Math } from "../../libraries/utils/Lib_Math.sol";
+import { ReplayProtection } from "../../libraries/standards/ReplayProtection.sol";
 
 /* Interface Imports */
 import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
@@ -30,7 +31,7 @@ import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
  * Compiler used: solc
  * Runtime target: EVM
  */
-contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_AddressResolver {
+contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_AddressResolver, ReplayProtection {
 
     /*************
      * Constants *
@@ -263,16 +264,21 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         return uint40(queue().length() / 2);
     }
 
+
     /**
      * Adds a transaction to the queue.
      * @param _target Target L2 contract to send the transaction to.
      * @param _gasLimit Gas limit for the enqueued L2 transaction.
      * @param _data Transaction data.
+     * @param _nonce Replay protection nonce
+     * @param _signature Signature
      */
     function enqueue(
         address _target,
         uint256 _gasLimit,
-        bytes memory _data
+        bytes memory _data,
+        uint _nonce,
+        bytes memory _signature
     )
         override
         public
@@ -312,9 +318,18 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             i++;
         }
 
+        address signer;
+        if(_signature.length != 0) {
+            // Extract signer's address.
+            bytes32 message = keccak256(abi.encode("enqueue", _target, _gasLimit, _data, address(this), _nonce));
+            signer = checkSignatureAndReplayProtection(message, _nonce, _signature); // Throws if signature or replay protection is invalid
+        } else {
+            signer = msg.sender;
+        }
+
         bytes32 transactionHash = keccak256(
             abi.encode(
-                msg.sender,
+                signer,
                 _target,
                 _gasLimit,
                 _data
@@ -336,7 +351,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         uint256 queueIndex = queue.length() / 2;
         emit TransactionEnqueued(
-            msg.sender,
+            signer,
             _target,
             _gasLimit,
             _data,
@@ -348,9 +363,13 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     /**
      * Appends a given number of queued transactions as a single batch.
      * @param _numQueuedTransactions Number of transactions to append.
+     * @param _nonce Replay protection nonce
+     * @param _signature Signature
      */
     function appendQueueBatch(
-        uint256 _numQueuedTransactions
+        uint256 _numQueuedTransactions,
+        uint _nonce,
+        bytes memory _signature
     )
         override
         public
@@ -364,11 +383,20 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             "Must append more than zero transactions."
         );
 
+        address signer;
+        if(_signature.length != 0) {
+            // Extract signer's address.
+            bytes32 message = keccak256(abi.encode("appendQueueBatch", _numQueuedTransactions, address(this), _nonce));
+            signer = checkSignatureAndReplayProtection(message, _nonce, _signature); // Throws if signature or replay protection is invalid
+        } else {
+            signer = msg.sender;
+        }
+
         bytes32[] memory leaves = new bytes32[](_numQueuedTransactions);
         uint40 nextQueueIndex = getNextQueueIndex();
 
         for (uint256 i = 0; i < _numQueuedTransactions; i++) {
-            if (msg.sender != resolve("OVM_Sequencer")) {
+            if (signer != resolve("OVM_Sequencer")) {
                 Lib_OVMCodec.QueueElement memory el = getQueueElement(nextQueueIndex);
                 require(
                     el.timestamp + forceInclusionPeriodSeconds < block.timestamp,
@@ -422,8 +450,17 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             "Actual batch start index does not match expected start index."
         );
 
+        address signer = msg.sender;
+        // if(_signature.length == 0) {
+        //     // Extract signer's address.
+        //     bytes32 message = keccak256(abi.encode("appendSequencerBatch", address(this), _nonce));
+        //     signer = checkSignatureAndReplayProtection(message, _nonce, _signature); // Throws if signature or replay protection is invalid
+        // } else {
+        //     signer = msg.sender;
+        // }
+
         require(
-            msg.sender == resolve("OVM_Sequencer"),
+            signer == resolve("OVM_Sequencer"),
             "Function can only be called by the Sequencer."
         );
 

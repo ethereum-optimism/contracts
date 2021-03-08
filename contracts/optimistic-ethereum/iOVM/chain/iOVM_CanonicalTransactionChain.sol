@@ -184,20 +184,28 @@ interface iOVM_CanonicalTransactionChain {
      * @param _target Target contract to send the transaction to.
      * @param _gasLimit Gas limit for the given transaction.
      * @param _data Transaction data.
+     * @param _nonce Replay protection nonce.
+     * @param _signature Signature.
      */
     function enqueue(
         address _target,
         uint256 _gasLimit,
-        bytes memory _data
+        bytes memory _data,
+        uint _nonce,
+        bytes memory _signature
     )
         external;
 
     /**
      * Appends a given number of queued transactions as a single batch.
      * @param _numQueuedTransactions Number of transactions to append.
+     * @param _nonce Replay protection nonce.
+     * @param _signature Signature.
      */
     function appendQueueBatch(
-        uint256 _numQueuedTransactions
+        uint256 _numQueuedTransactions,
+        uint _nonce,
+        bytes memory _signature
     )
         external;
 
