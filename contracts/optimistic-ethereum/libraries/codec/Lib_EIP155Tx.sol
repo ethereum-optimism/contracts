@@ -6,6 +6,8 @@ pragma experimental ABIEncoderV2;
 import { Lib_RLPReader } from "../rlp/Lib_RLPReader.sol";
 import { Lib_RLPWriter } from "../rlp/Lib_RLPWriter.sol";
 
+import { console } from "hardhat/console.sol";
+
 library Lib_EIP155Tx {
     struct EIP155Tx {
         uint256 nonce;
@@ -14,14 +16,17 @@ library Lib_EIP155Tx {
         address to;
         uint256 value;
         bytes data;
+        uint8 recoveryParam;
         uint8 v;
         bytes32 r;
         bytes32 s;
         bool isCreate;
+        uint256 chainId;
     }
 
     function decode(
-        bytes memory _encoded
+        bytes memory _encoded,
+        uint256 _chainId
     )
         internal
         pure
@@ -31,6 +36,7 @@ library Lib_EIP155Tx {
     {
         Lib_RLPReader.RLPItem[] memory decoded = Lib_RLPReader.readList(_encoded);
 
+        uint8 v = uint8(Lib_RLPReader.readUint256(decoded[6]));
         return EIP155Tx({
             nonce: Lib_RLPReader.readUint256(decoded[0]),
             gasPrice: Lib_RLPReader.readUint256(decoded[1]),
@@ -38,10 +44,12 @@ library Lib_EIP155Tx {
             to: Lib_RLPReader.readAddress(decoded[3]),
             value: Lib_RLPReader.readUint256(decoded[4]),
             data: Lib_RLPReader.readBytes(decoded[5]),
-            v: uint8(Lib_RLPReader.readUint256(decoded[6])), // Right place to do this?
+            recoveryParam: uint8(v - 35 - 2 * _chainId),
+            v: v,
             r: Lib_RLPReader.readBytes32(decoded[7]),
             s: Lib_RLPReader.readBytes32(decoded[8]),
-            isCreate: Lib_RLPReader.readBytes(decoded[3]).length == 0
+            isCreate: Lib_RLPReader.readBytes(decoded[3]).length == 0,
+            chainId: _chainId
         });
     }
 
@@ -72,7 +80,7 @@ library Lib_EIP155Tx {
             raw[7] = Lib_RLPWriter.writeBytes32(_transaction.r);
             raw[8] = Lib_RLPWriter.writeBytes32(_transaction.s);
         } else {
-            raw[6] = Lib_RLPWriter.writeUint(_transaction.v); // Chain ID?
+            raw[6] = Lib_RLPWriter.writeUint(_transaction.chainId); // Chain ID?
             raw[7] = Lib_RLPWriter.writeBytes('');
             raw[8] = Lib_RLPWriter.writeBytes('');
         }
@@ -96,14 +104,14 @@ library Lib_EIP155Tx {
         EIP155Tx memory _transaction
     )
         internal
-        pure
+        view
         returns (
             address
         )
     {
         return ecrecover(
             hash(_transaction),
-            _transaction.v, // Chain ID?
+            _transaction.recoveryParam + 27,
             _transaction.r,
             _transaction.s
         );

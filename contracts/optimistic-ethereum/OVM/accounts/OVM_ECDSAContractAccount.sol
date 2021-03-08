@@ -10,6 +10,8 @@ import { Lib_EIP155Tx } from "../../libraries/codec/Lib_EIP155Tx.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrapper.sol";
 
+import { console } from "hardhat/console.sol";
+
 /**
  * @title OVM_ECDSAContractAccount
  * @dev The ECDSA Contract Account can be used as the implementation for a ProxyEOA deployed by the
@@ -53,7 +55,10 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             bytes memory
         )
     {
-        Lib_EIP155Tx.EIP155Tx memory transaction = Lib_EIP155Tx.decode(_encodedTransaction);
+        Lib_EIP155Tx.EIP155Tx memory transaction = Lib_EIP155Tx.decode(
+            _encodedTransaction,
+            Lib_SafeExecutionManagerWrapper.safeCHAINID()
+        );
 
         // Address of this contract within the ovm (ovmADDRESS) should be the same as the
         // recovered address of the user who signed this message. This is how we manage to shim
@@ -62,13 +67,6 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         Lib_SafeExecutionManagerWrapper.safeREQUIRE(
             transaction.sender() == Lib_SafeExecutionManagerWrapper.safeADDRESS(),
             "Signature provided for EOA transaction execution is invalid."
-        );
-
-        // Need to make sure that the transaction chainId is correct.
-        Lib_SafeExecutionManagerWrapper.safeREQUIRE(
-            // Chain ID?
-            transaction.v == Lib_SafeExecutionManagerWrapper.safeCHAINID(),
-            "Transaction chainId does not match expected OVM chainId."
         );
 
         // Need to make sure that the transaction nonce is right.

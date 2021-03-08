@@ -27,13 +27,17 @@ contract OVM_SequencerEntrypoint {
     fallback()
         external
     {
-        Lib_EIP155Tx.EIP155Tx memory transaction = Lib_EIP155Tx.decode(msg.data);
+        Lib_EIP155Tx.EIP155Tx memory transaction = Lib_EIP155Tx.decode(
+            msg.data,
+            Lib_SafeExecutionManagerWrapper.safeCHAINID()
+        );
+
         address sender = transaction.sender();
 
         if (Lib_SafeExecutionManagerWrapper.safeEXTCODESIZE(sender) == 0) {
             Lib_SafeExecutionManagerWrapper.safeCREATEEOA(
                 transaction.hash(),
-                transaction.v, // Chain ID?
+                transaction.recoveryParam,
                 transaction.r,
                 transaction.s
             );
