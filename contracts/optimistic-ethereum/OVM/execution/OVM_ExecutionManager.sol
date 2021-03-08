@@ -826,9 +826,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // if the user intentionally runs out of gas. However, we might still have a bit of gas
         // left over since contract calls can only be passed 63/64ths of total gas,  so we need to
         // explicitly handle this case here.
-        if (ethAddress == address(0)) {
-            _revertWithFlag(RevertFlag.CREATE_EXCEPTION);
-        }
+        // if (ethAddress == address(0)) {
+        //     _revertWithFlag(RevertFlag.CREATE_EXCEPTION);
+        // }
 
         // Here we pull out the revert flag that would've been set during creation code. Now that
         // we're out of creation code again, we can just revert normally while passing the flag
@@ -926,20 +926,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Run `safeCREATE` in a new EVM message so that our changes can be reflected even if
         // `safeCREATE` reverts.
-        (bool _success, ) = _handleExternalInteraction(
+        (bool _success, ) = _handleExternalMessage(
             nextMessageContext,
             gasleft(),
-            address(this),
-            abi.encodeWithSignature(
-                "safeCREATE(address,bytes)",
-                _contractAddress,
-                _bytecode
-            )
+            _contractAddress,
+            0,
+            _bytecode,
+            true
         );
-
-        // Need to make sure that this flag is reset so that it isn't propagated to creations in
-        // some parent EVM message.
-        messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
 
         // Yellow paper requires that address returned is zero if the contract deployment fails.
         return _success ? _contractAddress : address(0);
@@ -986,6 +980,198 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _gasLimit,
             codeContractAddress,
             _calldata
+        );
+    }
+
+    function _doExternalCall(
+        uint _gasLimit,
+        uint _value,
+        address _target,
+        bytes memory _calldata
+    )
+        internal
+        returns(
+            bool,
+            bytes memory
+        )
+    {
+        return _target.call{gas: _gasLimit}(_calldata);
+    }
+
+// TODO: update assumption to be that create collisions are checked in _createContract
+    function _doExternalCreate(
+        uint _value,
+        uint _gasLimit,
+        bytes memory _creationCode,
+        address _address
+    )
+        internal
+        returns(
+            bool,
+            bytes memory
+        )
+    {
+
+        if (_hasEmptyAccount(_address) == false) {
+            return (
+                false,
+                _encodeRevertData(
+                    RevertFlag.CREATE_COLLISION,
+                    "A contract has already been deployed to this address"
+                )
+            );
+        }
+
+        // Check the creation bytecode against the OVM_SafetyChecker.
+        if (ovmSafetyChecker.isBytecodeSafe(_creationCode) == false) {
+            return (
+                false,
+                _encodeRevertData(
+                    RevertFlag.UNSAFE_BYTECODE,
+                    "Contract creation code contains unsafe opcodes.  Did you use the right compiler or pass an unsafe constructor argument?"
+                )
+            );
+        }
+
+        // We always need to initialize the contract with the default account values.
+        _initPendingAccount(_address);
+
+        address ethAddress = Lib_EthUtils.createContract(_creationCode);
+        if (ethAddress == address(0)) {
+            uint256 revertDataSize;
+            assembly { revertDataSize := returndatasize() }
+            bytes memory revertdata = new bytes(revertDataSize);
+            assembly {
+                returndatacopy(
+                    add(revertdata, 0x20),
+                    0,
+                    revertDataSize
+                )
+            }
+            return (false, revertdata);
+        }
+
+        // Again simply checking that the deployed code is safe too. Contracts can generate
+        // arbitrary deployment code, so there's no easy way to analyze this beforehand.
+        bytes memory deployedCode = Lib_EthUtils.getCode(ethAddress);
+        if (ovmSafetyChecker.isBytecodeSafe(deployedCode) == false) {
+            return (
+                false,
+                _encodeRevertData(
+                    RevertFlag.UNSAFE_BYTECODE,
+                    "Constrcutor attempted to deploy unsafe opcodes."
+                )
+            );
+        }
+
+        // Contract creation didn't need to be reverted and the bytecode is safe. We finish up by
+        // associating the desired address with the newly created contract's code hash and address.
+        _commitPendingAccount(
+            _address,
+            ethAddress,
+            Lib_EthUtils.getCodeHash(ethAddress)
+        );
+
+        return (true, hex'');
+    }
+
+    function _handleExternalMessage(
+        MessageContext memory _nextMessageContext,
+        uint256 _gasLimit,
+        address _target,
+        uint _value,
+        bytes memory _data,
+        bool _isCreate
+    )
+        internal
+        returns(
+            bool,
+            bytes memory
+        )
+    {
+        // We need to switch over to our next message context for the duration of this call.
+        MessageContext memory prevMessageContext = messageContext;
+        _switchMessageContext(prevMessageContext, _nextMessageContext);
+
+        // Nuisance gas is a system used to bound the ability for an attacker to make fraud proofs
+        // expensive by touching a lot of different accounts or storage slots. Since most contracts
+        // only use a few storage slots during any given transaction, this shouldn't be a limiting
+        // factor.
+        uint256 prevNuisanceGasLeft = messageRecord.nuisanceGasLeft;
+        uint256 nuisanceGasLimit = _getNuisanceGasLimit(_gasLimit);
+        messageRecord.nuisanceGasLeft = nuisanceGasLimit;
+
+        // Make the call and make sure to pass in the gas limit. Another instance of hidden
+        // complexity. `_target` is guaranteed to be a safe contract, meaning its return/revert
+        // behavior can be controlled. In particular, we enforce that flags are passed through
+        // revert data as to retrieve execution metadata that would normally be reverted out of
+        // existence.
+        (bool success, bytes memory returndata) =
+            _isCreate
+            ? _doExternalCreate(_value, _gasLimit, _data, _target)
+            : _doExternalCall(_gasLimit, _value, _target, _data);
+
+        // Switch back to the original message context now that we're out of the call.
+        _switchMessageContext(_nextMessageContext, prevMessageContext);
+
+        // Assuming there were no reverts, the message record should be accurate here. We'll update
+        // this value in the case of a revert.
+        uint256 nuisanceGasLeft = messageRecord.nuisanceGasLeft;
+
+        // Reverts at this point are completely OK, but we need to make a few updates based on the
+        // information passed through the revert.
+        if (success == false) {
+            (
+                RevertFlag flag,
+                uint256 nuisanceGasLeftPostRevert,
+                uint256 ovmGasRefund,
+                bytes memory returndataFromFlag
+            ) = _decodeRevertData(returndata);
+
+            // INVALID_STATE_ACCESS is the only flag that triggers an immediate abort of the
+            // parent EVM message. This behavior is necessary because INVALID_STATE_ACCESS must
+            // halt any further transaction execution that could impact the execution result.
+            if (flag == RevertFlag.INVALID_STATE_ACCESS) {
+                _revertWithFlag(flag);
+            }
+
+            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_ALLOWED aren't
+            // dependent on the input state, so we can just handle them like standard reverts. Our only change here
+            // is to record the gas refund reported by the call (enforced by safety checking).
+            if (
+                flag == RevertFlag.INTENTIONAL_REVERT
+                || flag == RevertFlag.UNSAFE_BYTECODE
+                || flag == RevertFlag.STATIC_VIOLATION
+                || flag == RevertFlag.CREATOR_NOT_ALLOWED
+            ) {
+                transactionRecord.ovmGasRefund = ovmGasRefund;
+            }
+
+            // INTENTIONAL_REVERT needs to pass up the user-provided return data encoded into the
+            // flag, *not* the full encoded flag. All other revert types return no data.
+            if (
+                flag == RevertFlag.INTENTIONAL_REVERT
+                || _isCreate
+            ) {
+                returndata = returndataFromFlag;
+            } else {
+                returndata = hex'';
+            }
+
+            // Reverts mean we need to use up whatever "nuisance gas" was used by the call.
+            // EXCEEDS_NUISANCE_GAS explicitly reduces the remaining nuisance gas for this message
+            // to zero. OUT_OF_GAS is a "pseudo" flag given that messages return no data when they
+            // run out of gas, so we have to treat this like EXCEEDS_NUISANCE_GAS. All other flags
+            // will simply pass up the remaining nuisance gas.
+            nuisanceGasLeft = nuisanceGasLeftPostRevert;
+        }
+
+        // We need to reset the nuisance gas back to its original value minus the amount used here.
+        messageRecord.nuisanceGasLeft = prevNuisanceGasLeft - (nuisanceGasLimit - nuisanceGasLeft);
+
+        return (
+            success,
+            returndata
         );
     }
 
@@ -1427,7 +1613,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Out of gas and create exceptions will fundamentally return no data, so simulating it shouldn't either.
         if (
             _flag == RevertFlag.OUT_OF_GAS
-            || _flag == RevertFlag.CREATE_EXCEPTION
         ) {
             return bytes('');
         }
@@ -1496,23 +1681,23 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
-        // We don't want to revert when we're inside a CREATE or CREATE2, because those opcodes
-        // fail silently (we can't pass any data upwards). Instead, we set a flag and return a
-        // *single* byte, something the OVM_ExecutionManager will not return in any other case.
-        // We're thereby allowed to communicate failure without allowing contracts to trick us into
-        // thinking there was a failure.
-        bool isCreation;
-        assembly {
-            isCreation := eq(extcodesize(caller()), 0)
-        }
+        // // We don't want to revert when we're inside a CREATE or CREATE2, because those opcodes
+        // // fail silently (we can't pass any data upwards). Instead, we set a flag and return a
+        // // *single* byte, something the OVM_ExecutionManager will not return in any other case.
+        // // We're thereby allowed to communicate failure without allowing contracts to trick us into
+        // // thinking there was a failure.
+        // bool isCreation;
+        // assembly {
+        //     isCreation := eq(extcodesize(caller()), 0)
+        // }
 
-        if (isCreation) {
-            messageRecord.revertFlag = _flag;
+        // if (isCreation) {
+        //     messageRecord.revertFlag = _flag;
 
-            assembly {
-                return(0, 1)
-            }
-        }
+        //     assembly {
+        //         return(0, 1)
+        //     }
+        // }
 
         // If we're not inside a CREATE or CREATE2, we can simply encode the necessary data and
         // revert normally.

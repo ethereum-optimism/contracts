@@ -19,7 +19,6 @@ interface iOVM_ExecutionManager {
         UNSAFE_BYTECODE,
         CREATE_COLLISION,
         STATIC_VIOLATION,
-        CREATE_EXCEPTION,
         CREATOR_NOT_ALLOWED
     }
 
