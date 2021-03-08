@@ -770,90 +770,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         );
     }
 
-
-    /**************************************
-     * Public Functions: Execution Safety *
-     **************************************/
-
-    /**
-     * Performs the logic to create a contract and revert under various potential conditions.
-     * @dev This function is implemented as `public` because we need to be able to revert a
-     *      contract creation without losing information about exactly *why* the contract reverted.
-     *      In particular, we want to be sure that contracts cannot trigger an INVALID_STATE_ACCESS
-     *      flag and then revert to reset the flag. We're able to do this by making an external
-     *      call from `ovmCREATE` and `ovmCREATE2` to `safeCREATE`, which can capture and relay
-     *      information before reverting.
-     * @param _address Address of the contract to associate with the one being created.
-     * @param _bytecode Code to be used to create the new contract.
-     */
-    function safeCREATE(
-        address _address,
-        bytes memory _bytecode
-    )
-        override
-        public
-    {
-        // Since this function is public, anyone can attempt to directly call it. We need to make
-        // sure that the OVM_ExecutionManager itself is the only party that can actually try to
-        // call this function.
-        if (msg.sender != address(this)) {
-            return;
-        }
-
-        // We need to be sure that the user isn't trying to use a contract creation to overwrite
-        // some existing contract. On L1, users will prove that no contract exists at the address
-        // and the OVM_FraudVerifier will populate the code hash of this address with a special
-        // value that represents "known to be an empty account."
-        if (_hasEmptyAccount(_address) == false) {
-            _revertWithFlag(RevertFlag.CREATE_COLLISION);
-        }
-
-        // Check the creation bytecode against the OVM_SafetyChecker.
-        if (ovmSafetyChecker.isBytecodeSafe(_bytecode) == false) {
-            _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
-        }
-
-        // We always need to initialize the contract with the default account values.
-        _initPendingAccount(_address);
-
-        // Actually deploy the contract and retrieve its address. This step is hiding a lot of
-        // complexity because we need to ensure that contract creation *never* reverts by itself.
-        // We cover this partially by storing a revert flag and returning (instead of reverting)
-        // when we know that we're inside a contract's creation code.
-        address ethAddress = Lib_EthUtils.createContract(_bytecode);
-
-        // Contract creation returns the zero address when it fails, which should only be possible
-        // if the user intentionally runs out of gas. However, we might still have a bit of gas
-        // left over since contract calls can only be passed 63/64ths of total gas,  so we need to
-        // explicitly handle this case here.
-        // if (ethAddress == address(0)) {
-        //     _revertWithFlag(RevertFlag.CREATE_EXCEPTION);
-        // }
-
-        // Here we pull out the revert flag that would've been set during creation code. Now that
-        // we're out of creation code again, we can just revert normally while passing the flag
-        // through the revert data.
-        if (messageRecord.revertFlag != RevertFlag.DID_NOT_REVERT) {
-            _revertWithFlag(messageRecord.revertFlag);
-        }
-
-        // Again simply checking that the deployed code is safe too. Contracts can generate
-        // arbitrary deployment code, so there's no easy way to analyze this beforehand.
-        bytes memory deployedCode = Lib_EthUtils.getCode(ethAddress);
-        if (ovmSafetyChecker.isBytecodeSafe(deployedCode) == false) {
-            _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
-        }
-
-        // Contract creation didn't need to be reverted and the bytecode is safe. We finish up by
-        // associating the desired address with the newly created contract's code hash and address.
-        _commitPendingAccount(
-            _address,
-            ethAddress,
-            Lib_EthUtils.getCodeHash(ethAddress)
-        );
-    }
-
-
     /***************************************
      * Public Functions: Execution Context *
      ***************************************/
@@ -975,11 +891,13 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             ? _contract
             : _getAccountEthAddress(_contract);
 
-        return _handleExternalInteraction(
+        return _handleExternalMessage(
             _nextMessageContext,
             _gasLimit,
             codeContractAddress,
-            _calldata
+            0,
+            _calldata,
+            false
         );
     }
 
@@ -1174,108 +1092,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             returndata
         );
     }
-
-    /**
-     * Handles the logic of making an external call and parsing revert information.
-     * @param _nextMessageContext Message context to be used for the call.
-     * @param _gasLimit Amount of gas to be passed into this call.
-     * @param _target Address of the contract to call.
-     * @param _data Data to send along with the call.
-     * @return _success Whether or not the call returned (rather than reverted).
-     * @return _returndata Data returned by the call.
-     */
-    function _handleExternalInteraction(
-        MessageContext memory _nextMessageContext,
-        uint256 _gasLimit,
-        address _target,
-        bytes memory _data
-    )
-        internal
-        returns (
-            bool _success,
-            bytes memory _returndata
-        )
-    {
-        // We need to switch over to our next message context for the duration of this call.
-        MessageContext memory prevMessageContext = messageContext;
-        _switchMessageContext(prevMessageContext, _nextMessageContext);
-
-        // Nuisance gas is a system used to bound the ability for an attacker to make fraud proofs
-        // expensive by touching a lot of different accounts or storage slots. Since most contracts
-        // only use a few storage slots during any given transaction, this shouldn't be a limiting
-        // factor.
-        uint256 prevNuisanceGasLeft = messageRecord.nuisanceGasLeft;
-        uint256 nuisanceGasLimit = _getNuisanceGasLimit(_gasLimit);
-        messageRecord.nuisanceGasLeft = nuisanceGasLimit;
-
-        // Make the call and make sure to pass in the gas limit. Another instance of hidden
-        // complexity. `_target` is guaranteed to be a safe contract, meaning its return/revert
-        // behavior can be controlled. In particular, we enforce that flags are passed through
-        // revert data as to retrieve execution metadata that would normally be reverted out of
-        // existence.
-        (bool success, bytes memory returndata) = _target.call{gas: _gasLimit}(_data);
-
-        // Switch back to the original message context now that we're out of the call.
-        _switchMessageContext(_nextMessageContext, prevMessageContext);
-
-        // Assuming there were no reverts, the message record should be accurate here. We'll update
-        // this value in the case of a revert.
-        uint256 nuisanceGasLeft = messageRecord.nuisanceGasLeft;
-
-        // Reverts at this point are completely OK, but we need to make a few updates based on the
-        // information passed through the revert.
-        if (success == false) {
-            (
-                RevertFlag flag,
-                uint256 nuisanceGasLeftPostRevert,
-                uint256 ovmGasRefund,
-                bytes memory returndataFromFlag
-            ) = _decodeRevertData(returndata);
-
-            // INVALID_STATE_ACCESS is the only flag that triggers an immediate abort of the
-            // parent EVM message. This behavior is necessary because INVALID_STATE_ACCESS must
-            // halt any further transaction execution that could impact the execution result.
-            if (flag == RevertFlag.INVALID_STATE_ACCESS) {
-                _revertWithFlag(flag);
-            }
-
-            // INTENTIONAL_REVERT, UNSAFE_BYTECODE, STATIC_VIOLATION, and CREATOR_NOT_ALLOWED aren't
-            // dependent on the input state, so we can just handle them like standard reverts. Our only change here
-            // is to record the gas refund reported by the call (enforced by safety checking).
-            if (
-                flag == RevertFlag.INTENTIONAL_REVERT
-                || flag == RevertFlag.UNSAFE_BYTECODE
-                || flag == RevertFlag.STATIC_VIOLATION
-                || flag == RevertFlag.CREATOR_NOT_ALLOWED
-            ) {
-                transactionRecord.ovmGasRefund = ovmGasRefund;
-            }
-
-            // INTENTIONAL_REVERT needs to pass up the user-provided return data encoded into the
-            // flag, *not* the full encoded flag. All other revert types return no data.
-            if (flag == RevertFlag.INTENTIONAL_REVERT) {
-                returndata = returndataFromFlag;
-            } else {
-                returndata = hex'';
-            }
-
-            // Reverts mean we need to use up whatever "nuisance gas" was used by the call.
-            // EXCEEDS_NUISANCE_GAS explicitly reduces the remaining nuisance gas for this message
-            // to zero. OUT_OF_GAS is a "pseudo" flag given that messages return no data when they
-            // run out of gas, so we have to treat this like EXCEEDS_NUISANCE_GAS. All other flags
-            // will simply pass up the remaining nuisance gas.
-            nuisanceGasLeft = nuisanceGasLeftPostRevert;
-        }
-
-        // We need to reset the nuisance gas back to its original value minus the amount used here.
-        messageRecord.nuisanceGasLeft = prevNuisanceGasLeft - (nuisanceGasLimit - nuisanceGasLeft);
-
-        return (
-            success,
-            returndata
-        );
-    }
-
 
     /******************************************
      * Internal Functions: State Manipulation *
