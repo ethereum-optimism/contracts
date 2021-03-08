@@ -13,7 +13,7 @@ const bigNumberify = (arr: any[]) => {
     } else if (typeof el === 'string' && bnRegex.test(el)) {
       return BigNumber.from(el.slice(0, el.length - 1))
     } else if (typeof el === 'string' && el.length > 2 && el.startsWith('0x')) {
-      return BigNumber.from(el)
+      return BigNumber.from(el.toLowerCase())
     } else if (Array.isArray(el)) {
       return bigNumberify(el)
     } else {
