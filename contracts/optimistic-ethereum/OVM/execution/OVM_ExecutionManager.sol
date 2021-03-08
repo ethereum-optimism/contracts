@@ -1632,7 +1632,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         uint256 _gasLimit,
         Lib_OVMCodec.QueueOrigin _queueOrigin
     )
-        view
+    view
         internal
         returns (
             bool _valid

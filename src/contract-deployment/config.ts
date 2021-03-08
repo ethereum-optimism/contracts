@@ -235,8 +235,5 @@ export const makeContractDeployConfig = async (
       factory: getContractFactory('OVM_ChainStorageContainer'),
       params: [AddressManager.address, 'OVM_StateCommitmentChain'],
     },
-    ERC1820Registry: {
-      factory: getContractFactory('ERC1820Registry'),
-    },
   }
 }

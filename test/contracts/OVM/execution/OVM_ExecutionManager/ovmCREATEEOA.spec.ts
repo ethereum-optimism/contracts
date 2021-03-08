@@ -1,6 +1,3 @@
-/* External Imports */
-import { fromHexString } from '@eth-optimism/core-utils'
-
 /* Internal Imports */
 import {
   ExecutionManagerTestRunner,
@@ -8,6 +5,7 @@ import {
   OVM_TX_GAS_LIMIT,
   NON_NULL_BYTES32,
   VERIFIED_EMPTY_CONTRACT_HASH,
+  fromHexString,
 } from '../../../../helpers'
 import { getContractDefinition } from '../../../../../src'
 

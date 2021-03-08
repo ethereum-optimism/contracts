@@ -22,15 +22,8 @@ import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrappe
  */
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
-    /*************
-     * Constants *
-     *************/
-
-    // TODO: should be the amount sufficient to cover the gas costs of all of the transactions up
-    // to and including the CALL/CREATE which forms the entrypoint of the transaction.
-    uint256 constant EXECUTION_VALIDATION_GAS_OVERHEAD = 25000;
     address constant ETH_ERC20_ADDRESS = 0x4200000000000000000000000000000000000006;
-
+    uint256 constant EXECUTION_VALIDATION_GAS_OVERHEAD = 25000; // TODO: should be the amount sufficient to cover the gas costs of all of the transactions up to and including the CALL/CREATE which forms the entrypoint of the transaction.
 
     /********************
      * Public Functions *
@@ -43,8 +36,8 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
      * @param _v Signature `v` parameter.
      * @param _r Signature `r` parameter.
      * @param _s Signature `s` parameter.
-     * @return Whether or not the call returned (rather than reverted).
-     * @return Data returned by the call.
+     * @return _success Whether or not the call returned (rather than reverted).
+     * @return _returndata Data returned by the call.
      */
     function execute(
         bytes memory _transaction,
@@ -56,8 +49,8 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         override
         public
         returns (
-            bool,
-            bytes memory
+            bool _success,
+            bytes memory _returndata
         )
     {
         bool isEthSign = _signatureType == Lib_OVMCodec.EOASignatureType.ETH_SIGNED_MESSAGE;
