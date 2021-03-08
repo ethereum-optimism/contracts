@@ -2,8 +2,10 @@
 import { ethers } from '@nomiclabs/buidler'
 import { zeroPad } from '@ethersproject/bytes'
 import { Wallet } from 'ethers'
+import { remove0x, TxType } from '@eth-optimism/core-utils'
+
+/* Internal Imports */
 import {
-  remove0x,
   numberToHexString,
   hexStrToBuf,
   makeAddressManager,
@@ -135,9 +137,9 @@ export const signTransaction = async (
   transaction: EIP155Transaction,
   transactionType: number
 ): Promise<SignatureParameters> => {
-  return transactionType === 2
-    ? signEthSignMessage(wallet, transaction) //ETH Signed tx
-    : signNativeTransaction(wallet, transaction) //Create EOA tx or EIP155 tx
+  return transactionType === TxType.EthSign
+    ? signEthSignMessage(wallet, transaction) // ETH Signed tx
+    : signNativeTransaction(wallet, transaction) // EIP155 tx
 }
 
 export const encodeSequencerCalldata = async (
@@ -148,9 +150,6 @@ export const encodeSequencerCalldata = async (
   const sig = await signTransaction(wallet, transaction, transactionType)
   const encodedTransaction = encodeCompactTransaction(transaction)
   const dataPrefix = `0x0${transactionType}${sig.r}${sig.s}${sig.v}`
-  const calldata =
-    transactionType === 1
-      ? `${dataPrefix}${remove0x(sig.messageHash)}` // Create EOA tx
-      : `${dataPrefix}${encodedTransaction}` // EIP155 tx or ETH Signed Tx
+  const calldata = `${dataPrefix}${encodedTransaction}`
   return calldata
 }

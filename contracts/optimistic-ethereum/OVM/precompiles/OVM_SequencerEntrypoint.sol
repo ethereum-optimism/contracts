@@ -14,7 +14,7 @@ contract OVM_SequencerEntrypoint {
     /*********
      * Enums *
      *********/
-    
+
     enum TransactionType {
         NATIVE_ETH_TRANSACTION,
         ETH_SIGNED_MESSAGE
@@ -27,9 +27,10 @@ contract OVM_SequencerEntrypoint {
 
     /**
      * Uses a custom "compressed" format to save on calldata gas:
-     * calldata[00:01]: transaction type (0 == EIP 155, 2 == Eth Sign Message)
+     * calldata[00:01]: transaction type (0 == EIP 155, 1 == Eth Sign Message)
      * calldata[01:33]: signature "r" parameter
      * calldata[33:65]: signature "s" parameter
+     * calldata[65:66]: signature "v" parameter
      * calldata[66:69]: transaction gas limit
      * calldata[69:72]: transaction gas price
      * calldata[72:75]: transaction nonce
@@ -85,7 +86,7 @@ contract OVM_SequencerEntrypoint {
             callbytes
         );
     }
-    
+
 
     /**********************
      * Internal Functions *
@@ -106,11 +107,11 @@ contract OVM_SequencerEntrypoint {
     {
         if (_transactionType == 0) {
             return TransactionType.NATIVE_ETH_TRANSACTION;
-        } if (_transactionType == 2) {
+        } if (_transactionType == 1) {
             return TransactionType.ETH_SIGNED_MESSAGE;
         } else {
             Lib_SafeExecutionManagerWrapper.safeREVERT(
-                "Transaction type must be 0 or 2"
+                "Transaction type must be 0 or 1"
             );
         }
     }

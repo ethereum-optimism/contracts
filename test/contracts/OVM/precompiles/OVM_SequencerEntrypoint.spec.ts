@@ -18,7 +18,7 @@ import {
 import { smockit, MockContract } from '@eth-optimism/smock'
 import { create } from 'lodash'
 
-describe('OVM_SequencerEntrypoint', () => {
+describe.only('OVM_SequencerEntrypoint', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
@@ -110,7 +110,7 @@ describe('OVM_SequencerEntrypoint', () => {
       expect(ovmCALL._calldata).to.equal(expectedEOACalldata)
     })
 
-    for (let i = 0; i < 3; i += 2) {
+    for (let i = 0; i < 2; i++) {
       it(`should call ovmCreateEOA when tx type is ${i} and ovmEXTCODESIZE returns 0`, async () => {
         Mock__OVM_ExecutionManager.smocked.ovmEXTCODESIZE.will.return.with(0)
         const calldata = await encodeSequencerCalldata(
@@ -133,11 +133,11 @@ describe('OVM_SequencerEntrypoint', () => {
       })
     }
 
-    it('should submit ETHSignedTypedData if TransactionType is 2', async () => {
+    it('should submit ETHSignedTypedData if TransactionType is 1', async () => {
       const calldata = await encodeSequencerCalldata(
         wallet,
         DEFAULT_EIP155_TX,
-        2
+        1
       )
       await Helper_PrecompileCaller.callPrecompile(
         OVM_SequencerEntrypoint.address,
@@ -161,18 +161,8 @@ describe('OVM_SequencerEntrypoint', () => {
       expect(ovmCALL._calldata).to.equal(expectedEOACalldata)
     })
 
-    it('should revert if TransactionType is >2', async () => {
-      const calldata = '0x03'
-      await expect(
-        Helper_PrecompileCaller.callPrecompile(
-          OVM_SequencerEntrypoint.address,
-          calldata
-        )
-      ).to.be.reverted
-    })
-
-    it('should revert if TransactionType is 1', async () => {
-      const calldata = '0x01'
+    it('should revert if TransactionType is >1', async () => {
+      const calldata = '0x02'
       await expect(
         Helper_PrecompileCaller.callPrecompile(
           OVM_SequencerEntrypoint.address,
