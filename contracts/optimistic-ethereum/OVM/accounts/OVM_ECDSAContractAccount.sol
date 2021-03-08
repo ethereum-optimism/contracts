@@ -59,7 +59,9 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         );
 
         // Recovery parameter being something other than 0 or 1 indicates that this transaction was
-        // signed using the wrong chain ID. We really should have this logic inside of the 
+        // signed using the wrong chain ID. We really should have this logic inside of Lib_EIP155Tx
+        // but I'd prefer not to add the "safeREQUIRE" logic into that library. So it'll live here
+        // for now.
         Lib_SafeExecutionManagerWrapper.safeREQUIRE(
             transaction.recoveryParam < 2,
             "OVM_ECDSAContractAccount: Transaction was signed with the wrong chain ID."

@@ -181,7 +181,7 @@ library Lib_EIP155Tx {
         EIP155Tx memory _transaction
     )
         internal
-        view
+        pure
         returns (
             address
         )
