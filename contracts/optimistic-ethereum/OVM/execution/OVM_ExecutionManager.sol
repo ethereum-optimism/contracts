@@ -46,7 +46,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      ********************************/
 
     iOVM_SafetyCache internal ovmSafetyCache;
-    iOVM_SafetyChecker internal ovmSafetyChecker;
+    // iOVM_SafetyChecker internal ovmSafetyChecker;
     iOVM_StateManager internal ovmStateManager;
 
 
@@ -182,6 +182,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             "Only authenticated addresses in ovmStateManager can call this function"
         );
 
+        console.log('post-auth');
         // Initialize the execution context, must be initialized before we perform any gas metering
         // or we'll throw a nuisance gas error.
         _initContext(_transaction);
@@ -189,6 +190,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // // Check whether we need to start a new epoch, do so if necessary.
         // _checkNeedsNewEpoch(_transaction.timestamp);
 
+        console.log('post-init');
         // Make sure the transaction's gas limit is valid. We don't revert here because we reserve
         // reverts for INVALID_STATE_ACCESS.
         if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {

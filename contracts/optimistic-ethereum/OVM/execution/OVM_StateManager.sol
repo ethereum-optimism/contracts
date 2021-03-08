@@ -71,6 +71,7 @@ contract OVM_StateManager is iOVM_StateManager {
      */
     modifier authenticated() {
         // owner is the State Transitioner
+        console.log('authenticated modifier');
         console.log('caller: ', msg.sender);
         console.log('owner:', owner);
         console.log('ovmExecutionManager:', ovmExecutionManager);
@@ -101,6 +102,11 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
+        console.log('isauthenticated');
+        console.log('_address: ', _address);
+        console.log('owner:', owner);
+        console.log('ovmExecutionManager:', ovmExecutionManager);
+        console.log(_address == owner || _address == ovmExecutionManager);
         return (_address == owner || _address == ovmExecutionManager);
     }
 

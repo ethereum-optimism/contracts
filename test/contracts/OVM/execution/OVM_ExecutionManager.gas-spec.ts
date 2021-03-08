@@ -3,9 +3,9 @@ import { deployContractCode } from '../../../helpers/utils'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Contract, Signer } from 'ethers'
-import { 
-  smockit, 
+import { Contract, ContractFactory, Signer } from 'ethers'
+import {
+  smockit,
   MockContract,
   ModifiableContract,
   smoddit
@@ -45,158 +45,68 @@ const DUMMY_TRANSACTION = {
   data: 0,
 }
 
-describe.only('OVM_ExecutionManager gas consumption', () => {
-  let wallet: Signer
-  let OVM_SafetyChecker: Contract
-  let OVM_SafetyCache: Contract
-  let MOCK__OVM_DeployerWhitelist: MockContract
-
-  let MODDABLE__STATE_MANAGER: ModifiableContract
-  let AddressManager: Contract
-  let gasMeasurement: GasMeasurement
-  let OVM_ExecutionManager: Contract
-  before(async () => {
-    ;[wallet] = await ethers.getSigners()
-
-    AddressManager = await makeAddressManager()
-
-    // Deploy Safety Checker and register it with the Address Manager
-    OVM_SafetyChecker = await ( 
-      await ethers.getContractFactory('OVM_SafetyChecker')
-    ).deploy()
-    await AddressManager.setAddress(
-      'OVM_SafetyChecker',
-      OVM_SafetyChecker.address
-    )
-    
-    // Deploy Safety Cache and register it with the Address Manager
-    OVM_SafetyCache = await ( 
-      await ethers.getContractFactory('OVM_SafetyCache')
-    ).deploy(AddressManager.address)
-    await AddressManager.setAddress(
-      'OVM_SafetyCache',
-      OVM_SafetyCache.address
-    )
-
-    // Setup Mock Deployer Whitelist and register it with the Address Manager
-    MOCK__OVM_DeployerWhitelist = await smockit( 
-      await ethers.getContractFactory('OVM_DeployerWhitelist')
-    )
-    MOCK__OVM_DeployerWhitelist.smocked.isDeployerAllowed.will.return.with(true)
-    await AddressManager.setAddress(
-      'OVM_DeployerWhitelist',
-      MOCK__OVM_DeployerWhitelist.address
-    )
-
-    // Setup the EM
-    OVM_ExecutionManager = await (
-        await ethers.getContractFactory('OVM_ExecutionManager')
-      ).deploy(
-        AddressManager.address,
-        DUMMY_GASMETERCONFIG,
-        DUMMY_GLOBALCONTEXT
-      )
-      // .connect(wallet)
-      
-    // Deploy GasMeasurement utility
-    gasMeasurement = new GasMeasurement()
-    await gasMeasurement.init(wallet)
-
-    // Setup the State Manger and modify it to allow execution to proceed
-    MODDABLE__STATE_MANAGER = await (
-      await smoddit('OVM_StateManager')
-    ).deploy(
-      await wallet.getAddress()
-    )
-    console.log('wallet address', await wallet.getAddress())
-    // Setup the SM to satisfy all the checks executed during EM.run()
-    MODDABLE__STATE_MANAGER.smodify.set({
-      ovmExecutionManager: OVM_ExecutionManager.address
-    })
-    console.log('ovmem', await MODDABLE__STATE_MANAGER.ovmExecutionManager())
-    console.log('owner', await MODDABLE__STATE_MANAGER.owner())
-    // MODDABLE__STATE_MANAGER.smocked.hasAccount.will.return.with(true)
-    MODDABLE__STATE_MANAGER.smodify.set({
-      accounts: {
-        [OVM_SafetyCache.address]: {
-          nonce: 0,
-          codeHash: NON_NULL_BYTES32,
-          ethAddress: OVM_SafetyCache.address,
-        },
-        // todo remove if unneeded
-        // [OVM_SafetyChecker.address]: {
-        //   nonce: 0,
-        //   codeHash: NON_NULL_BYTES32,
-        //   ethAddress: OVM_SafetyChecker.address,
-        // },
-        [MOCK__OVM_DeployerWhitelist.address]: {
-          nonce: 0,
-          codeHash: NON_NULL_BYTES32,
-          ethAddress: MOCK__OVM_DeployerWhitelist.address,
-        },
-
-      },
-    })
-
-
-    // MODDABLE__STATE_MANAGER.smocked.testAndSetAccountLoaded.will.return.with(true)    
-    console.log('testing and setting')
-    await MODDABLE__STATE_MANAGER.testAndSetAccountLoaded(OVM_SafetyCache.address);
-    await MODDABLE__STATE_MANAGER.testAndSetAccountLoaded(MOCK__OVM_DeployerWhitelist.address);
-    // MODDABLE__STATE_MANAGER.smocked.testAndSetAccountLoaded.will.return.with(true)    
-    // MODDABLE__STATE_MANAGER.smocked.testAndSetAccountLoaded.will.return.with(true)    
-    
-    MODDABLE__STATE_MANAGER.smodify.put({
-      owner: gasMeasurement.GasMeasurementContract.address
-    })
-    console.log('sm-owner ', await MODDABLE__STATE_MANAGER.owner())
-  })
-
-  describe('Measure cost of executing a very simple contract', async () => {
-
+describe.only('OVM_ExecutionManager Benchmarks', () => {
+  describe('em.run() benchmark: executing a minimal contract', async () => {
+    let wallet: Signer  
+    let Factory__OVM_ExecutionManager: ContractFactory
+    let OVM_ExecutionManager: Contract
+    let MOCK__STATE_MANAGER: MockContract
+    let AddressManager: Contract
     let targetContractAddress: string
+    let gasMeasurement: GasMeasurement
     before(async () => {
-      console.log('we here');
-      // Deploy a simple OVM-safe contract which is just `STOP`
+      ;[wallet] = await ethers.getSigners()
+      Factory__OVM_ExecutionManager = await ethers.getContractFactory(
+        'OVM_ExecutionManager'
+      )
+  
+      // Deploy a simple contract that just returns successfully with no data
       targetContractAddress = await deployContractCode(
-        '00',
+        '60206001f3',
         wallet,
         10_000_000
       )
       DUMMY_TRANSACTION.entrypoint = targetContractAddress
-      // MODDABLE__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(
-      //   targetContractAddress
-      // )
-      MODDABLE__STATE_MANAGER.smodify.set({
-        accounts: {
-          [targetContractAddress]: {
-            nonce: 0,
-            codeHash: NON_NULL_BYTES32,
-            ethAddress: targetContractAddress,
-          },
-        }
-      })
-      console.log('target in sm', await MODDABLE__STATE_MANAGER.getAccountEthAddress(targetContractAddress))
-      MODDABLE__STATE_MANAGER.smodify.set({
-        ovmExecutionManager: OVM_ExecutionManager.address
-      })
+  
+      AddressManager = await makeAddressManager()
+  
+      // deploy the state manager and mock it for the state transitioner
+      MOCK__STATE_MANAGER = await smockit(
+        await (await ethers.getContractFactory('OVM_StateManager')).deploy(
+          NON_ZERO_ADDRESS
+        )
+      )
+  
+      // Setup the SM to satisfy all the checks executed during EM.run()
+      MOCK__STATE_MANAGER.smocked.isAuthenticated.will.return.with(true)
+      MOCK__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(
+        targetContractAddress
+      )
+      MOCK__STATE_MANAGER.smocked.hasAccount.will.return.with(true)
+      MOCK__STATE_MANAGER.smocked.testAndSetAccountLoaded.will.return.with(true)
+  
+      await AddressManager.setAddress(
+        'OVM_StateManagerFactory',
+        MOCK__STATE_MANAGER.address
+      )
+  
+      gasMeasurement = new GasMeasurement()
+      await gasMeasurement.init(wallet)
+      OVM_ExecutionManager = (
+        await Factory__OVM_ExecutionManager.deploy(
+          AddressManager.address,
+          DUMMY_GASMETERCONFIG,
+          DUMMY_GLOBALCONTEXT
+        )
+      ).connect(wallet)
     })
-
-    it.only('Gas benchmark: cost of run()', async () => {
-      // by setting the entrypoint to our minimal contract, and smocking the SM
-      // we measure mostly the overhead of EM.run()
-      console.log('gm-address; ',gasMeasurement.GasMeasurementContract.address)
-      console.log('sm-owner: ', await MODDABLE__STATE_MANAGER.owner())
-      MODDABLE__STATE_MANAGER.smodify.put({
-        owner: gasMeasurement.GasMeasurementContract.address
-      })
-      console.log('sm-owner: ', await MODDABLE__STATE_MANAGER.owner())
+    it('Gas cost of run', async () => {
       const gasCost = await gasMeasurement.getGasCost(
         OVM_ExecutionManager,
         'run',
-        [DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address]
+        [DUMMY_TRANSACTION, MOCK__STATE_MANAGER.address]
       )
-      console.log(`      calculated gas cost of ${gasCost}`)
+      console.log(`calculated gas cost of ${gasCost}`)
 
       const benchmark: number = 226_516
       expect(gasCost).to.be.lte(benchmark)
@@ -206,19 +116,115 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
       )
     })
   })
-
-  describe('Measure cost of deploying a simple contract', async () => {
+  describe('em.run() benchmark: deploying a minimal contract', async () => {
     let Helper_SimpleDeployer: Contract
+    let wallet: Signer
+    let OVM_SafetyChecker: Contract
+    let OVM_SafetyCache: Contract
+    let MOCK__OVM_DeployerWhitelist: MockContract
+
+    let MODDABLE__STATE_MANAGER: ModifiableContract
+    let AddressManager: Contract
+    let gasMeasurement: GasMeasurement
+    let OVM_ExecutionManager: Contract
     before(async () => {
-      // Deploy a simple OVM-safe contract that just deploys a another contract
+      ;[wallet] = await ethers.getSigners()
+
+      AddressManager = await makeAddressManager()
+
+      // Deploy Safety Checker and register it with the Address Manager
+      OVM_SafetyChecker = await ( 
+        await ethers.getContractFactory('OVM_SafetyChecker')
+      ).deploy()
+      await AddressManager.setAddress(
+        'OVM_SafetyChecker',
+        OVM_SafetyChecker.address
+      )
+        
+      // Deploy Safety Cache and register it with the Address Manager
+      OVM_SafetyCache = await ( 
+        await ethers.getContractFactory('OVM_SafetyCache')
+      ).deploy(AddressManager.address)
+      await AddressManager.setAddress(
+        'OVM_SafetyCache',
+        OVM_SafetyCache.address
+      )
+
+      // Setup Mock Deployer Whitelist and register it with the Address Manager
+      MOCK__OVM_DeployerWhitelist = await smockit( 
+        await ethers.getContractFactory('OVM_DeployerWhitelist')
+      )
+      MOCK__OVM_DeployerWhitelist.smocked.isDeployerAllowed.will.return.with(true)
+      await AddressManager.setAddress(
+        'OVM_DeployerWhitelist',
+        MOCK__OVM_DeployerWhitelist.address
+      )
+
+      // Setup the EM
+      OVM_ExecutionManager = await (
+        await ethers.getContractFactory('OVM_ExecutionManager')
+      ).deploy(
+        AddressManager.address,
+        DUMMY_GASMETERCONFIG,
+        DUMMY_GLOBALCONTEXT
+      )// .connect(wallet)
+          
+      // Deploy GasMeasurement utility
+      gasMeasurement = new GasMeasurement()
+      await gasMeasurement.init(wallet)
+
+      // Setup the State Manger and modify it to allow execution to proceed
+      MODDABLE__STATE_MANAGER = await (
+        await smoddit('OVM_StateManager')
+      ).deploy(
+        await wallet.getAddress()
+      )
+      console.log('wallet address:', await wallet.getAddress())
+      // Setup the SM to satisfy all the checks executed during EM.run()
+      MODDABLE__STATE_MANAGER.smodify.set({
+        ovmExecutionManager: OVM_ExecutionManager.address
+      })
+      console.log('stateManager.ovmExecutionManager:', await MODDABLE__STATE_MANAGER.ovmExecutionManager())
+      console.log('stateManager.owner:', await MODDABLE__STATE_MANAGER.owner())
+      // MODDABLE__STATE_MANAGER.smocked.hasAccount.will.return.with(true)
+      MODDABLE__STATE_MANAGER.smodify.set({
+        accounts: {
+          [OVM_SafetyCache.address]: {
+            nonce: 0,
+            codeHash: NON_NULL_BYTES32,
+            ethAddress: OVM_SafetyCache.address,
+          },
+          // todo remove if unneeded
+          // [OVM_SafetyChecker.address]: {
+          //   nonce: 0,
+          //   codeHash: NON_NULL_BYTES32,
+          //   ethAddress: OVM_SafetyChecker.address,
+          // },
+          [MOCK__OVM_DeployerWhitelist.address]: {
+            nonce: 0,
+            codeHash: NON_NULL_BYTES32,
+            ethAddress: MOCK__OVM_DeployerWhitelist.address,
+          },
+
+        },
+      })
+ 
+      console.log('testing and setting')
+      await MODDABLE__STATE_MANAGER.testAndSetAccountLoaded(OVM_SafetyCache.address);
+      await MODDABLE__STATE_MANAGER.testAndSetAccountLoaded(MOCK__OVM_DeployerWhitelist.address);
+      await MODDABLE__STATE_MANAGER.setExecutionManager(OVM_ExecutionManager.address)
+      MODDABLE__STATE_MANAGER.smodify.set({
+        owner: gasMeasurement.GasMeasurementContract.address
+      }) // @flag: this doesn't seem to actually modify the owner
+      console.log('sm-owner ', await MODDABLE__STATE_MANAGER.owner())
+    
+      // Deploy a simple OVM-safe contract that just deploys another contract
       Helper_SimpleDeployer = await (
         await ethers.getContractFactory('Helper_SimpleOvmDeployer')
       ).deploy()
       DUMMY_TRANSACTION.entrypoint = Helper_SimpleDeployer.address
 
-      // MODDABLE__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(
-      //   simpleDeployer.address
-      // )
+
       MODDABLE__STATE_MANAGER.smodify.set({
         accounts: {
           [Helper_SimpleDeployer.address]: {
@@ -231,6 +237,11 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
     })
 
     it('Gas Benchmark: un-chached contract deployment', async () => {
+      MODDABLE__STATE_MANAGER.smodify.set({
+        ovmExecutionManager: OVM_ExecutionManager.address
+      })
+      console.log('ovmem', await MODDABLE__STATE_MANAGER.ovmExecutionManager())
+      console.log('ovmem', OVM_ExecutionManager.address)
       const gasCost = await gasMeasurement.getGasCost(
         OVM_ExecutionManager,
         'run',
@@ -260,12 +271,6 @@ describe.only('OVM_ExecutionManager gas consumption', () => {
         benchmark - 1_000,
         'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
       )
-    })
-  })
-  describe.skip('Measure cost of deploying a larger contract', async () => {
-    it('Benchmark un-chached contract deployment', async () => {
-    })
-    it('Gas benchmark: deploying a cached contract', async () => {
     })
   })
 })
