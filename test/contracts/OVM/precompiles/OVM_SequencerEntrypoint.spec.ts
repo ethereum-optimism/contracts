@@ -18,7 +18,7 @@ import {
 import { smockit, MockContract } from '@eth-optimism/smock'
 import { create } from 'lodash'
 
-describe.only('OVM_SequencerEntrypoint', () => {
+describe('OVM_SequencerEntrypoint', () => {
   let wallet: Wallet
   before(async () => {
     const provider = waffle.provider
