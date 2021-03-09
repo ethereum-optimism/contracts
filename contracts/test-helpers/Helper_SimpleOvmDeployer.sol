@@ -30,6 +30,6 @@ contract Helper_SimpleOvmDeployer {
         }
         
         address addr = Lib_SafeExecutionManagerWrapper.safeCREATE(gasleft(), initCode);
-        // console.log("deployed address %s", addr);
+        console.log("deployed address %s", addr);
     }
 }
