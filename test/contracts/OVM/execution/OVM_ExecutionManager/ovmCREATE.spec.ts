@@ -7,11 +7,13 @@ import {
   NON_NULL_BYTES32,
   REVERT_FLAGS,
   DUMMY_BYTECODE,
+  UNSAFE_BYTECODE,
   ZERO_ADDRESS,
   VERIFIED_EMPTY_CONTRACT_HASH,
   DUMMY_BYTECODE_BYTELEN,
   DUMMY_BYTECODE_HASH,
   getStorageXOR,
+  encodeSolidityError,
 } from '../../../../helpers'
 
 const CREATED_CONTRACT_1 = '0x2bda4a99d5be88609d23b1e4ab5d1d34fb1c2feb'
@@ -722,6 +724,22 @@ const test_ovmCREATE: TestDefinition = {
           },
           expectedReturnStatus: true,
           expectedReturnValue: ZERO_ADDRESS,
+        },
+      ],
+    },
+    {
+      name: 'ovmCREATE(UNSAFE_CODE)',
+      steps: [
+        {
+          functionName: 'ovmCREATE',
+          functionParams: {
+            bytecode: UNSAFE_BYTECODE,
+          },
+          expectedReturnStatus: true,
+          expectedReturnValue: {
+            address: ZERO_ADDRESS,
+            revertData: encodeSolidityError('Constrcutor attempted to deploy unsafe opcodes.')
+          },
         },
       ],
     },

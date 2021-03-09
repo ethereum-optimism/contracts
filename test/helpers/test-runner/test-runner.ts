@@ -38,6 +38,7 @@ import {
   NULL_BYTES32,
 } from '../constants'
 import { getStorageXOR } from '../'
+import { UNSAFE_BYTECODE } from '../dummy'
 
 export class ExecutionManagerTestRunner {
   private snapshot: string
@@ -194,7 +195,11 @@ export class ExecutionManagerTestRunner {
     ).deploy()
 
     const MockSafetyChecker = await smockit(SafetyChecker)
-    MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(true)
+    MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(
+      (bytecode: string) => {
+        return bytecode !== UNSAFE_BYTECODE
+      }
+    )
 
     this.contracts.OVM_SafetyChecker = MockSafetyChecker
 
