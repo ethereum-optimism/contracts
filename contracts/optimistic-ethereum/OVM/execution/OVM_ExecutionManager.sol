@@ -919,9 +919,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address _created
         )
     {
+        console.log("Address: %s, nonce: %s", ovmADDRESS(), _getAccountNonce(ovmADDRESS()));
         // We always update the nonce of the creating account, even if the creation fails.
         _setAccountNonce(ovmADDRESS(), _getAccountNonce(ovmADDRESS()) + 1);
-
+        
         // We're stepping into a CREATE or CREATE2, so we need to update ADDRESS to point
         // to the contract's associated address and CALLER to point to the previous ADDRESS.
         MessageContext memory nextMessageContext = messageContext;
@@ -1161,7 +1162,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         returns (
             uint256 _nonce
         )
-    {
+    {   
         _checkAccountLoad(_address);
         return ovmStateManager.getAccountNonce(_address);
     }
