@@ -971,7 +971,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @param _queueRef The storage container for the queue.
      */
     function _validateContextBeforeEnqueue(
-        BatchContext memory _contet,
+        BatchContext memory _context,
         uint40 _queueIndex,
         iOVM_ChainStorageContainer _queueRef
     )
@@ -992,12 +992,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             // Just like sequencer transaction times must be increasing relative to each other,
             // We also require that they be increasing relative to any interspersed queue elements.
             require(
-                _contet.timestamp <= nextQueueElement.timestamp,
+                _context.timestamp <= nextQueueElement.timestamp,
                 "Sequencer transaction timestamp exceeds that of next queue element."
             );
 
             require(
-                _contet.blockNumber <= nextQueueElement.blockNumber,
+                _context.blockNumber <= nextQueueElement.blockNumber,
                 "Sequencer transaction blockNumber exceeds that of next queue element."
             );
     }
