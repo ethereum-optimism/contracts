@@ -363,7 +363,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * @notice Overrides CREATE.
      * @param _bytecode Code to be used to CREATE a new contract.
-     * @return _contract Address of the created contract.
+     * @return Address of the created contract.
+     * @return Revert data, iff the creation threw an exception.
      */
     function ovmCREATE(
         bytes memory _bytecode
@@ -373,7 +374,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         notStatic
         fixedGasDiscount(40000)
         returns (
-            address _contract
+            address,
+            bytes memory
         )
     {
         // Creator is always the current ADDRESS.
@@ -399,7 +401,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @notice Overrides CREATE2.
      * @param _bytecode Code to be used to CREATE2 a new contract.
      * @param _salt Value used to determine the contract's address.
-     * @return _contract Address of the created contract.
+     * @return Address of the created contract.
+     * @return Revert data, iff the creation threw an exception.
      */
     function ovmCREATE2(
         bytes memory _bytecode,
@@ -410,7 +413,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         notStatic
         fixedGasDiscount(40000)
         returns (
-            address _contract
+            address,
+            bytes memory
         )
     {
         // Creator is always the current ADDRESS.
@@ -820,7 +824,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * Creates a new contract and associates it with some contract address.
      * @param _contractAddress Address to associate the created contract with.
      * @param _bytecode Bytecode to be used to create the contract.
-     * @return _created Final OVM contract address.
+     * @return Final OVM contract address.
+     * @return Revertdata, iff the creation threw an exception.
      */
     function _createContract(
         address _contractAddress,
@@ -828,7 +833,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
         returns (
-            address _created
+            address,
+            bytes memory
         )
     {
         // We always update the nonce of the creating account, even if the creation fails.
@@ -842,7 +848,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Run `safeCREATE` in a new EVM message so that our changes can be reflected even if
         // `safeCREATE` reverts.
-        (bool _success, ) = _handleExternalMessage(
+        (bool success, bytes memory data) = _handleExternalMessage(
             nextMessageContext,
             gasleft(),
             _contractAddress,
@@ -851,7 +857,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         );
 
         // Yellow paper requires that address returned is zero if the contract deployment fails.
-        return _success ? _contractAddress : address(0);
+        return (
+            success ? _contractAddress : address(0),
+            data
+        );
     }
 
     /**

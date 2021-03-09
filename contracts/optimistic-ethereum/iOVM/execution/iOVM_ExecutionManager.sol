@@ -111,8 +111,8 @@ interface iOVM_ExecutionManager {
      * Contract Creation Opcodes *
      *****************************/
 
-    function ovmCREATE(bytes memory _bytecode) external returns (address _contract);
-    function ovmCREATE2(bytes memory _bytecode, bytes32 _salt) external returns (address _contract);
+    function ovmCREATE(bytes memory _bytecode) external returns (address _contract, bytes memory _revertdata);
+    function ovmCREATE2(bytes memory _bytecode, bytes32 _salt) external returns (address _contract, bytes memory _revertdata);
 
 
     /*******************************

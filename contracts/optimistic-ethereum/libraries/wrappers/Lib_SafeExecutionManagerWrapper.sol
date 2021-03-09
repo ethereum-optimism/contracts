@@ -101,7 +101,9 @@ library Lib_SafeExecutionManagerWrapper {
             )
         );
 
-        return abi.decode(returndata, (address));
+        (address createdContract,) = abi.decode(returndata, (address, bytes));
+
+        return createdContract;
     }
 
     /**
