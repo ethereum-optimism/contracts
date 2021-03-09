@@ -223,7 +223,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       
     })
 
-    it('Gas Benchmark: un-cached contract deployment', async () => {
+    it('Gas Benchmark: un-cached minimal contract deployment', async () => {
       // Set destination for first contract deployment
       await OVM_StateManager.putEmptyAccount(
         "0xf7a70a9ed665630eaaf9f7b40b71f01cbf65f73f"
@@ -241,7 +241,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       )
     })
     
-    it('Gas Benchmark: deploying a cached contract', async () => {
+    it('Gas Benchmark: cached minimal contract deployment', async () => {
       // Set destination for second contract deployment
       await OVM_StateManager.putEmptyAccount(
         "0xd236d314fd67606dddb3885f1330cf9bd3c8dbea"
@@ -254,6 +254,44 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       console.log(`      calculated gas cost of ${gasCost}`)
 
       const benchmark: number = 414_398
+      expect(gasCost).to.be.lte(benchmark)
+      expect(gasCost).to.be.gte(
+        benchmark - 1_000,
+        'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
+      )
+    })
+
+    it('Gas Benchmark: un-cached larger contract deployment ', async () => {
+      DUMMY_TRANSACTION.data = Helper_SimpleDeployer.interface.encodeFunctionData('deploy(uint256)', [1])
+      // Set destination for first contract deployment
+      await OVM_StateManager.putEmptyAccount(
+        "0x2dbd79d558282f50005be8e44c90a2db31042b40"
+      )
+      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, OVM_StateManager.address)
+      await tx.wait()
+      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
+      console.log(`      calculated gas cost of ${gasCost}`)
+
+      const benchmark: number = 581_062
+      expect(gasCost).to.be.lte(benchmark)
+      expect(gasCost).to.be.gte(
+        benchmark - 1_000,
+        'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
+      )
+    })
+    
+    it('Gas Benchmark: cached larger contract deployment ', async () => {
+      DUMMY_TRANSACTION.data = Helper_SimpleDeployer.interface.encodeFunctionData('deploy(uint256)', [1])
+      // Set destination for first contract deployment
+      await OVM_StateManager.putEmptyAccount(
+        "0x7715813e9ee6baab3cb5ea89edc16fa92d526a74"
+      )
+      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, OVM_StateManager.address)
+      await tx.wait()
+      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
+      console.log(`      calculated gas cost of ${gasCost}`)
+
+      const benchmark: number = 581_062
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,

@@ -3,6 +3,8 @@
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
+
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
@@ -806,6 +808,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // some existing contract. On L1, users will prove that no contract exists at the address
         // and the OVM_FraudVerifier will populate the code hash of this address with a special
         // value that represents "known to be an empty account."
+        console.log(_address);
         if (_hasEmptyAccount(_address) == false) {
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
