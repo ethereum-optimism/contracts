@@ -37,16 +37,6 @@ const QUEUE_ORIGIN = {
   L1TOL2_QUEUE: 1,
 }
 
-const DUMMY_TRANSACTION = {
-  timestamp: 111111111111,
-  blockNumber: 20,
-  l1QueueOrigin: QUEUE_ORIGIN.SEQUENCER_QUEUE,
-  l1TxOrigin: NON_ZERO_ADDRESS,
-  entrypoint: NON_ZERO_ADDRESS, // update this below
-  gasLimit: 10_000_000,
-  data: 0,
-}
-
 describe.only('OVM_ExecutionManager Benchmarks', () => {
   describe('em.run() benchmark: executing a minimal contract', async () => {
     let wallet: Signer  
@@ -56,12 +46,23 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     let AddressManager: Contract
     let targetContractAddress: string
     let gasMeasurement: GasMeasurement
+    let DUMMY_TRANSACTION;
     before(async () => {
       ;[wallet] = await ethers.getSigners()
       Factory__OVM_ExecutionManager = await ethers.getContractFactory(
         'OVM_ExecutionManager'
       )
   
+      DUMMY_TRANSACTION = {
+        timestamp: 111111111111,
+        blockNumber: 20,
+        l1QueueOrigin: QUEUE_ORIGIN.SEQUENCER_QUEUE,
+        l1TxOrigin: NON_ZERO_ADDRESS,
+        entrypoint: NON_ZERO_ADDRESS, // update this below
+        gasLimit: 10_000_000,
+        data: 0,
+      }
+
       // Deploy a simple contract that just returns successfully with no data
       targetContractAddress = await deployContractCode(
         '60206001f3',
@@ -129,6 +130,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     let AddressManager: Contract
     let gasMeasurement: GasMeasurement
     let OVM_ExecutionManager: Contract
+    let DUMMY_TRANSACTION
     before(async () => {
       ;[wallet] = await ethers.getSigners()
 
@@ -170,7 +172,8 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         DUMMY_GASMETERCONFIG,
         DUMMY_GLOBALCONTEXT
       )
-          
+  
+
       // Deploy GasMeasurement utility
       gasMeasurement = new GasMeasurement()
       await gasMeasurement.init(wallet)
@@ -200,8 +203,15 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       Helper_SimpleDeployer = await (
         await ethers.getContractFactory('Helper_SimpleOvmDeployer')
       ).deploy()
-      DUMMY_TRANSACTION.entrypoint = Helper_SimpleDeployer.address
-
+      DUMMY_TRANSACTION = {
+        timestamp: 111111111111,
+        blockNumber: 20,
+        l1QueueOrigin: QUEUE_ORIGIN.SEQUENCER_QUEUE,
+        l1TxOrigin: NON_ZERO_ADDRESS,
+        entrypoint: Helper_SimpleDeployer.address,
+        gasLimit: 10_000_000,
+        data: Helper_SimpleDeployer.interface.encodeFunctionData('deploy(uint256)', [0])
+      }
       await MODDABLE__STATE_MANAGER.putAccount(
         Helper_SimpleDeployer.address,
         {
@@ -220,7 +230,6 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       await MODDABLE__STATE_MANAGER.putEmptyAccount(
         "0xf7a70a9ed665630eaaf9f7b40b71f01cbf65f73f"
       )
-
       const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address)
       await tx.wait()
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
