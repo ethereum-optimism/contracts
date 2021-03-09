@@ -320,14 +320,14 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         // The underlying queue data structure stores 2 elements
         // per insertion, so to get the real queue length we need
-        // to divide by 2. See the usage of `push2(..)`.
-        uint256 queueIndex = queueRef.length() / 2;
+        // to divide by 2 and subtract 1. See the usage of `push2(..)`.
+        uint256 queueIndex = queueRef.length() / 2 - 1;
         emit TransactionEnqueued(
             msg.sender,
             _target,
             _gasLimit,
             _data,
-            queueIndex - 1,
+            queueIndex,
             block.timestamp
         );
     }
@@ -530,6 +530,9 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             blockNumber = uint40(curContext.blockNumber);
         } else {
             // The last element is a queue tx, therefore pull timestamp and block number from the queue element.
+            // curContext.numSubsequentQueueTransactions > 0 which means that we've processed at least one queue element.
+            // We increment nextQueueIndex after processing each queue element,
+            // so the index of the last element we processed is nextQueueIndex - 1.
             Lib_OVMCodec.QueueElement memory lastElement = _getQueueElement(
                 nextQueueIndex - 1,
                 queueRef
@@ -745,7 +748,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         // per insertion, so to get the actual desired queue index
         // we need to multiply by 2. See the usage of `push2(..)`.
         (
-            bytes32 queueRoot,
+            bytes32 transactionHash,
             bytes32 timestampAndBlockNumber
         ) = _queueRef.get2(uint40(_index * 2));
 
@@ -757,7 +760,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         }
 
         return Lib_OVMCodec.QueueElement({
-            queueRoot: queueRoot,
+            transactionHash: transactionHash,
             timestamp: elementTimestamp,
             blockNumber: elementBlockNumber
         });
@@ -1139,7 +1142,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         Lib_OVMCodec.QueueElement memory el = getQueueElement(_queueIndex);
         require(
-            el.queueRoot      == transactionHash
+            el.transactionHash      == transactionHash
             && el.timestamp   == _transaction.timestamp
             && el.blockNumber == _transaction.blockNumber,
             "Invalid Queue transaction."

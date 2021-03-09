@@ -273,7 +273,7 @@ describe('OVM_CanonicalTransactionChain', () => {
             const blockNumber = await getNextBlockNumber(ethers.provider)
             await setEthTime(ethers.provider, timestamp)
 
-            const queueRoot = getTransactionHash(
+            const transactionHash = getTransactionHash(
               await signer.getAddress(),
               target,
               gasLimit,
@@ -295,7 +295,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 await OVM_CanonicalTransactionChain.getQueueElement(0)
               )
             ).to.deep.include({
-              queueRoot,
+              transactionHash,
               timestamp,
               blockNumber,
             })
@@ -308,7 +308,7 @@ describe('OVM_CanonicalTransactionChain', () => {
           it(`gets the element when ${size} elements exist`, async () => {
             let timestamp: number
             let blockNumber: number
-            let queueRoot: string
+            let transactionHash: string
 
             const middleIndex = Math.floor(size / 2)
             for (let i = 0; i < size; i++) {
@@ -317,7 +317,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 blockNumber = await getNextBlockNumber(ethers.provider)
                 await setEthTime(ethers.provider, timestamp)
 
-                queueRoot = getTransactionHash(
+                transactionHash = getTransactionHash(
                   await signer.getAddress(),
                   target,
                   gasLimit,
@@ -343,7 +343,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 await OVM_CanonicalTransactionChain.getQueueElement(middleIndex)
               )
             ).to.deep.include({
-              queueRoot,
+              transactionHash,
               timestamp,
               blockNumber,
             })
@@ -356,7 +356,7 @@ describe('OVM_CanonicalTransactionChain', () => {
           it(`gets the element when ${size} elements exist`, async () => {
             let timestamp: number
             let blockNumber: number
-            let queueRoot: string
+            let transactionHash: string
 
             for (let i = 0; i < size; i++) {
               if (i === size - 1) {
@@ -364,7 +364,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 blockNumber = await getNextBlockNumber(ethers.provider)
                 await setEthTime(ethers.provider, timestamp)
 
-                queueRoot = getTransactionHash(
+                transactionHash = getTransactionHash(
                   await signer.getAddress(),
                   target,
                   gasLimit,
@@ -390,7 +390,7 @@ describe('OVM_CanonicalTransactionChain', () => {
                 await OVM_CanonicalTransactionChain.getQueueElement(size - 1)
               )
             ).to.deep.include({
-              queueRoot,
+              transactionHash,
               timestamp,
               blockNumber,
             })
