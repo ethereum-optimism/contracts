@@ -21,7 +21,6 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
-import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol";
 
 /**
  * @title OVM_ExecutionManager
@@ -381,19 +380,22 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address _contract
         )
     {
+        console.log('ovmCreate 1');
         // Creator is always the current ADDRESS.
         address creator = ovmADDRESS();
 
         // Check that the deployer is whitelisted, or
         // that arbitrary contract deployment has been enabled.
-        _checkDeployerAllowed(creator);
+        // @note: makes a call to ovmCall deployer-whitelist
+            // failure here (due to false hasAccount) results in un-reset context
+        _checkDeployerAllowed(creator); 
 
         // Generate the correct CREATE address.
         address contractAddress = Lib_EthUtils.getAddressForCREATE(
             creator,
             _getAccountNonce(creator)
         );
-
+        console.log('ovmCreate 2');
         return _createContract(
             contractAddress,
             _bytecode
@@ -797,12 +799,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
+        console.log('safeCreate');
         // Since this function is public, anyone can attempt to directly call it. We need to make
         // sure that the OVM_ExecutionManager itself is the only party that can actually try to
         // call this function.
         if (msg.sender != address(this)) {
             return;
         }
+        console.log('safeCreate 2', _address);
 
         // We need to be sure that the user isn't trying to use a contract creation to overwrite
         // some existing contract. On L1, users will prove that no contract exists at the address
@@ -811,15 +815,20 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (_hasEmptyAccount(_address) == false) {
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
+        
+        console.log('safeCreate 3');
+        console.logBytes( _bytecode);
 
         // Check the creation bytecode against the Safety Cache and Safety Checker.
         if (ovmSafetyCache.checkAndRegisterSafeBytecode(_bytecode) == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
+        console.log('safeCreate 4');
 
+        console.log('pre-initpending', _address);
         // We always need to initialize the contract with the default account values.
         _initPendingAccount(_address);
-
+        console.log('pre-evmCreate');
         // Actually deploy the contract and retrieve its address. This step is hiding a lot of
         // complexity because we need to ensure that contract creation *never* reverts by itself.
         // We cover this partially by storing a revert flag and returning (instead of reverting)
@@ -984,7 +993,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         address codeContractAddress =
             uint(_contract) < 100
             ? _contract
-            : _getAccountEthAddress(_contract);
+            : _getAccountEthAddress(_contract); // @flag reverts here with invalid state access when deployerWhitelist is not in SM
 
         return _handleExternalInteraction(
             _nextMessageContext,
@@ -1102,23 +1111,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      ******************************************/
 
     /**
-     * Checks whether an account exists within the OVM_StateManager.
-     * @param _address Address of the account to check.
-     * @return _exists Whether or not the account exists.
-     */
-    function _hasAccount(
-        address _address
-    )
-        internal
-        returns (
-            bool _exists
-        )
-    {
-        _checkAccountLoad(_address);
-        return ovmStateManager.hasAccount(_address);
-    }
-
-    /**
      * Checks whether a known empty account exists within the OVM_StateManager.
      * @param _address Address of the account to check.
      * @return _exists Whether or not the account empty exists.
@@ -1163,6 +1155,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             uint256 _nonce
         )
     {   
+        console.log('getAccountNonce: %s' ,_address);
         _checkAccountLoad(_address);
         return ovmStateManager.getAccountNonce(_address);
     }
@@ -1180,6 +1173,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address _ethAddress
         )
     {
+        console.log('_getAccountEthAddress');
         _checkAccountLoad(_address);
         return ovmStateManager.getAccountEthAddress(_address);
     }
@@ -1283,6 +1277,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _revertWithFlag(RevertFlag.OUT_OF_GAS);
         }
 
+        console.log("_checkAccountLoad");
         // See `_checkContractStorageLoad` for more information.
         if (ovmStateManager.hasAccount(_address) == false) {
             _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);

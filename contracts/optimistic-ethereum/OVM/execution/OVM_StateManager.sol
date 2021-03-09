@@ -2,6 +2,8 @@
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
+
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 
@@ -177,6 +179,7 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
+        console.log('hasAccount', accounts[_address].codeHash != bytes32(0), _address);
         return accounts[_address].codeHash != bytes32(0);
     }
 

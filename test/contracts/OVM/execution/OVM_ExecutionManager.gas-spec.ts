@@ -2,6 +2,7 @@ import { expect } from '../../../setup'
 import { deployContractCode } from '../../../helpers/utils'
 
 /* External Imports */
+import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import { Contract, ContractFactory, Signer } from 'ethers'
 import {
@@ -17,6 +18,7 @@ import {
   NON_ZERO_ADDRESS,
   NON_NULL_BYTES32,
   GasMeasurement,
+  DUMMY_BYTES32
 } from '../../../helpers'
 
 const DUMMY_GASMETERCONFIG = {
@@ -167,7 +169,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         AddressManager.address,
         DUMMY_GASMETERCONFIG,
         DUMMY_GLOBALCONTEXT
-      )// .connect(wallet)
+      )
           
       // Deploy GasMeasurement utility
       gasMeasurement = new GasMeasurement()
@@ -181,49 +183,46 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       )
     
       // Setup the SM to satisfy all the checks executed during EM.run()
-      MODDABLE__STATE_MANAGER.smodify.set({
-        ovmExecutionManager: OVM_ExecutionManager.address
-      })
-    
-      MODDABLE__STATE_MANAGER.smodify.set({
-        accounts: {
-          [OVM_SafetyCache.address]: {
-            nonce: 0,
-            codeHash: NON_NULL_BYTES32,
-            ethAddress: OVM_SafetyCache.address,
-          },
-          [MOCK__OVM_DeployerWhitelist.address]: {
-            nonce: 0,
-            codeHash: NON_NULL_BYTES32,
-            ethAddress: MOCK__OVM_DeployerWhitelist.address,
-          },
-
+      await MODDABLE__STATE_MANAGER.putAccount(
+        "0x4200000000000000000000000000000000000002", 
+        {
+          nonce: BigNumber.from(123),
+          balance: BigNumber.from(456),
+          storageRoot: DUMMY_BYTES32[0],
+          codeHash: DUMMY_BYTES32[1],
+          ethAddress: MOCK__OVM_DeployerWhitelist.address,
         },
-      })
- 
-      await MODDABLE__STATE_MANAGER.testAndSetAccountLoaded(OVM_SafetyCache.address);
-      await MODDABLE__STATE_MANAGER.testAndSetAccountLoaded(MOCK__OVM_DeployerWhitelist.address);
+      );
       await MODDABLE__STATE_MANAGER.setExecutionManager(OVM_ExecutionManager.address)
-    
+      
+
       // Deploy a simple OVM-safe contract that just deploys another contract
       Helper_SimpleDeployer = await (
         await ethers.getContractFactory('Helper_SimpleOvmDeployer')
       ).deploy()
       DUMMY_TRANSACTION.entrypoint = Helper_SimpleDeployer.address
+      console.log("Helper_SimpleDeployer.address:" , Helper_SimpleDeployer.address);
+      
 
-
-      MODDABLE__STATE_MANAGER.smodify.set({
-        accounts: {
-          [Helper_SimpleDeployer.address]: {
-            nonce: 0,
-            codeHash: NON_NULL_BYTES32,
-            ethAddress: Helper_SimpleDeployer.address,
-          },
-        }
-      })
+      await MODDABLE__STATE_MANAGER.putAccount(
+        Helper_SimpleDeployer.address,
+        {
+          nonce: BigNumber.from(123),
+          balance: BigNumber.from(456),
+          storageRoot: DUMMY_BYTES32[0],
+          codeHash: DUMMY_BYTES32[1],
+          ethAddress: Helper_SimpleDeployer.address,
+        },
+      )
+      
     })
 
     it('Gas Benchmark: un-cached contract deployment', async () => {
+      // Set destination for first contract deployment
+      await MODDABLE__STATE_MANAGER.putEmptyAccount(
+        "0xf7a70a9ed665630eaaf9f7b40b71f01cbf65f73f"
+      )
+
       const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address)
       await tx.wait()
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
@@ -238,6 +237,11 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     })
     
     it('Gas Benchmark: deploying a cached contract', async () => {
+      // Set destination for second contract deployment
+      await MODDABLE__STATE_MANAGER.putEmptyAccount(
+        "0xd236d314fd67606dddb3885f1330cf9bd3c8dbea"
+      )
+
       // run the exact same flow as the previous. This time the Safety Cache should recognize the string.
       const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address)
       await tx.wait()

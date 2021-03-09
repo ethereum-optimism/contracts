@@ -75,7 +75,8 @@ contract OVM_SafetyCache is iOVM_SafetyCache, Lib_AddressResolver {
         bytes32 codehash = keccak256(abi.encode(_code));
         console.log("codehash: ");
         console.logBytes32(codehash);
-        console.log(uint(codehash));
+        console.log("code: ");
+        console.logBytes(_code);
         if(isSafeCodehash[codehash] == true) {
             return true;
         }

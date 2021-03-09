@@ -11,7 +11,7 @@ contract Helper_SimpleOvmDeployer {
         external
     {
         console.log('deploying a contract with bytecode: 0x00');
-        bytes memory initCode = "600D380380600D6000396000f300";
+        bytes memory initCode = hex'600D380380600D6000396000f300';
         address addr = Lib_SafeExecutionManagerWrapper.safeCREATE(gasleft(), initCode);
         console.log(addr);
     }
