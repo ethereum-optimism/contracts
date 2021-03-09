@@ -508,7 +508,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             }
         }
 
-        _validateFinalBatchContext(curContext);
+        _validateFinalBatchContext(
+            curContext,
+            nextQueueIndex,
+            queueLength,
+            queueRef
+        );
 
         require(
             msg.data.length == nextTransactionPtr,
@@ -960,10 +965,50 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
+     * Checks that a given batch context has a time context which is below a given que element
+     * @param _nextContext The batch context to validate has values lower.
+     * @param _queueIndex Index of the queue element we are validating came later than the context
+     * @param _queueRef The storage container for the queue.
+     */
+    function _validateContextBeforeEnqueue(
+        BatchContext memory _contet,
+        uint40 _queueIndex,
+        iOVM_ChainStorageContainer _queueRef
+    )
+        internal
+        view
+    {
+            Lib_OVMCodec.QueueElement memory nextQueueElement = _getQueueElement(
+                _queueIndex,
+                _queueRef
+            );
+
+            // If the force inclusion period has passed for an enqueued transaction, it MUST be the next chain element.
+            require(
+                block.timestamp < nextQueueElement.timestamp + forceInclusionPeriodSeconds,
+                "Previously enqueued batches have expired and must be appended before a new sequencer batch."
+            );
+
+            // Just like sequencer transaction times must be increasing relative to each other,
+            // We also require that they be increasing relative to any interspersed queue elements.
+            require(
+                _contet.timestamp <= nextQueueElement.timestamp,
+                "Sequencer transaction timestamp exceeds that of next queue element."
+            );
+
+            require(
+                _contet.blockNumber <= nextQueueElement.blockNumber,
+                "Sequencer transaction blockNumber exceeds that of next queue element."
+            );
+    }
+
+    /**
      * Checks that a given batch context is valid based on its previous context, and the next queue elemtent.
      * @param _prevContext The previously validated batch context.
      * @param _nextContext The batch context to validate with this call.
      * @param _nextQueueIndex Index of the next queue element to process for the _nextContext's subsequentQueueElements.
+     * @param _queueLength The length of the queue at the start of the batchAppend call.
+     * @param _queueRef The storage container for the queue.
      */
     function _validateNextBatchContext(
         BatchContext memory _prevContext,
@@ -986,29 +1031,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             "Context blockNumber values must monotonically increase."
         );
 
-        // If there are some queue elements pending:
-        if (_queueLength - _nextQueueIndex > 0) {
-            Lib_OVMCodec.QueueElement memory nextQueueElement = _getQueueElement(
+        // If there is going to be a queue element pulled in from this context:
+        if (_nextContext.numSubsequentQueueTransactions > 0) {
+            _validateContextBeforeEnqueue(
+                _nextContext,
                 _nextQueueIndex,
                 _queueRef
-            );
-
-            // If the force inclusion period has passed for an enqueued transaction, it MUST be the next chain element.
-            require(
-                block.timestamp < nextQueueElement.timestamp + forceInclusionPeriodSeconds,
-                "Previously enqueued batches have expired and must be appended before a new sequencer batch."
-            );
-
-            // Just like sequencer transaction times must be increasing relative to each other,
-            // We also require that they be increasing relative to any interspersed queue elements.
-            require(
-                _nextContext.timestamp <= nextQueueElement.timestamp,
-                "Sequencer transaction timestamp exceeds that of next queue element."
-            );
-
-            require(
-                _nextContext.blockNumber <= nextQueueElement.blockNumber,
-                "Sequencer transaction blockNumber exceeds that of next queue element."
             );
         }
     }
@@ -1016,13 +1044,27 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     /**
      * Checks that the final batch context in a sequencer submission is valid.
      * @param _finalContext The batch context to validate.
+     * @param _queueLength The length of the queue at the start of the batchAppend call.
+     * @param _nextQueueIndex The next element in the queue that will be pulled into the CTC.
+     * @param _queueRef The storage container for the queue.
      */
     function _validateFinalBatchContext(
-        BatchContext memory _finalContext
+        BatchContext memory _finalContext,
+        uint40 _nextQueueIndex,
+        uint40 _queueLength,
+        iOVM_ChainStorageContainer _queueRef
     )
         internal
         view
     {
+        // If the queue is not now empty, check the mononoticity of whatever the next batch that will come in is.
+        if (_queueLength - _nextQueueIndex > 0 && _finalContext.numSubsequentQueueTransactions == 0) {
+            _validateContextBeforeEnqueue(
+                _finalContext,
+                _nextQueueIndex,
+                _queueRef
+            );
+        }
         // Batches cannot be added from the future, or subsequent enqueue() contexts would violate monotonicity.
         require(_finalContext.timestamp <= block.timestamp, "Context timestamp is from the future.");
         require(_finalContext.blockNumber <= block.number, "Context block number is from the future.");
