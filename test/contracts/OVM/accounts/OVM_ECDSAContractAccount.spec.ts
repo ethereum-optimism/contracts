@@ -78,7 +78,7 @@ describe('OVM_ECDSAContractAccount', () => {
     Mock__OVM_ExecutionManager.smocked.ovmGETNONCE.will.return.with(100)
     Mock__OVM_ExecutionManager.smocked.ovmCALL.will.return.with([true, '0x'])
     Mock__OVM_ExecutionManager.smocked.ovmCREATE.will.return.with(
-      NON_ZERO_ADDRESS
+      [ NON_ZERO_ADDRESS, '0x' ]
     )
     Mock__OVM_ExecutionManager.smocked.ovmCALLER.will.return.with(
       NON_ZERO_ADDRESS

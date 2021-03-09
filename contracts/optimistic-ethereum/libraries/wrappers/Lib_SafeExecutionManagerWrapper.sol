@@ -90,7 +90,8 @@ library Lib_SafeExecutionManagerWrapper {
     )
         internal
         returns (
-            address _contract
+            address,
+            bytes memory
         )
     {
         bytes memory returndata = _safeExecutionManagerInteraction(
@@ -101,9 +102,7 @@ library Lib_SafeExecutionManagerWrapper {
             )
         );
 
-        (address createdContract,) = abi.decode(returndata, (address, bytes));
-
-        return createdContract;
+        return abi.decode(returndata, (address, bytes));
     }
 
     /**

@@ -846,8 +846,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         nextMessageContext.ovmCALLER = messageContext.ovmADDRESS;
         nextMessageContext.ovmADDRESS = _contractAddress;
 
-        // Run `safeCREATE` in a new EVM message so that our changes can be reflected even if
-        // `safeCREATE` reverts.
+        // _handleExternalMessage deals with common checks between call-type and create-type messages.
+        // the _isCreate bool then triggers some create-type-only logic.
         (bool success, bytes memory data) = _handleExternalMessage(
             nextMessageContext,
             gasleft(),
@@ -950,6 +950,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // behavior can be controlled. In particular, we enforce that flags are passed through
         // revert data as to retrieve execution metadata that would normally be reverted out of
         // existence.
+
         (bool success, bytes memory returndata) =
             _isCreate
             ? _handleExternalCreate(_gasLimit, _data, _contract)
