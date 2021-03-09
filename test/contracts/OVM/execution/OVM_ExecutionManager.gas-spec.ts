@@ -35,7 +35,7 @@ const QUEUE_ORIGIN = {
   L1TOL2_QUEUE: 1,
 }
 
-describe.only('OVM_ExecutionManager Benchmarks', () => {
+describe('OVM_ExecutionManager Benchmarks', () => {
   describe('em.run() benchmark: executing a minimal contract', async () => {
     let wallet: Signer  
     let Factory__OVM_ExecutionManager: ContractFactory
@@ -272,7 +272,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 581_062
+      const benchmark: number = 7_046_427
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
@@ -291,7 +291,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 581_062
+      const benchmark: number = 5_539_103
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
