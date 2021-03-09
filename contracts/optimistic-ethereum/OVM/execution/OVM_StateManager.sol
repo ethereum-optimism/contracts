@@ -2,8 +2,6 @@
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "hardhat/console.sol";
-
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 
@@ -71,11 +69,6 @@ contract OVM_StateManager is iOVM_StateManager {
      */
     modifier authenticated() {
         // owner is the State Transitioner
-        console.log('authenticated modifier');
-        console.log('caller: ', msg.sender);
-        console.log('owner:', owner);
-        console.log('ovmExecutionManager:', ovmExecutionManager);
-        console.log(msg.sender == owner || msg.sender == ovmExecutionManager);
         require(
             msg.sender == owner || msg.sender == ovmExecutionManager,
             "Function can only be called by authenticated addresses"
@@ -102,11 +95,6 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
-        console.log('isauthenticated');
-        console.log('_address: ', _address);
-        console.log('owner:', owner);
-        console.log('ovmExecutionManager:', ovmExecutionManager);
-        console.log(_address == owner || _address == ovmExecutionManager);
         return (_address == owner || _address == ovmExecutionManager);
     }
 

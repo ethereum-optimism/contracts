@@ -6,16 +6,13 @@ import "hardhat/console.sol";
 
 pragma solidity >0.5.0 <0.8.0;
 
-contract Helper_SimpleOvmDeployer {
-    
-    constructor(){
-        console.log('deployed Helper_SimpleOvmDeployer');
-    }
-
+contract Helper_SimpleOvmDeployer {    
     fallback()
         external
     {
-        Lib_SafeExecutionManagerWrapper.safeCREATE(gasleft(), "00");
-        console.log('deployed with bytecode: 0x00');
+        console.log('deploying a contract with bytecode: 0x00');
+        bytes memory initCode = "600D380380600D6000396000f300";
+        address addr = Lib_SafeExecutionManagerWrapper.safeCREATE(gasleft(), initCode);
+        console.log(addr);
     }
 }

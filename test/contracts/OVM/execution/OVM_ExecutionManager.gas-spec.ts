@@ -106,7 +106,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         'run',
         [DUMMY_TRANSACTION, MOCK__STATE_MANAGER.address]
       )
-      console.log(`calculated gas cost of ${gasCost}`)
+      console.log(`      calculated gas cost of ${gasCost}`)
 
       const benchmark: number = 226_516
       expect(gasCost).to.be.lte(benchmark)
@@ -179,14 +179,12 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       ).deploy(
         await wallet.getAddress()
       )
-      console.log('wallet address:', await wallet.getAddress())
+    
       // Setup the SM to satisfy all the checks executed during EM.run()
       MODDABLE__STATE_MANAGER.smodify.set({
         ovmExecutionManager: OVM_ExecutionManager.address
       })
-      console.log('stateManager.ovmExecutionManager:', await MODDABLE__STATE_MANAGER.ovmExecutionManager())
-      console.log('stateManager.owner:', await MODDABLE__STATE_MANAGER.owner())
-      // MODDABLE__STATE_MANAGER.smocked.hasAccount.will.return.with(true)
+    
       MODDABLE__STATE_MANAGER.smodify.set({
         accounts: {
           [OVM_SafetyCache.address]: {
@@ -194,12 +192,6 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
             codeHash: NON_NULL_BYTES32,
             ethAddress: OVM_SafetyCache.address,
           },
-          // todo remove if unneeded
-          // [OVM_SafetyChecker.address]: {
-          //   nonce: 0,
-          //   codeHash: NON_NULL_BYTES32,
-          //   ethAddress: OVM_SafetyChecker.address,
-          // },
           [MOCK__OVM_DeployerWhitelist.address]: {
             nonce: 0,
             codeHash: NON_NULL_BYTES32,
@@ -209,14 +201,9 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         },
       })
  
-      console.log('testing and setting')
       await MODDABLE__STATE_MANAGER.testAndSetAccountLoaded(OVM_SafetyCache.address);
       await MODDABLE__STATE_MANAGER.testAndSetAccountLoaded(MOCK__OVM_DeployerWhitelist.address);
       await MODDABLE__STATE_MANAGER.setExecutionManager(OVM_ExecutionManager.address)
-      MODDABLE__STATE_MANAGER.smodify.set({
-        owner: gasMeasurement.GasMeasurementContract.address
-      }) // @flag: this doesn't seem to actually modify the owner
-      console.log('sm-owner ', await MODDABLE__STATE_MANAGER.owner())
     
       // Deploy a simple OVM-safe contract that just deploys another contract
       Helper_SimpleDeployer = await (
@@ -242,7 +229,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 217758
+      const benchmark: number = 272_527
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
@@ -251,12 +238,13 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     })
     
     it('Gas Benchmark: deploying a cached contract', async () => {
+      // run the exact same flow as the previous. This time the Safety Cache should recognize the string.
       const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address)
       await tx.wait()
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 217758
+      const benchmark: number = 272_527
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,

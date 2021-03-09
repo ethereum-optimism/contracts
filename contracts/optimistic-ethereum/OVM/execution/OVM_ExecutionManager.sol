@@ -5,7 +5,6 @@ pragma experimental ABIEncoderV2;
 
 import "hardhat/console.sol";
 
-
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
@@ -89,7 +88,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         public
         Lib_AddressResolver(_libAddressManager)
     {
-        console.log('constructor');
         ovmSafetyCache = iOVM_SafetyCache(resolve("OVM_SafetyCache"));
         gasMeterConfig = _gasMeterConfig;
         globalContext = _globalContext;
@@ -167,6 +165,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
+        console.log('txContext.ovmNumber:',transactionContext.ovmNUMBER);
         require(transactionContext.ovmNUMBER == 0, "Only be callable at the start of a transaction");
         // Store our OVM_StateManager instance (significantly easier than attempting to pass the
         // address around in calldata).
@@ -175,14 +174,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Make sure this function can't be called by anyone except the owner of the
         // OVM_StateManager (expected to be an OVM_StateTransitioner). We can revert here because
         // this would make the `run` itself invalid.
-        console.log('pre-auth');
         require(
             // This method may return false during fraud proofs, but always returns true in L2 nodes' State Manager precompile.
             ovmStateManager.isAuthenticated(msg.sender),
             "Only authenticated addresses in ovmStateManager can call this function"
         );
 
-        console.log('post-auth');
         // Initialize the execution context, must be initialized before we perform any gas metering
         // or we'll throw a nuisance gas error.
         _initContext(_transaction);
@@ -190,14 +187,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // // Check whether we need to start a new epoch, do so if necessary.
         // _checkNeedsNewEpoch(_transaction.timestamp);
 
-        console.log('post-init');
         // Make sure the transaction's gas limit is valid. We don't revert here because we reserve
         // reverts for INVALID_STATE_ACCESS.
         if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
             _resetContext();
             return;
         }
-        console.log('post valid gas limit');
         // Check gas right before the call to get total gas consumed by OVM transaction.
         uint256 gasProvided = gasleft();
 
@@ -208,14 +203,13 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _transaction.data
         );
         uint256 gasUsed = gasProvided - gasleft();
-        console.log('post omvcall');
         // TEMPORARY: Gas metering is disabled for minnet.
         // // Update the cumulative gas based on the amount of gas used.
         // _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);
 
         // Wipe the execution context.
         _resetContext();
-
+        console.log('reset context', transactionContext.ovmNUMBER);
         // Reset the ovmStateManager.
         ovmStateManager = iOVM_StateManager(address(0));
     }
@@ -818,7 +812,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
 
-        console.log('pre-check');
         // Check the creation bytecode against the Safety Cache and Safety Checker.
         if (ovmSafetyCache.checkAndRegisterSafeBytecode(_bytecode) == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
@@ -1061,6 +1054,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             // parent EVM message. This behavior is necessary because INVALID_STATE_ACCESS must
             // halt any further transaction execution that could impact the execution result.
             if (flag == RevertFlag.INVALID_STATE_ACCESS) {
+                console.log("INVALID_STATE_ACCESS");
                 _revertWithFlag(flag);
             }
 
@@ -1186,9 +1180,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         )
     {
         _checkAccountLoad(_address);
-        address gotten = ovmStateManager.getAccountEthAddress(_address);
-        // console.log('_getAccountEthAddress', _address, gotten);
-        return gotten;
+        return ovmStateManager.getAccountEthAddress(_address);
     }
 
     /**
@@ -1534,6 +1526,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _data
         );
 
+        console.log('revertflag', uint8(_flag));
         assembly {
             revert(add(revertdata, 0x20), mload(revertdata))
         }
