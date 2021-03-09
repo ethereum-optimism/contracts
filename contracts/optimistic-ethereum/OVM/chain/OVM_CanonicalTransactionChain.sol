@@ -967,7 +967,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     /**
      * Checks that a given batch context has a time context which is below a given que element
      * @param _context The batch context to validate has values lower.
-     * @param _queueIndex Index of the queue element we are validating came later than the context
+     * @param _queueIndex Index of the queue element we are validating came later than the context.
      * @param _queueRef The storage container for the queue.
      */
     function _validateContextBeforeEnqueue(
