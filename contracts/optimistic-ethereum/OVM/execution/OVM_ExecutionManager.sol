@@ -998,7 +998,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             // to zero. OUT_OF_GAS is a "pseudo" flag given that messages return no data when they
             // run out of gas, so we have to treat this like EXCEEDS_NUISANCE_GAS. All other flags
             // will simply pass up the remaining nuisance gas.
-            nuisanceGasLeft = nuisanceGasLeftPostRevert;
+            nuisanceGasLeft = (flag == RevertFlag.OUT_OF_GAS) ?
+                0 : nuisanceGasLeftPostRevert;
         }
 
         // We need to reset the nuisance gas back to its original value minus the amount used here.
