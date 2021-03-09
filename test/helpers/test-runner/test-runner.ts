@@ -216,7 +216,7 @@ export class ExecutionManagerTestRunner {
     MockSafetyCache.smocked.checkAndRegisterSafeBytecode.will.return.with(true)
 
     this.contracts.OVM_SafetyCache = MockSafetyCache
-    
+
     await AddressManager.setAddress(
       'OVM_SafetyCache',
       this.contracts.OVM_SafetyCache.address

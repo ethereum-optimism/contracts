@@ -5,10 +5,7 @@ import { deployContractCode } from '../../../helpers/utils'
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import { Contract, ContractFactory, Signer } from 'ethers'
-import {
-  smockit,
-  MockContract,
-} from '@eth-optimism/smock'
+import { smockit, MockContract } from '@eth-optimism/smock'
 
 /* Internal Imports */
 import {
@@ -16,7 +13,7 @@ import {
   NON_ZERO_ADDRESS,
   NON_NULL_BYTES32,
   GasMeasurement,
-  DUMMY_BYTES32
+  DUMMY_BYTES32,
 } from '../../../helpers'
 
 const DUMMY_GASMETERCONFIG = {
@@ -37,20 +34,20 @@ const QUEUE_ORIGIN = {
 
 describe.only('OVM_ExecutionManager Benchmarks', () => {
   describe('em.run() benchmark: executing a minimal contract', async () => {
-    let wallet: Signer  
+    let wallet: Signer
     let Factory__OVM_ExecutionManager: ContractFactory
     let OVM_ExecutionManager: Contract
     let MOCK__STATE_MANAGER: MockContract
     let AddressManager: Contract
     let targetContractAddress: string
     let gasMeasurement: GasMeasurement
-    let DUMMY_TRANSACTION;
+    let DUMMY_TRANSACTION
     before(async () => {
       ;[wallet] = await ethers.getSigners()
       Factory__OVM_ExecutionManager = await ethers.getContractFactory(
         'OVM_ExecutionManager'
       )
-  
+
       DUMMY_TRANSACTION = {
         timestamp: 111111111111,
         blockNumber: 20,
@@ -68,16 +65,16 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         10_000_000
       )
       DUMMY_TRANSACTION.entrypoint = targetContractAddress
-  
+
       AddressManager = await makeAddressManager()
-  
+
       // deploy the state manager and mock it for the state transitioner
       MOCK__STATE_MANAGER = await smockit(
         await (await ethers.getContractFactory('OVM_StateManager')).deploy(
           NON_ZERO_ADDRESS
         )
       )
-  
+
       // Setup the SM to satisfy all the checks executed during EM.run()
       MOCK__STATE_MANAGER.smocked.isAuthenticated.will.return.with(true)
       MOCK__STATE_MANAGER.smocked.getAccountEthAddress.will.return.with(
@@ -85,12 +82,12 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       )
       MOCK__STATE_MANAGER.smocked.hasAccount.will.return.with(true)
       MOCK__STATE_MANAGER.smocked.testAndSetAccountLoaded.will.return.with(true)
-  
+
       await AddressManager.setAddress(
         'OVM_StateManagerFactory',
         MOCK__STATE_MANAGER.address
       )
-  
+
       gasMeasurement = new GasMeasurement()
       await gasMeasurement.init(wallet)
       OVM_ExecutionManager = (
@@ -135,16 +132,16 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       AddressManager = await makeAddressManager()
 
       // Deploy Safety Checker and register it with the Address Manager
-      OVM_SafetyChecker = await ( 
+      OVM_SafetyChecker = await (
         await ethers.getContractFactory('OVM_SafetyChecker')
       ).deploy()
       await AddressManager.setAddress(
         'OVM_SafetyChecker',
         OVM_SafetyChecker.address
       )
-        
+
       // Deploy Safety Cache and register it with the Address Manager
-      OVM_SafetyCache = await ( 
+      OVM_SafetyCache = await (
         await ethers.getContractFactory('OVM_SafetyCache')
       ).deploy(AddressManager.address)
       await AddressManager.setAddress(
@@ -153,10 +150,12 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       )
 
       // Setup Mock Deployer Whitelist and register it with the Address Manager
-      MOCK__OVM_DeployerWhitelist = await smockit( 
+      MOCK__OVM_DeployerWhitelist = await smockit(
         await ethers.getContractFactory('OVM_DeployerWhitelist')
       )
-      MOCK__OVM_DeployerWhitelist.smocked.isDeployerAllowed.will.return.with(true)
+      MOCK__OVM_DeployerWhitelist.smocked.isDeployerAllowed.will.return.with(
+        true
+      )
       await AddressManager.setAddress(
         'OVM_DeployerWhitelist',
         MOCK__OVM_DeployerWhitelist.address
@@ -170,7 +169,6 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         DUMMY_GASMETERCONFIG,
         DUMMY_GLOBALCONTEXT
       )
-  
 
       // Deploy GasMeasurement utility
       gasMeasurement = new GasMeasurement()
@@ -179,23 +177,20 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       // Setup the State Manger and modify it to allow execution to proceed
       OVM_StateManager = await (
         await ethers.getContractFactory('OVM_StateManager')
-      ).deploy(
-        await wallet.getAddress()
-      )
-    
+      ).deploy(await wallet.getAddress())
+
       // Setup the SM to satisfy all the checks executed during EM.run()
       await OVM_StateManager.putAccount(
-        "0x4200000000000000000000000000000000000002", 
+        '0x4200000000000000000000000000000000000002',
         {
           nonce: BigNumber.from(123),
           balance: BigNumber.from(456),
           storageRoot: DUMMY_BYTES32[0],
           codeHash: DUMMY_BYTES32[1],
           ethAddress: MOCK__OVM_DeployerWhitelist.address,
-        },
-      );
+        }
+      )
       await OVM_StateManager.setExecutionManager(OVM_ExecutionManager.address)
-      
 
       // Deploy a simple OVM-safe contract that just deploys another contract
       Helper_SimpleDeployer = await (
@@ -208,29 +203,32 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         l1TxOrigin: NON_ZERO_ADDRESS,
         entrypoint: Helper_SimpleDeployer.address,
         gasLimit: 10_000_000,
-        data: Helper_SimpleDeployer.interface.encodeFunctionData('deploy(uint256)', [0])
+        data: Helper_SimpleDeployer.interface.encodeFunctionData(
+          'deploy(uint256)',
+          [0]
+        ),
       }
-      await OVM_StateManager.putAccount(
-        Helper_SimpleDeployer.address,
-        {
-          nonce: BigNumber.from(123),
-          balance: BigNumber.from(456),
-          storageRoot: DUMMY_BYTES32[0],
-          codeHash: DUMMY_BYTES32[1],
-          ethAddress: Helper_SimpleDeployer.address,
-        },
-      )
-      
+      await OVM_StateManager.putAccount(Helper_SimpleDeployer.address, {
+        nonce: BigNumber.from(123),
+        balance: BigNumber.from(456),
+        storageRoot: DUMMY_BYTES32[0],
+        codeHash: DUMMY_BYTES32[1],
+        ethAddress: Helper_SimpleDeployer.address,
+      })
     })
 
     it('Gas Benchmark: un-cached minimal contract deployment', async () => {
       // Set destination for first contract deployment
       await OVM_StateManager.putEmptyAccount(
-        "0xf7a70a9ed665630eaaf9f7b40b71f01cbf65f73f"
+        '0xf7a70a9ed665630eaaf9f7b40b71f01cbf65f73f'
       )
-      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, OVM_StateManager.address)
+      const tx = await OVM_ExecutionManager.run(
+        DUMMY_TRANSACTION,
+        OVM_StateManager.address
+      )
       await tx.wait()
-      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
+      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash))
+        .gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
       const benchmark: number = 583_841
@@ -240,17 +238,21 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
       )
     })
-    
+
     it('Gas Benchmark: cached minimal contract deployment', async () => {
       // Set destination for second contract deployment
       await OVM_StateManager.putEmptyAccount(
-        "0xd236d314fd67606dddb3885f1330cf9bd3c8dbea"
+        '0xd236d314fd67606dddb3885f1330cf9bd3c8dbea'
       )
 
       // run the exact same flow as the previous. This time the Safety Cache should recognize the string.
-      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, OVM_StateManager.address)
+      const tx = await OVM_ExecutionManager.run(
+        DUMMY_TRANSACTION,
+        OVM_StateManager.address
+      )
       await tx.wait()
-      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
+      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash))
+        .gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
       const benchmark: number = 417_183
@@ -262,14 +264,21 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     })
 
     it('Gas Benchmark: un-cached larger contract deployment ', async () => {
-      DUMMY_TRANSACTION.data = Helper_SimpleDeployer.interface.encodeFunctionData('deploy(uint256)', [1])
+      DUMMY_TRANSACTION.data = Helper_SimpleDeployer.interface.encodeFunctionData(
+        'deploy(uint256)',
+        [1]
+      )
       // Set destination for first contract deployment
       await OVM_StateManager.putEmptyAccount(
-        "0x2dbd79d558282f50005be8e44c90a2db31042b40"
+        '0x2dbd79d558282f50005be8e44c90a2db31042b40'
       )
-      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, OVM_StateManager.address)
+      const tx = await OVM_ExecutionManager.run(
+        DUMMY_TRANSACTION,
+        OVM_StateManager.address
+      )
       await tx.wait()
-      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
+      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash))
+        .gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
       const benchmark: number = 7_046_427
@@ -279,16 +288,23 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
       )
     })
-    
+
     it('Gas Benchmark: cached larger contract deployment ', async () => {
-      DUMMY_TRANSACTION.data = Helper_SimpleDeployer.interface.encodeFunctionData('deploy(uint256)', [1])
+      DUMMY_TRANSACTION.data = Helper_SimpleDeployer.interface.encodeFunctionData(
+        'deploy(uint256)',
+        [1]
+      )
       // Set destination for first contract deployment
       await OVM_StateManager.putEmptyAccount(
-        "0x7715813e9ee6baab3cb5ea89edc16fa92d526a74"
+        '0x7715813e9ee6baab3cb5ea89edc16fa92d526a74'
       )
-      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, OVM_StateManager.address)
+      const tx = await OVM_ExecutionManager.run(
+        DUMMY_TRANSACTION,
+        OVM_StateManager.address
+      )
       await tx.wait()
-      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
+      const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash))
+        .gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
       const benchmark: number = 5_539_103
