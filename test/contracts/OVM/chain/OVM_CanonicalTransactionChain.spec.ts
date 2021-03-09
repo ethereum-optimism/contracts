@@ -779,7 +779,7 @@ describe('OVM_CanonicalTransactionChain', () => {
               shouldStartAtBatch: 0,
               totalElementsToAppend: 1,
             })
-          ).to.be.revertedWith('Not enough queued transactions to append.')
+          ).to.be.revertedWith('Index out of bounds.')
         })
 
         it('reverts when there are insufficient (but nonzero) transactions in the queue', async () => {

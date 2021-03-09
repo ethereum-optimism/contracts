@@ -963,6 +963,44 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     }
 
     /**
+     * Checks that a given batch context has a time context which is below a given que element
+     * @param _nextContext The batch context to validate has values lower.
+     * @param _queueIndex Index of the queue element we are validating came later than the context
+     * @param _queueRef The storage container for the queue.
+     */
+    function _validateContextBeforeEnqueue(
+        BatchContext memory _contet,
+        uint40 _queueIndex,
+        iOVM_ChainStorageContainer _queueRef
+    )
+        internal
+        view
+    {
+            Lib_OVMCodec.QueueElement memory nextQueueElement = _getQueueElement(
+                _queueIndex,
+                _queueRef
+            );
+
+            // If the force inclusion period has passed for an enqueued transaction, it MUST be the next chain element.
+            require(
+                block.timestamp < nextQueueElement.timestamp + forceInclusionPeriodSeconds,
+                "Previously enqueued batches have expired and must be appended before a new sequencer batch."
+            );
+
+            // Just like sequencer transaction times must be increasing relative to each other,
+            // We also require that they be increasing relative to any interspersed queue elements.
+            require(
+                _contet.timestamp <= nextQueueElement.timestamp,
+                "Sequencer transaction timestamp exceeds that of next queue element."
+            );
+
+            require(
+                _contet.blockNumber <= nextQueueElement.blockNumber,
+                "Sequencer transaction blockNumber exceeds that of next queue element."
+            );
+    }
+
+    /**
      * Checks that a given batch context is valid based on its previous context, and the next queue elemtent.
      * @param _prevContext The previously validated batch context.
      * @param _nextContext The batch context to validate with this call.
@@ -994,44 +1032,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         // If there is going to be a queue element pulled in from this context:
         if (_nextContext.numSubsequentQueueTransactions > 0) {
-            requireContextBelowEnqueue(
+            _validateContextBeforeEnqueue(
                 _nextContext,
                 _nextQueueIndex,
                 _queueRef
             );
         }
-    }
-
-    function requireContextBelowEnqueue(
-        BatchContext memory _nextContext,
-        uint40 _queueIndex,
-        iOVM_ChainStorageContainer _queueRef
-    )
-        internal
-        view
-    {
-            Lib_OVMCodec.QueueElement memory nextQueueElement = _getQueueElement(
-                _queueIndex,
-                _queueRef
-            );
-
-            // If the force inclusion period has passed for an enqueued transaction, it MUST be the next chain element.
-            require(
-                block.timestamp < nextQueueElement.timestamp + forceInclusionPeriodSeconds,
-                "Previously enqueued batches have expired and must be appended before a new sequencer batch."
-            );
-
-            // Just like sequencer transaction times must be increasing relative to each other,
-            // We also require that they be increasing relative to any interspersed queue elements.
-            require(
-                _nextContext.timestamp <= nextQueueElement.timestamp,
-                "Sequencer transaction timestamp exceeds that of next queue element."
-            );
-
-            require(
-                _nextContext.blockNumber <= nextQueueElement.blockNumber,
-                "Sequencer transaction blockNumber exceeds that of next queue element."
-            );
     }
 
     /**
@@ -1050,8 +1056,9 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         internal
         view
     {
+        // If the queue is not now empty, check the mononoticity of whatever the next batch that will come in is.
         if (_queueLength - _nextQueueIndex > 0 && _finalContext.numSubsequentQueueTransactions == 0) {
-            requireContextBelowEnqueue(
+            _validateContextBeforeEnqueue(
                 _finalContext,
                 _nextQueueIndex,
                 _queueRef
