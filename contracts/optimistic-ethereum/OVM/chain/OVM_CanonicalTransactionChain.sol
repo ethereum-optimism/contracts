@@ -68,7 +68,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         uint256 _forceInclusionPeriodBlocks,
         uint256 _maxTransactionGasLimit
     )
-        public
         Lib_AddressResolver(_libAddressManager)
     {
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
