@@ -84,7 +84,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         GasMeterConfig memory _gasMeterConfig,
         GlobalContext memory _globalContext
     )
-        public
         Lib_AddressResolver(_libAddressManager)
     {
         ovmSafetyCache = iOVM_SafetyCache(resolve("OVM_SafetyCache"));
@@ -638,6 +637,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // DELEGATECALL does not change anything about the message context.
         MessageContext memory nextMessageContext = messageContext;
+        
         bool isStaticEntrypoint = false;
 
         return _callContract(
@@ -1634,6 +1634,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         uint256 _gasLimit,
         Lib_OVMCodec.QueueOrigin _queueOrigin
     )
+        view
         internal
         returns (
             bool _valid
