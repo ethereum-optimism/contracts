@@ -7,6 +7,7 @@ pragma experimental ABIEncoderV2;
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_EthUtils } from "../../libraries/utils/Lib_EthUtils.sol";
+import { Lib_ErrorUtils } from "../../libraries/utils/Lib_ErrorUtils.sol";
 
 /* Interface Imports */
 import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManager.sol";
@@ -1049,7 +1050,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 false,
                 _encodeRevertData(
                     RevertFlag.CREATE_COLLISION,
-                    "A contract has already been deployed to this address"
+                    Lib_ErrorUtils.encodeRevertString("A contract has already been deployed to this address")
                 )
             );
         }
@@ -1060,7 +1061,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 false,
                 _encodeRevertData(
                     RevertFlag.UNSAFE_BYTECODE,
-                    "Contract creation code contains unsafe opcodes.  Did you use the right compiler or pass an unsafe constructor argument?"
+                    Lib_ErrorUtils.encodeRevertString("Contract creation code contains unsafe opcodes.  Did you use the right compiler or pass an unsafe constructor argument?")
                 )
             );
         }
@@ -1096,7 +1097,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 false,
                 _encodeRevertData(
                     RevertFlag.UNSAFE_BYTECODE,
-                    "Constrcutor attempted to deploy unsafe opcodes."
+                    Lib_ErrorUtils.encodeRevertString("Constrcutor attempted to deploy unsafe opcodes.")
                 )
             );
         }
@@ -1808,7 +1809,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         messageContext.isStatic = false;
 
         messageRecord.nuisanceGasLeft = 0;
-        messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
     }
 
     /*****************************

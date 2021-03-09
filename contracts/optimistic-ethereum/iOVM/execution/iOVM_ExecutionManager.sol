@@ -66,7 +66,6 @@ interface iOVM_ExecutionManager {
 
     struct MessageRecord {
         uint256 nuisanceGasLeft;
-        RevertFlag revertFlag;
     }
 
 
