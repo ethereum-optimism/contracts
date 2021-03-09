@@ -69,19 +69,27 @@ interface iOVM_StateCommitmentChain {
      * Appends a batch of state roots to the chain.
      * @param _batch Batch of state roots.
      * @param _shouldStartAtElement Index of the element at which this batch should start.
+     * @param _nonce Replay protection nonce.
+     * @param _signature Signature.
      */
     function appendStateBatch(
         bytes32[] calldata _batch,
-        uint256 _shouldStartAtElement
+        uint256 _shouldStartAtElement,         
+        uint _nonce,
+        bytes memory _signature
     )
         external;
 
     /**
      * Deletes all state roots after (and including) a given batch.
      * @param _batchHeader Header of the batch to start deleting from.
+     * @param _nonce Replay protection nonce.
+     * @param _signature Signature.
      */
     function deleteStateBatch(
-        Lib_OVMCodec.ChainBatchHeader memory _batchHeader
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        uint _nonce,
+        bytes memory _signature
     )
         external;
 

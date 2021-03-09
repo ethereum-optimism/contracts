@@ -29,7 +29,7 @@ const config: HardhatUserConfig = {
     },
   },
   typechain: {
-    outDir: 'build/types',
+    outDir: 'src/types',
     target: 'ethers-v5',
   },
 }

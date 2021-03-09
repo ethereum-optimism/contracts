@@ -280,7 +280,7 @@ contract OVM_FraudVerifier is Lib_AddressResolver, Abs_FraudContributor, iOVM_Fr
 
         // Delete the state batch.
         ovmStateCommitmentChain.deleteStateBatch(
-            _postStateRootBatchHeader
+            _postStateRootBatchHeader, 0, ""
         );
 
         // Get the timestamp and publisher for that block.

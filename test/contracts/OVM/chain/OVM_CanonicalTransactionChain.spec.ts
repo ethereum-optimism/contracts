@@ -109,6 +109,7 @@ const encodeAppendSequencerBatch = (b: AppendSequencerBatchParams): string => {
     const encodedTxDataHeader = remove0x(
       BigNumber.from(remove0x(cur).length / 2).toHexString()
     ).padStart(6, '0')
+
     return acc + encodedTxDataHeader + remove0x(cur)
   }, '')
 
@@ -252,7 +253,7 @@ describe('OVM_CanonicalTransactionChain', () => {
       const data = '0x' + '12'.repeat(MAX_ROLLUP_TX_SIZE + 1)
 
       await expect(
-        OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+        OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data, 0, '0x')
       ).to.be.revertedWith(
         'Transaction data size exceeds maximum for rollup transaction.'
       )
@@ -262,7 +263,13 @@ describe('OVM_CanonicalTransactionChain', () => {
       const data = '0x1234567890'
 
       await expect(
-        OVM_CanonicalTransactionChain.enqueue(target, MAX_GAS_LIMIT + 1, data)
+        OVM_CanonicalTransactionChain.enqueue(
+          target,
+          MAX_GAS_LIMIT + 1,
+          data,
+          0,
+          '0x'
+        )
       ).to.be.revertedWith(
         'Transaction gas limit exceeds maximum for rollup transaction.'
       )
@@ -274,7 +281,13 @@ describe('OVM_CanonicalTransactionChain', () => {
       const data = '0x' + '12'.repeat(1234)
 
       await expect(
-        OVM_CanonicalTransactionChain.enqueue(target, customGasLimit, data)
+        OVM_CanonicalTransactionChain.enqueue(
+          target,
+          customGasLimit,
+          data,
+          0,
+          '0x'
+        )
       ).to.be.revertedWith('Transaction gas limit too low to enqueue.')
     })
 
@@ -283,7 +296,7 @@ describe('OVM_CanonicalTransactionChain', () => {
       const data = '0x' + '12'.repeat(1234)
 
       await expect(
-        OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data, {
+        OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data, 0, '0x', {
           gasLimit: gasLimit / L2_GAS_DISCOUNT_DIVISOR + 30_000, // offset constant overhead
         })
       ).to.be.revertedWith('Insufficient gas for L2 rate limiting burn.')
@@ -297,7 +310,7 @@ describe('OVM_CanonicalTransactionChain', () => {
         await setEthTime(ethers.provider, timestamp)
 
         await expect(
-          OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+          OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data, 0, '0x')
         ).to.emit(OVM_CanonicalTransactionChain, 'TransactionEnqueued')
       })
 
@@ -308,7 +321,13 @@ describe('OVM_CanonicalTransactionChain', () => {
           it(`should be able to enqueue ${size} elements`, async () => {
             for (let i = 0; i < size; i++) {
               await expect(
-                OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+                OVM_CanonicalTransactionChain.enqueue(
+                  target,
+                  gasLimit,
+                  data,
+                  0,
+                  '0x'
+                )
               ).to.not.be.reverted
             }
           })
@@ -343,13 +362,21 @@ describe('OVM_CanonicalTransactionChain', () => {
               data
             )
 
-            await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+            await OVM_CanonicalTransactionChain.enqueue(
+              target,
+              gasLimit,
+              data,
+              0,
+              '0x'
+            )
 
             for (let i = 0; i < size; i++) {
               await OVM_CanonicalTransactionChain.enqueue(
                 target,
                 gasLimit,
-                '0x' + '12'.repeat(i + 1)
+                '0x' + '12'.repeat(i + 1),
+                0,
+                '0x'
               )
             }
 
@@ -390,13 +417,17 @@ describe('OVM_CanonicalTransactionChain', () => {
                 await OVM_CanonicalTransactionChain.enqueue(
                   target,
                   gasLimit,
-                  data
+                  data,
+                  0,
+                  '0x'
                 )
               } else {
                 await OVM_CanonicalTransactionChain.enqueue(
                   target,
                   gasLimit,
-                  '0x' + '12'.repeat(i + 1)
+                  '0x' + '12'.repeat(i + 1),
+                  0,
+                  '0x'
                 )
               }
             }
@@ -437,13 +468,17 @@ describe('OVM_CanonicalTransactionChain', () => {
                 await OVM_CanonicalTransactionChain.enqueue(
                   target,
                   gasLimit,
-                  data
+                  data,
+                  0,
+                  '0x'
                 )
               } else {
                 await OVM_CanonicalTransactionChain.enqueue(
                   target,
                   gasLimit,
-                  '0x' + '12'.repeat(i + 1)
+                  '0x' + '12'.repeat(i + 1),
+                  0,
+                  '0x'
                 )
               }
             }
@@ -466,7 +501,7 @@ describe('OVM_CanonicalTransactionChain', () => {
   describe('appendQueueBatch disabled', () => {
     it('should revert', async () => {
       await expect(
-        OVM_CanonicalTransactionChain.appendQueueBatch(0)
+        OVM_CanonicalTransactionChain.appendQueueBatch(0, 0, '0x')
       ).to.be.revertedWith('appendQueueBatch is currently disabled.')
     })
   })
@@ -474,13 +509,13 @@ describe('OVM_CanonicalTransactionChain', () => {
   describe.skip('appendQueueBatch', () => {
     it('should revert if trying to append zero transactions', async () => {
       await expect(
-        OVM_CanonicalTransactionChain.appendQueueBatch(0)
+        OVM_CanonicalTransactionChain.appendQueueBatch(0, 0, '0x')
       ).to.be.revertedWith('Must append more than zero transactions.')
     })
 
     it('should revert if the queue is empty', async () => {
       await expect(
-        OVM_CanonicalTransactionChain.appendQueueBatch(1)
+        OVM_CanonicalTransactionChain.appendQueueBatch(1, 0, '0x')
       ).to.be.revertedWith('Must append more than zero transactions.')
     })
 
@@ -496,7 +531,9 @@ describe('OVM_CanonicalTransactionChain', () => {
               await OVM_CanonicalTransactionChain.enqueue(
                 target,
                 gasLimit,
-                data
+                data,
+                0,
+                '0x'
               )
             }
           })
@@ -505,7 +542,9 @@ describe('OVM_CanonicalTransactionChain', () => {
             it('should revert if not called by the sequencer', async () => {
               await expect(
                 OVM_CanonicalTransactionChain.connect(signer).appendQueueBatch(
-                  1
+                  1,
+                  0,
+                  '0x'
                 )
               ).to.be.revertedWith(
                 'Queue transactions cannot be submitted during the sequencer inclusion period.'
@@ -516,7 +555,7 @@ describe('OVM_CanonicalTransactionChain', () => {
               await expect(
                 OVM_CanonicalTransactionChain.connect(
                   sequencer
-                ).appendQueueBatch(1)
+                ).appendQueueBatch(1, 0, '0x')
               )
                 .to.emit(OVM_CanonicalTransactionChain, 'QueueBatchAppended')
                 .withArgs(0, 1, 1)
@@ -532,20 +571,28 @@ describe('OVM_CanonicalTransactionChain', () => {
             })
 
             it('should be able to append a single element', async () => {
-              await expect(OVM_CanonicalTransactionChain.appendQueueBatch(1))
+              await expect(
+                OVM_CanonicalTransactionChain.appendQueueBatch(1, 0, '0x')
+              )
                 .to.emit(OVM_CanonicalTransactionChain, 'QueueBatchAppended')
                 .withArgs(0, 1, 1)
             })
 
             it(`should be able to append ${size} elements`, async () => {
-              await expect(OVM_CanonicalTransactionChain.appendQueueBatch(size))
+              await expect(
+                OVM_CanonicalTransactionChain.appendQueueBatch(size, 0, '0x')
+              )
                 .to.emit(OVM_CanonicalTransactionChain, 'QueueBatchAppended')
                 .withArgs(0, size, size)
             })
 
             it(`should be able to append ${size} elements even if attempting to append ${size} + 1 elements`, async () => {
               await expect(
-                OVM_CanonicalTransactionChain.appendQueueBatch(size + 1)
+                OVM_CanonicalTransactionChain.appendQueueBatch(
+                  size + 1,
+                  0,
+                  '0x'
+                )
               )
                 .to.emit(OVM_CanonicalTransactionChain, 'QueueBatchAppended')
                 .withArgs(0, size, size)
@@ -564,7 +611,14 @@ describe('OVM_CanonicalTransactionChain', () => {
 
       const timestamp = (await getEthTime(ethers.provider)) + 100
       await setEthTime(ethers.provider, timestamp)
-      await OVM_CanonicalTransactionChain.enqueue(entrypoint, gasLimit, data)
+
+      await OVM_CanonicalTransactionChain.enqueue(
+        entrypoint,
+        gasLimit,
+        data,
+        0,
+        '0x'
+      )
 
       const blockNumber = await ethers.provider.getBlockNumber()
 
@@ -625,12 +679,18 @@ describe('OVM_CanonicalTransactionChain', () => {
 
       const timestamp = (await getEthTime(ethers.provider)) + 100
       await setEthTime(ethers.provider, timestamp)
-      await OVM_CanonicalTransactionChain.enqueue(entrypoint, gasLimit, data)
+      await OVM_CanonicalTransactionChain.enqueue(
+        entrypoint,
+        gasLimit,
+        data,
+        0,
+        '0x'
+      )
 
       const blockNumber = await ethers.provider.getBlockNumber()
       await increaseEthTime(ethers.provider, FORCE_INCLUSION_PERIOD_SECONDS * 2)
 
-      await OVM_CanonicalTransactionChain.appendQueueBatch(1)
+      await OVM_CanonicalTransactionChain.appendQueueBatch(1, 0, '0x')
 
       expect(
         await OVM_CanonicalTransactionChain.verifyTransaction(
@@ -908,7 +968,13 @@ describe('OVM_CanonicalTransactionChain', () => {
 
           const numEnqueues = 7
           for (let i = 0; i < numEnqueues; i++) {
-            await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+            await OVM_CanonicalTransactionChain.enqueue(
+              target,
+              gasLimit,
+              data,
+              0,
+              '0x'
+            )
           }
 
           await expect(
@@ -996,7 +1062,9 @@ describe('OVM_CanonicalTransactionChain', () => {
               await OVM_CanonicalTransactionChain.enqueue(
                 target,
                 gasLimit,
-                data
+                data,
+                0,
+                '0x'
               )
             })
             it('should revert if the first context timestamp is > the head queue element timestamp', async () => {
@@ -1056,7 +1124,9 @@ describe('OVM_CanonicalTransactionChain', () => {
                 await OVM_CanonicalTransactionChain.enqueue(
                   target,
                   gasLimit,
-                  data
+                  data,
+                  0,
+                  '0x'
                 )
                 queueElements[
                   i
@@ -1311,7 +1381,13 @@ describe('OVM_CanonicalTransactionChain', () => {
             // enqueue
             timestamp = await getEthTime(ethers.provider)
             blockNumber = await getNextBlockNumber(ethers.provider)
-            await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+            await OVM_CanonicalTransactionChain.enqueue(
+              target,
+              gasLimit,
+              data,
+              0,
+              '0x'
+            )
             await appendSequencerBatch(OVM_CanonicalTransactionChain, {
               transactions: ['0x1234'],
               contexts: [
@@ -1371,7 +1447,13 @@ describe('OVM_CanonicalTransactionChain', () => {
 
       it('should revert if a queue element has expired and needs to be included', async () => {
         // enqueue a tx
-        await OVM_CanonicalTransactionChain.enqueue(target, gasLimit, data)
+        await OVM_CanonicalTransactionChain.enqueue(
+          target,
+          gasLimit,
+          data,
+          0,
+          '0x'
+        )
         // increase time past force inclusion period
         await increaseEthTime(
           ethers.provider,
@@ -1455,7 +1537,9 @@ describe('OVM_CanonicalTransactionChain', () => {
               await OVM_CanonicalTransactionChain.enqueue(
                 target,
                 gasLimit,
-                data
+                data,
+                0,
+                '0x'
               )
             }
           })

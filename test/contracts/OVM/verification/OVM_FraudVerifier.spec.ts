@@ -394,16 +394,18 @@ describe('OVM_FraudVerifier', () => {
                   batchProof
                 )
 
-                expect(
-                  Mock__OVM_StateCommitmentChain.smocked.deleteStateBatch
-                    .calls[0]
-                ).to.deep.equal([
-                  Object.values(DUMMY_BATCH_HEADERS[0]).map((value) => {
+                const batchHeader = Object.values(DUMMY_BATCH_HEADERS[0]).map(
+                  (value) => {
                     return Number.isInteger(value)
                       ? BigNumber.from(value)
                       : value
-                  }),
-                ])
+                  }
+                )
+
+                expect(
+                  Mock__OVM_StateCommitmentChain.smocked.deleteStateBatch
+                    .calls[0]
+                ).to.deep.equal([batchHeader, BigNumber.from('0'), '0x'])
               })
             })
           })

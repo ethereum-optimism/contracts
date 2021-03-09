@@ -101,7 +101,7 @@ describe('OVM_StateCommitmentChain', () => {
 
       it('should revert', async () => {
         await expect(
-          OVM_StateCommitmentChain.appendStateBatch(batch, 0)
+          OVM_StateCommitmentChain.appendStateBatch(batch, 0, 0, '0x')
         ).to.be.revertedWith('Cannot submit an empty state batch.')
       })
     })
@@ -112,7 +112,7 @@ describe('OVM_StateCommitmentChain', () => {
       describe('when start index does not match total elements', () => {
         it('should revert', async () => {
           await expect(
-            OVM_StateCommitmentChain.appendStateBatch(batch, 1)
+            OVM_StateCommitmentChain.appendStateBatch(batch, 1, 0, '0x')
           ).to.be.revertedWith(
             'Actual batch start index does not match expected start index.'
           )
@@ -128,7 +128,7 @@ describe('OVM_StateCommitmentChain', () => {
 
         it('should revert', async () => {
           await expect(
-            OVM_StateCommitmentChain.appendStateBatch(batch, 0)
+            OVM_StateCommitmentChain.appendStateBatch(batch, 0, 0, '0x')
           ).to.be.revertedWith(
             'Number of state roots cannot exceed the number of canonical transactions.'
           )
@@ -143,8 +143,9 @@ describe('OVM_StateCommitmentChain', () => {
         })
 
         it('should append the state batch', async () => {
-          await expect(OVM_StateCommitmentChain.appendStateBatch(batch, 0)).to
-            .not.be.reverted
+          await expect(
+            OVM_StateCommitmentChain.appendStateBatch(batch, 0, 0, '0x')
+          ).to.not.be.reverted
         })
       })
 
@@ -156,14 +157,21 @@ describe('OVM_StateCommitmentChain', () => {
 
           await OVM_StateCommitmentChain.connect(sequencer).appendStateBatch(
             batch,
-            0
+            0,
+            0,
+            '0x'
           )
         })
 
         describe('when inside sequencer publish window', () => {
           it('should revert', async () => {
             await expect(
-              OVM_StateCommitmentChain.connect(user).appendStateBatch(batch, 1)
+              OVM_StateCommitmentChain.connect(user).appendStateBatch(
+                batch,
+                1,
+                0,
+                '0x'
+              )
             ).to.be.revertedWith(
               'Cannot publish state roots within the sequencer publication window.'
             )
@@ -181,7 +189,12 @@ describe('OVM_StateCommitmentChain', () => {
 
           it('should succeed', async () => {
             await expect(
-              OVM_StateCommitmentChain.connect(user).appendStateBatch(batch, 1)
+              OVM_StateCommitmentChain.connect(user).appendStateBatch(
+                batch,
+                1,
+                0,
+                '0x'
+              )
             ).to.not.be.reverted
           })
         })
@@ -203,7 +216,7 @@ describe('OVM_StateCommitmentChain', () => {
       Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
         batch.length
       )
-      await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
+      await OVM_StateCommitmentChain.appendStateBatch(batch, 0, 0, '0x')
       batchHeader.extraData = ethers.utils.defaultAbiCoder.encode(
         ['uint256', 'address'],
         [await getEthTime(ethers.provider), await sequencer.getAddress()]
@@ -217,7 +230,7 @@ describe('OVM_StateCommitmentChain', () => {
 
       it('should revert', async () => {
         await expect(
-          OVM_StateCommitmentChain.deleteStateBatch(batchHeader)
+          OVM_StateCommitmentChain.deleteStateBatch(batchHeader, 0, '0x')
         ).to.be.revertedWith(
           'State batches can only be deleted by the OVM_FraudVerifier.'
         )
@@ -235,10 +248,14 @@ describe('OVM_StateCommitmentChain', () => {
       describe('when the provided batch index is greater than the total submitted', () => {
         it('should revert', async () => {
           await expect(
-            OVM_StateCommitmentChain.deleteStateBatch({
-              ...batchHeader,
-              batchIndex: 1,
-            })
+            OVM_StateCommitmentChain.deleteStateBatch(
+              {
+                ...batchHeader,
+                batchIndex: 1,
+              },
+              0,
+              '0x'
+            )
           ).to.be.revertedWith('Index out of bounds.')
         })
       })
@@ -247,18 +264,23 @@ describe('OVM_StateCommitmentChain', () => {
         describe('when the provided batch header is invalid', () => {
           it('should revert', async () => {
             await expect(
-              OVM_StateCommitmentChain.deleteStateBatch({
-                ...batchHeader,
-                extraData: '0x' + '22'.repeat(32),
-              })
+              OVM_StateCommitmentChain.deleteStateBatch(
+                {
+                  ...batchHeader,
+                  extraData: '0x' + '22'.repeat(32),
+                },
+                0,
+                '0x'
+              )
             ).to.be.revertedWith('Invalid batch header.')
           })
         })
 
         describe('when the provided batch header is valid', () => {
           it('should remove the batch and all following batches', async () => {
-            await expect(OVM_StateCommitmentChain.deleteStateBatch(batchHeader))
-              .to.not.be.reverted
+            await expect(
+              OVM_StateCommitmentChain.deleteStateBatch(batchHeader, 0, '0x')
+            ).to.not.be.reverted
           })
         })
       })
@@ -278,7 +300,7 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0, 0, '0x')
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -292,7 +314,7 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0, 0, '0x')
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -306,8 +328,8 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length * 2
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
-        await OVM_StateCommitmentChain.appendStateBatch(batch, 32)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0, 0, '0x')
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 32, 0, '0x')
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -329,7 +351,7 @@ describe('OVM_StateCommitmentChain', () => {
         Mock__OVM_CanonicalTransactionChain.smocked.getTotalElements.will.return.with(
           batch.length
         )
-        await OVM_StateCommitmentChain.appendStateBatch(batch, 0)
+        await OVM_StateCommitmentChain.appendStateBatch(batch, 0, 0, '0x')
       })
 
       it('should return the number of inserted batch elements', async () => {
@@ -345,7 +367,7 @@ describe('OVM_StateCommitmentChain', () => {
         )
 
         for (let i = 0; i < 8; i++) {
-          await OVM_StateCommitmentChain.appendStateBatch(batch, i)
+          await OVM_StateCommitmentChain.appendStateBatch(batch, i, 0, '0x')
         }
       })
 

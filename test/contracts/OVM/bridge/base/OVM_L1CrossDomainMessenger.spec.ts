@@ -109,12 +109,19 @@ describe('OVM_L1CrossDomainMessenger', () => {
         OVM_L1CrossDomainMessenger.sendMessage(target, message, gasLimit)
       ).to.not.be.reverted
 
+      console.log(
+        JSON.stringify(
+          Mock__OVM_CanonicalTransactionChain.smocked.enqueue.calls[0]
+        )
+      )
       expect(
         Mock__OVM_CanonicalTransactionChain.smocked.enqueue.calls[0]
       ).to.deep.equal([
         Mock__OVM_L2CrossDomainMessenger.address,
         BigNumber.from(gasLimit),
         getXDomainCalldata(await signer.getAddress(), target, message, 0),
+        BigNumber.from('0'),
+        '0x',
       ])
     })
 
