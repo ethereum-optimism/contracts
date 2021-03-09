@@ -8,8 +8,6 @@ import { Contract, ContractFactory, Signer } from 'ethers'
 import {
   smockit,
   MockContract,
-  // ModifiableContract,
-  // smoddit
 } from '@eth-optimism/smock'
 
 /* Internal Imports */
@@ -126,7 +124,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     let OVM_SafetyCache: Contract
     let MOCK__OVM_DeployerWhitelist: MockContract
 
-    let MODDABLE__STATE_MANAGER: Contract
+    let OVM_StateManager: Contract
     let AddressManager: Contract
     let gasMeasurement: GasMeasurement
     let OVM_ExecutionManager: Contract
@@ -179,14 +177,14 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       await gasMeasurement.init(wallet)
 
       // Setup the State Manger and modify it to allow execution to proceed
-      MODDABLE__STATE_MANAGER = await (
+      OVM_StateManager = await (
         await ethers.getContractFactory('OVM_StateManager')
       ).deploy(
         await wallet.getAddress()
       )
     
       // Setup the SM to satisfy all the checks executed during EM.run()
-      await MODDABLE__STATE_MANAGER.putAccount(
+      await OVM_StateManager.putAccount(
         "0x4200000000000000000000000000000000000002", 
         {
           nonce: BigNumber.from(123),
@@ -196,7 +194,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
           ethAddress: MOCK__OVM_DeployerWhitelist.address,
         },
       );
-      await MODDABLE__STATE_MANAGER.setExecutionManager(OVM_ExecutionManager.address)
+      await OVM_StateManager.setExecutionManager(OVM_ExecutionManager.address)
       
 
       // Deploy a simple OVM-safe contract that just deploys another contract
@@ -212,7 +210,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         gasLimit: 10_000_000,
         data: Helper_SimpleDeployer.interface.encodeFunctionData('deploy(uint256)', [0])
       }
-      await MODDABLE__STATE_MANAGER.putAccount(
+      await OVM_StateManager.putAccount(
         Helper_SimpleDeployer.address,
         {
           nonce: BigNumber.from(123),
@@ -227,10 +225,10 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
 
     it('Gas Benchmark: un-cached contract deployment', async () => {
       // Set destination for first contract deployment
-      await MODDABLE__STATE_MANAGER.putEmptyAccount(
+      await OVM_StateManager.putEmptyAccount(
         "0xf7a70a9ed665630eaaf9f7b40b71f01cbf65f73f"
       )
-      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address)
+      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, OVM_StateManager.address)
       await tx.wait()
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
@@ -245,12 +243,12 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     
     it('Gas Benchmark: deploying a cached contract', async () => {
       // Set destination for second contract deployment
-      await MODDABLE__STATE_MANAGER.putEmptyAccount(
+      await OVM_StateManager.putEmptyAccount(
         "0xd236d314fd67606dddb3885f1330cf9bd3c8dbea"
       )
 
       // run the exact same flow as the previous. This time the Safety Cache should recognize the string.
-      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, MODDABLE__STATE_MANAGER.address)
+      const tx = await OVM_ExecutionManager.run(DUMMY_TRANSACTION, OVM_StateManager.address)
       await tx.wait()
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
