@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >0.5.0 <0.8.0;
 
+import "hardhat/console.sol";
+
 /* Library Imports */
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 
@@ -70,6 +72,7 @@ contract OVM_SafetyCache is iOVM_SafetyCache, Lib_AddressResolver {
             bool
     ) {
         bytes32 codehash = keccak256(abi.encode(_code));
+        console.logBytes32(codehash);
         if(isSafeCodehash[codehash] == true) {
             return true;
         }
