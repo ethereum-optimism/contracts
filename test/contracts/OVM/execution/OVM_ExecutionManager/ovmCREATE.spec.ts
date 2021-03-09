@@ -68,7 +68,7 @@ const test_ovmCREATE: TestDefinition = {
           ethAddress: '0x' + '00'.repeat(20),
         },
         [CREATED_CONTRACT_BY_2_2]: {
-          codeHash: '0x' + '01'.repeat(32),
+          codeHash: VERIFIED_EMPTY_CONTRACT_HASH,
           ethAddress: '0x' + '00'.repeat(20),
         },
         [NESTED_CREATED_CONTRACT]: {
@@ -79,6 +79,7 @@ const test_ovmCREATE: TestDefinition = {
       contractStorage: {
         $DUMMY_OVM_ADDRESS_2: {
           [NULL_BYTES32]: getStorageXOR(NULL_BYTES32),
+          [NON_NULL_BYTES32]: getStorageXOR(NULL_BYTES32),
         },
       },
       verifiedContractStorage: {
@@ -87,6 +88,7 @@ const test_ovmCREATE: TestDefinition = {
         },
         $DUMMY_OVM_ADDRESS_2: {
           [NULL_BYTES32]: true,
+          [NON_NULL_BYTES32]: true,
         },
       },
     },
@@ -176,14 +178,15 @@ const test_ovmCREATE: TestDefinition = {
             ],
           },
           expectedReturnStatus: true,
-          expectedReturnValue: ZERO_ADDRESS,
+          expectedReturnValue: {
+            address: ZERO_ADDRESS,
+            revertData: DUMMY_REVERT_DATA
+          },
         },
       ],
     },
     {
       name: 'ovmCREATE => ovmREVERT, ovmEXTCODESIZE(CREATED)',
-      // TODO: Appears to be failing because of a bug in smock.
-      skip: true,
       steps: [
         {
           functionName: 'ovmCREATE',
@@ -192,13 +195,19 @@ const test_ovmCREATE: TestDefinition = {
               {
                 functionName: 'ovmREVERT',
                 revertData: DUMMY_REVERT_DATA,
-                expectedReturnStatus: true,
-                expectedReturnValue: '0x00',
+                expectedReturnStatus: false,
+                expectedReturnValue: {
+                  flag: REVERT_FLAGS.INTENTIONAL_REVERT,
+                  onlyValidateFlag: true,
+                },
               },
             ],
           },
           expectedReturnStatus: true,
-          expectedReturnValue: ZERO_ADDRESS,
+          expectedReturnValue: {
+            address: ZERO_ADDRESS,
+            revertData: DUMMY_REVERT_DATA,
+          },
         },
         {
           functionName: 'ovmEXTCODESIZE',
@@ -229,7 +238,10 @@ const test_ovmCREATE: TestDefinition = {
             ],
           },
           expectedReturnStatus: true,
-          expectedReturnValue: ZERO_ADDRESS,
+          expectedReturnValue: {
+            address: ZERO_ADDRESS,
+            revertData: DUMMY_REVERT_DATA
+          },
         },
         {
           functionName: 'ovmEXTCODEHASH',
@@ -260,7 +272,10 @@ const test_ovmCREATE: TestDefinition = {
             ],
           },
           expectedReturnStatus: true,
-          expectedReturnValue: ZERO_ADDRESS,
+          expectedReturnValue: {
+            address: ZERO_ADDRESS,
+            revertData: DUMMY_REVERT_DATA,
+          },
         },
         {
           functionName: 'ovmEXTCODECOPY',
@@ -477,10 +492,10 @@ const test_ovmCREATE: TestDefinition = {
       ],
     },
     {
+      // TODO: appears to be failing due to a smoddit issue
+      skip: true,
       name:
         'ovmCREATE => (ovmCALL(ADDRESS_2) => ovmSSTORE) + ovmREVERT, ovmCALL(ADDRESS_2) => ovmSLOAD',
-      // TODO: Appears to be failing because of a bug in smock.
-      skip: true,
       steps: [
         {
           functionName: 'ovmCREATE',
@@ -493,9 +508,17 @@ const test_ovmCREATE: TestDefinition = {
                   target: '$DUMMY_OVM_ADDRESS_2',
                   subSteps: [
                     {
+                      functionName: 'ovmSLOAD',
+                      functionParams: {
+                        key: NON_NULL_BYTES32,
+                      },
+                      expectedReturnStatus: true,
+                      expectedReturnValue: NON_NULL_BYTES32,
+                    },
+                    {
                       functionName: 'ovmSSTORE',
                       functionParams: {
-                        key: NULL_BYTES32,
+                        key: NON_NULL_BYTES32,
                         value: NON_NULL_BYTES32,
                       },
                       expectedReturnStatus: true,
@@ -507,13 +530,19 @@ const test_ovmCREATE: TestDefinition = {
               {
                 functionName: 'ovmREVERT',
                 revertData: DUMMY_REVERT_DATA,
-                expectedReturnStatus: true,
-                expectedReturnValue: '0x00',
+                expectedReturnStatus: false,
+                expectedReturnValue: {
+                  flag: REVERT_FLAGS.INTENTIONAL_REVERT,
+                  onlyValidateFlag: true,
+                },
               },
             ],
           },
           expectedReturnStatus: true,
-          expectedReturnValue: ZERO_ADDRESS,
+          expectedReturnValue: {
+            address: ZERO_ADDRESS,
+            revertData: DUMMY_REVERT_DATA
+          },
         },
         {
           functionName: 'ovmCALL',
@@ -524,10 +553,10 @@ const test_ovmCREATE: TestDefinition = {
               {
                 functionName: 'ovmSLOAD',
                 functionParams: {
-                  key: NULL_BYTES32,
+                  key: NON_NULL_BYTES32,
                 },
                 expectedReturnStatus: true,
-                expectedReturnValue: NULL_BYTES32,
+                expectedReturnValue: NON_NULL_BYTES32,
               },
             ],
           },
@@ -566,7 +595,7 @@ const test_ovmCREATE: TestDefinition = {
       ],
     },
     {
-      name: 'ovmCALL => ovmCREATE => ovmCREATE(empty)',
+      name: 'ovmCALL => ovmCREATE => ovmCREATE',
       steps: [
         {
           functionName: 'ovmCALL',
@@ -581,10 +610,10 @@ const test_ovmCREATE: TestDefinition = {
                     {
                       functionName: 'ovmCREATE',
                       functionParams: {
-                        bytecode: '0x',
+                        bytecode: '0x', // this will still succeed with empty bytecode
                       },
                       expectedReturnStatus: true,
-                      expectedReturnValue: ZERO_ADDRESS,
+                      expectedReturnValue: CREATED_CONTRACT_BY_2_2,
                     },
                   ],
                 },
@@ -672,7 +701,10 @@ const test_ovmCREATE: TestDefinition = {
             ],
           },
           expectedReturnStatus: true,
-          expectedReturnValue: ZERO_ADDRESS,
+          expectedReturnValue: {
+            address: ZERO_ADDRESS,
+            revertData: DUMMY_REVERT_DATA,
+          },
         },
       ],
     },

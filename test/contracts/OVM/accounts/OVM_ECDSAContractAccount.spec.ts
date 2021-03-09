@@ -142,7 +142,7 @@ describe('OVM_ECDSAContractAccount', () => {
       expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce + 1)
     })
 
-    it(`should ovmCREATE if EIP155Transaction.to is zero address`, async () => {
+    it.only(`should ovmCREATE if EIP155Transaction.to is zero address`, async () => {
       const createTx = { ...DEFAULT_EIP155_TX, to: '' }
       const message = serializeNativeTransaction(createTx)
       const sig = await signNativeTransaction(wallet, createTx)
