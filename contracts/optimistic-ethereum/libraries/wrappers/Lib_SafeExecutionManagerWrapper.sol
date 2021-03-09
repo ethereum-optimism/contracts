@@ -10,9 +10,6 @@ pragma solidity >0.5.0 <0.8.0;
  * Compiler used: solc
  * Runtime target: OVM
  */
-
-import "hardhat/console.sol";
-
 library Lib_SafeExecutionManagerWrapper {
 
     /**********************
@@ -345,8 +342,6 @@ library Lib_SafeExecutionManagerWrapper {
             bytes memory _returndata
         )
     {
-        console.log('calldata:');
-        console.logBytes(_calldata);
         address ovmExecutionManager = msg.sender;
         (
             bool success,

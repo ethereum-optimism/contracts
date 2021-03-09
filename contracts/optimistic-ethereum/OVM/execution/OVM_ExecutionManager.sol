@@ -3,8 +3,6 @@
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "hardhat/console.sol";
-
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
@@ -31,7 +29,7 @@ import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
  * transaction on L2.
  * For each context-dependent EVM operation the EM has a function which implements a corresponding
  * OVM operation, which will read state from the State Manager contract.
- * The EM relies on the Safety Cache and Checker to verify that code deployed to Layer 2 does not contain any
+ * The EM relies on the Safety Checker to verify that code deployed to Layer 2 does not contain any
  * context-dependent operations.
  *
  * Compiler used: solc
@@ -44,7 +42,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      ********************************/
 
     iOVM_SafetyCache internal ovmSafetyCache;
-    // iOVM_SafetyChecker internal ovmSafetyChecker;
     iOVM_StateManager internal ovmStateManager;
 
 
@@ -163,7 +160,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
-        console.log('txContext.ovmNumber:',transactionContext.ovmNUMBER);
         require(transactionContext.ovmNUMBER == 0, "Only be callable at the start of a transaction");
         // Store our OVM_StateManager instance (significantly easier than attempting to pass the
         // address around in calldata).
@@ -181,6 +177,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Initialize the execution context, must be initialized before we perform any gas metering
         // or we'll throw a nuisance gas error.
         _initContext(_transaction);
+
         // TEMPORARY: Gas metering is disabled for minnet.
         // // Check whether we need to start a new epoch, do so if necessary.
         // _checkNeedsNewEpoch(_transaction.timestamp);
@@ -191,6 +188,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _resetContext();
             return;
         }
+
         // Check gas right before the call to get total gas consumed by OVM transaction.
         uint256 gasProvided = gasleft();
 
@@ -201,13 +199,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _transaction.data
         );
         uint256 gasUsed = gasProvided - gasleft();
+
         // TEMPORARY: Gas metering is disabled for minnet.
         // // Update the cumulative gas based on the amount of gas used.
         // _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);
 
         // Wipe the execution context.
         _resetContext();
-        console.log('reset context', transactionContext.ovmNUMBER);
+
         // Reset the ovmStateManager.
         ovmStateManager = iOVM_StateManager(address(0));
     }
@@ -379,22 +378,19 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address _contract
         )
     {
-        console.log('ovmCreate 1');
         // Creator is always the current ADDRESS.
         address creator = ovmADDRESS();
 
         // Check that the deployer is whitelisted, or
         // that arbitrary contract deployment has been enabled.
-        // @note: makes a call to ovmCall deployer-whitelist
-            // failure here (due to false hasAccount) results in un-reset context
-        _checkDeployerAllowed(creator); 
+        _checkDeployerAllowed(creator);
 
         // Generate the correct CREATE address.
         address contractAddress = Lib_EthUtils.getAddressForCREATE(
             creator,
             _getAccountNonce(creator)
         );
-        console.log('ovmCreate 2');
+
         return _createContract(
             contractAddress,
             _bytecode
@@ -799,14 +795,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
-        console.log('safeCreate');
         // Since this function is public, anyone can attempt to directly call it. We need to make
         // sure that the OVM_ExecutionManager itself is the only party that can actually try to
         // call this function.
         if (msg.sender != address(this)) {
             return;
         }
-        console.log('safeCreate 2', _address);
 
         // We need to be sure that the user isn't trying to use a contract creation to overwrite
         // some existing contract. On L1, users will prove that no contract exists at the address
@@ -815,20 +809,15 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (_hasEmptyAccount(_address) == false) {
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
-        
-        console.log('safeCreate 3');
-        console.logBytes( _bytecode);
 
         // Check the creation bytecode against the Safety Cache and Safety Checker.
         if (ovmSafetyCache.checkAndRegisterSafeBytecode(_bytecode) == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
-        console.log('safeCreate 4');
 
-        console.log('pre-initpending', _address);
         // We always need to initialize the contract with the default account values.
         _initPendingAccount(_address);
-        console.log('pre-evmCreate');
+
         // Actually deploy the contract and retrieve its address. This step is hiding a lot of
         // complexity because we need to ensure that contract creation *never* reverts by itself.
         // We cover this partially by storing a revert flag and returning (instead of reverting)
@@ -928,10 +917,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address _created
         )
     {
-        console.log("Address: %s, nonce: %s", ovmADDRESS(), _getAccountNonce(ovmADDRESS()));
         // We always update the nonce of the creating account, even if the creation fails.
         _setAccountNonce(ovmADDRESS(), _getAccountNonce(ovmADDRESS()) + 1);
-        
+
         // We're stepping into a CREATE or CREATE2, so we need to update ADDRESS to point
         // to the contract's associated address and CALLER to point to the previous ADDRESS.
         MessageContext memory nextMessageContext = messageContext;
@@ -993,7 +981,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         address codeContractAddress =
             uint(_contract) < 100
             ? _contract
-            : _getAccountEthAddress(_contract); // @flag reverts here with invalid state access when deployerWhitelist is not in SM
+            : _getAccountEthAddress(_contract);
 
         return _handleExternalInteraction(
             _nextMessageContext,
@@ -1064,7 +1052,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             // parent EVM message. This behavior is necessary because INVALID_STATE_ACCESS must
             // halt any further transaction execution that could impact the execution result.
             if (flag == RevertFlag.INVALID_STATE_ACCESS) {
-                console.log("INVALID_STATE_ACCESS");
                 _revertWithFlag(flag);
             }
 
@@ -1154,8 +1141,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         returns (
             uint256 _nonce
         )
-    {   
-        console.log('getAccountNonce: %s' ,_address);
+    {
         _checkAccountLoad(_address);
         return ovmStateManager.getAccountNonce(_address);
     }
@@ -1173,7 +1159,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address _ethAddress
         )
     {
-        console.log('_getAccountEthAddress');
         _checkAccountLoad(_address);
         return ovmStateManager.getAccountEthAddress(_address);
     }
@@ -1277,7 +1262,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _revertWithFlag(RevertFlag.OUT_OF_GAS);
         }
 
-        console.log("_checkAccountLoad");
         // See `_checkContractStorageLoad` for more information.
         if (ovmStateManager.hasAccount(_address) == false) {
             _revertWithFlag(RevertFlag.INVALID_STATE_ACCESS);
@@ -1522,7 +1506,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _data
         );
 
-        console.log('revertflag', uint8(_flag));
         assembly {
             revert(add(revertdata, 0x20), mload(revertdata))
         }
