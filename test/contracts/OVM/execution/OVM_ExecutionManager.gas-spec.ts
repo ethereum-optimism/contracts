@@ -228,7 +228,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 272_527
+      const benchmark: number = 581_062
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
@@ -248,7 +248,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       const gasCost = (await ethers.provider.getTransactionReceipt(tx.hash)).gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 272_527
+      const benchmark: number = 414_398
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
