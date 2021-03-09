@@ -1006,7 +1006,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @param _nextContext The batch context to validate with this call.
      * @param _nextQueueIndex Index of the next queue element to process for the _nextContext's subsequentQueueElements.
      * @param _queueLength The length of the queue at the start of the batchAppend call.
-     * @param _nextQueueIndex The next element in the queue that will be pulled into the CTC.
      * @param _queueRef The storage container for the queue.
      */
     function _validateNextBatchContext(
