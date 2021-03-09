@@ -762,7 +762,7 @@ describe('OVM_CanonicalTransactionChain', () => {
         transactions: ['0x1234'],
       })
 
-      console.log('\n~~~~ BEGINNGING TRASACTION IN QUESTION ~~~~')
+      console.log('~~~~ BEGINNING TRANSACTION IN QUESTION ~~~~')
       const transactions = []
       const numTxs = 200
       for (let i = 0; i < numTxs; i++) {
