@@ -172,7 +172,7 @@ const test_ovmCREATE: TestDefinition = {
                 expectedReturnStatus: false,
                 expectedReturnValue: {
                   flag: REVERT_FLAGS.INTENTIONAL_REVERT,
-                  onlyValidateFlag: true
+                  onlyValidateFlag: true,
                 },
               },
             ],
@@ -180,7 +180,7 @@ const test_ovmCREATE: TestDefinition = {
           expectedReturnStatus: true,
           expectedReturnValue: {
             address: ZERO_ADDRESS,
-            revertData: DUMMY_REVERT_DATA
+            revertData: DUMMY_REVERT_DATA,
           },
         },
       ],
@@ -232,7 +232,7 @@ const test_ovmCREATE: TestDefinition = {
                 expectedReturnStatus: false,
                 expectedReturnValue: {
                   flag: REVERT_FLAGS.INTENTIONAL_REVERT,
-                  onlyValidateFlag: true
+                  onlyValidateFlag: true,
                 },
               },
             ],
@@ -240,7 +240,7 @@ const test_ovmCREATE: TestDefinition = {
           expectedReturnStatus: true,
           expectedReturnValue: {
             address: ZERO_ADDRESS,
-            revertData: DUMMY_REVERT_DATA
+            revertData: DUMMY_REVERT_DATA,
           },
         },
         {
@@ -266,7 +266,7 @@ const test_ovmCREATE: TestDefinition = {
                 expectedReturnStatus: false,
                 expectedReturnValue: {
                   flag: REVERT_FLAGS.INTENTIONAL_REVERT,
-                  onlyValidateFlag: true
+                  onlyValidateFlag: true,
                 },
               },
             ],
@@ -541,7 +541,7 @@ const test_ovmCREATE: TestDefinition = {
           expectedReturnStatus: true,
           expectedReturnValue: {
             address: ZERO_ADDRESS,
-            revertData: DUMMY_REVERT_DATA
+            revertData: DUMMY_REVERT_DATA,
           },
         },
         {
@@ -582,7 +582,7 @@ const test_ovmCREATE: TestDefinition = {
                 expectedReturnStatus: false,
                 expectedReturnValue: {
                   flag: REVERT_FLAGS.INVALID_STATE_ACCESS,
-                  onlyValidateFlag: true
+                  onlyValidateFlag: true,
                 },
               },
             ],
@@ -648,7 +648,7 @@ const test_ovmCREATE: TestDefinition = {
                       expectedReturnStatus: false,
                       expectedReturnValue: {
                         flag: REVERT_FLAGS.INVALID_STATE_ACCESS,
-                        onlyValidateFlag: true
+                        onlyValidateFlag: true,
                       },
                     },
                   ],
@@ -656,7 +656,7 @@ const test_ovmCREATE: TestDefinition = {
                 expectedReturnStatus: false,
                 expectedReturnValue: {
                   flag: REVERT_FLAGS.INVALID_STATE_ACCESS,
-                  onlyValidateFlag: true
+                  onlyValidateFlag: true,
                 },
               },
             ],
@@ -664,7 +664,7 @@ const test_ovmCREATE: TestDefinition = {
           expectedReturnStatus: false,
           expectedReturnValue: {
             flag: REVERT_FLAGS.INVALID_STATE_ACCESS,
-            onlyValidateFlag: true
+            onlyValidateFlag: true,
           },
         },
       ],

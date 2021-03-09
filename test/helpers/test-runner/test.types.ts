@@ -119,11 +119,11 @@ interface TestStep_CREATE {
   }
   expectedReturnStatus: boolean
   expectedReturnValue:
-    string
+    | string
     | {
-      address: string
-      revertData: string
-    }
+        address: string
+        revertData: string
+      }
     | RevertFlagError
 }
 
@@ -136,11 +136,11 @@ interface TestStep_CREATE2 {
   }
   expectedReturnStatus: boolean
   expectedReturnValue:
-    string
+    | string
     | {
-      address: string
-      revertData: string
-    }
+        address: string
+        revertData: string
+      }
     | RevertFlagError
 }
 

@@ -494,14 +494,14 @@ export class ExecutionManagerTestRunner {
       }
     }
 
-    if ( isTestStep_CREATE(step) || isTestStep_CREATE2(step) ) {
+    if (isTestStep_CREATE(step) || isTestStep_CREATE2(step)) {
       if (!isRevertFlagError(step.expectedReturnValue)) {
-        if ( typeof(step.expectedReturnValue) == 'string' ) {
+        if (typeof step.expectedReturnValue === 'string') {
           returnData = [step.expectedReturnValue, '0x']
         } else {
           returnData = [
             step.expectedReturnValue.address,
-            step.expectedReturnValue.revertData || '0x'
+            step.expectedReturnValue.revertData || '0x',
           ]
         }
       }
