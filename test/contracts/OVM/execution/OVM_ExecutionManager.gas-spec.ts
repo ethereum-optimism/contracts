@@ -8,8 +8,8 @@ import { Contract, ContractFactory, Signer } from 'ethers'
 import {
   smockit,
   MockContract,
-  ModifiableContract,
-  smoddit
+  // ModifiableContract,
+  // smoddit
 } from '@eth-optimism/smock'
 
 /* Internal Imports */
@@ -125,7 +125,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     let OVM_SafetyCache: Contract
     let MOCK__OVM_DeployerWhitelist: MockContract
 
-    let MODDABLE__STATE_MANAGER: ModifiableContract
+    let MODDABLE__STATE_MANAGER: Contract
     let AddressManager: Contract
     let gasMeasurement: GasMeasurement
     let OVM_ExecutionManager: Contract
@@ -177,7 +177,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
 
       // Setup the State Manger and modify it to allow execution to proceed
       MODDABLE__STATE_MANAGER = await (
-        await smoddit('OVM_StateManager')
+        await ethers.getContractFactory('OVM_StateManager')
       ).deploy(
         await wallet.getAddress()
       )
@@ -201,8 +201,6 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         await ethers.getContractFactory('Helper_SimpleOvmDeployer')
       ).deploy()
       DUMMY_TRANSACTION.entrypoint = Helper_SimpleDeployer.address
-      console.log("Helper_SimpleDeployer.address:" , Helper_SimpleDeployer.address);
-      
 
       await MODDABLE__STATE_MANAGER.putAccount(
         Helper_SimpleDeployer.address,
