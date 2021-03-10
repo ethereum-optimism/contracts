@@ -162,4 +162,9 @@ interface iOVM_ExecutionManager {
      ***************************************/
 
     function getMaxTransactionGasLimit() external view returns (uint _maxTransactionGasLimit);
+
+    /*********************
+     * Upgrade Functions *
+     *********************/
+    function ovmUPGRADECODE(address _address, bytes memory _code) external;
 }

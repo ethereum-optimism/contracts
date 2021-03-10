@@ -323,6 +323,24 @@ library Lib_SafeExecutionManagerWrapper {
         );
     }
 
+    /**
+     * Performs a safe asdfasdfasdfasdf call.
+     */
+    function safeUPGRADE(
+        address _address,
+        bytes memory _code
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmUPGRADECODE(address,bytes)",
+                _address,
+                _code
+            )
+        );
+    }
+
     /*********************
      * Private Functions *
      *********************/

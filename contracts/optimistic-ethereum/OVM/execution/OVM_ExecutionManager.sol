@@ -35,6 +35,10 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
  */
 contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
+    function ovmUPGRADECODE(address _address, bytes memory _code) external override {
+        ovmStateManager.putAccountCode(_address, _code);
+    }
+
     /********************************
      * External Contract References *
      ********************************/

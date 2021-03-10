@@ -152,6 +152,7 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
       'OVM_ExecutionManager',
       'OVM_StateManager',
       'OVM_ETH',
+      'OVM_Upgrader',
       'mockOVM_ECDSAContractAccount',
     ],
     deployOverrides: {},
@@ -170,6 +171,7 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
     OVM_ETH: '0x4200000000000000000000000000000000000006',
     OVM_L2CrossDomainMessenger: '0x4200000000000000000000000000000000000007',
     Lib_AddressManager: '0x4200000000000000000000000000000000000008',
+    OVM_Upgrader: '0x4200000000000000000000000000000000000009',
     ERC1820Registry: '0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24',
   }
 
