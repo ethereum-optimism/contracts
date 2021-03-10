@@ -161,7 +161,7 @@ export type TestStep =
   | TestStep_Context
   | TestStep_SSTORE
   | TestStep_SLOAD
-  | TestStep_SETNONCE
+  | TestStep_INCREMENTNONCE
   | TestStep_CALL
   | TestStep_CREATE
   | TestStep_CREATE2
