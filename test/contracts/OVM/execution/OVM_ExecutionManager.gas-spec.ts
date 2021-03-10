@@ -40,7 +40,7 @@ const getCreateAddress = async (stateManager: Contract, creator: string) => {
   return createAddress
 }
 
-describe('OVM_ExecutionManager Benchmarks', () => {
+describe.only('OVM_ExecutionManager Benchmarks', () => {
   describe('em.run() benchmark: executing a minimal contract', async () => {
     let wallet: Signer
     let Factory__OVM_ExecutionManager: ContractFactory

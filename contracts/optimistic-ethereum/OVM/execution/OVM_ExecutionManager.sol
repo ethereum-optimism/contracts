@@ -811,8 +811,15 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
 
-        // Check the creation bytecode against the Safety Cache and Safety Checker.
-        if (ovmSafetyCache.checkAndRegisterSafeBytecode(_bytecode) == false) {
+        bytes32 codehash = keccak256(abi.encode(_bytecode));
+        // check if codehash is registered as safe in the cache
+        bool safe = ovmSafetyCache.isRegisteredSafeBytecode(codehash);
+        if (safe == false) {
+            // If not safe, try to register it.
+            safe = ovmSafetyCache.checkAndRegisterSafeBytecode(_bytecode);
+        }
+        // Check status of safe one more time.
+        if (safe == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
@@ -843,7 +850,16 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Again simply checking that the deployed code is safe too. Contracts can generate
         // arbitrary deployment code, so there's no easy way to analyze this beforehand.
         bytes memory deployedCode = Lib_EthUtils.getCode(ethAddress);
-        if (ovmSafetyCache.checkAndRegisterSafeBytecode(deployedCode) == false) {
+
+        bytes32 deployedCodehash = keccak256(abi.encode(deployedCode));
+        // check if codehash is registered as safe in the cache
+        bool deployedSafe = ovmSafetyCache.isRegisteredSafeBytecode(deployedCodehash);
+        if (deployedSafe == false) {
+            // If not safe, try to register it.
+            deployedSafe = ovmSafetyCache.checkAndRegisterSafeBytecode(deployedCode);
+        }
+        // Check status of safe one more time.
+        if (deployedSafe == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
