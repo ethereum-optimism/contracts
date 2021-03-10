@@ -32,7 +32,16 @@ const QUEUE_ORIGIN = {
   L1TOL2_QUEUE: 1,
 }
 
-describe.only('OVM_ExecutionManager Benchmarks', () => {
+const getCreateAddress = async (stateManager: Contract, creator: string) => {
+  let creatorNonce = await stateManager.getAccountNonce(creator)
+  let createAddress = ethers.utils.getContractAddress({
+    from: creator,
+    nonce: creatorNonce,
+  })
+  return createAddress
+}
+
+describe('OVM_ExecutionManager Benchmarks', () => {
   describe('em.run() benchmark: executing a minimal contract', async () => {
     let wallet: Signer
     let Factory__OVM_ExecutionManager: ContractFactory
@@ -196,6 +205,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       Helper_SimpleDeployer = await (
         await ethers.getContractFactory('Helper_SimpleOvmDeployer')
       ).deploy()
+
       DUMMY_TRANSACTION = {
         timestamp: 111111111111,
         blockNumber: 20,
@@ -218,10 +228,13 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
     })
 
     it('Gas Benchmark: un-cached minimal contract deployment', async () => {
-      // Set destination for first contract deployment
-      await OVM_StateManager.putEmptyAccount(
-        '0xf7a70a9ed665630eaaf9f7b40b71f01cbf65f73f'
+      let createAddr = await getCreateAddress(
+        OVM_StateManager,
+        Helper_SimpleDeployer.address
       )
+
+      // Set destination for first contract deployment
+      await OVM_StateManager.putEmptyAccount(createAddr)
       const tx = await OVM_ExecutionManager.run(
         DUMMY_TRANSACTION,
         OVM_StateManager.address
@@ -231,7 +244,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         .gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 583_841
+      const benchmark: number = 581_993
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
@@ -241,9 +254,11 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
 
     it('Gas Benchmark: cached minimal contract deployment', async () => {
       // Set destination for second contract deployment
-      await OVM_StateManager.putEmptyAccount(
-        '0xd236d314fd67606dddb3885f1330cf9bd3c8dbea'
+      let createAddr = await getCreateAddress(
+        OVM_StateManager,
+        Helper_SimpleDeployer.address
       )
+      await OVM_StateManager.putEmptyAccount(createAddr)
 
       // run the exact same flow as the previous. This time the Safety Cache should recognize the string.
       const tx = await OVM_ExecutionManager.run(
@@ -255,7 +270,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         .gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 417_183
+      const benchmark: number = 415_329
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
@@ -268,10 +283,13 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         'deploy(uint256)',
         [1]
       )
-      // Set destination for first contract deployment
-      await OVM_StateManager.putEmptyAccount(
-        '0x2dbd79d558282f50005be8e44c90a2db31042b40'
+
+      let createAddr = await getCreateAddress(
+        OVM_StateManager,
+        Helper_SimpleDeployer.address
       )
+      // Set destination for first contract deployment
+      await OVM_StateManager.putEmptyAccount(createAddr)
       const tx = await OVM_ExecutionManager.run(
         DUMMY_TRANSACTION,
         OVM_StateManager.address
@@ -281,7 +299,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         .gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 7_046_427
+      const benchmark: number = 7_044_545
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
         benchmark - 1_000,
@@ -294,10 +312,12 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         'deploy(uint256)',
         [1]
       )
-      // Set destination for first contract deployment
-      await OVM_StateManager.putEmptyAccount(
-        '0x7715813e9ee6baab3cb5ea89edc16fa92d526a74'
+      // Set destination for contract deployment
+      let createAddr = await getCreateAddress(
+        OVM_StateManager,
+        Helper_SimpleDeployer.address
       )
+      await OVM_StateManager.putEmptyAccount(createAddr)
       const tx = await OVM_ExecutionManager.run(
         DUMMY_TRANSACTION,
         OVM_StateManager.address
@@ -307,10 +327,10 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
         .gasUsed
       console.log(`      calculated gas cost of ${gasCost}`)
 
-      const benchmark: number = 5_539_103
+      const benchmark: number = 5_537_215
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
-        benchmark - 1_000,
+        benchmark - 1_000,  
         'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
       )
     })
