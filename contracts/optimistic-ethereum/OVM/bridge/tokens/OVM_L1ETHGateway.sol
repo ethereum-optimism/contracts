@@ -154,14 +154,4 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
         (bool success, ) = _to.call{value: _value}(new bytes(0));
         require(success, 'TransferHelper::safeTransferETH: ETH transfer failed');
     }
-
-    /**
-     * @dev Prevent users from sending ETH directly to this contract without calling deposit
-     */
-    receive()
-        external
-        payable
-    {
-        revert("Deposits must be initiated via deposit() or depositTo()");
-    }
 }
