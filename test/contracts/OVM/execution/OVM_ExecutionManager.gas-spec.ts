@@ -2,9 +2,8 @@ import { expect } from '../../../setup'
 import { deployContractCode } from '../../../helpers/utils'
 
 /* External Imports */
-import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
-import { Contract, ContractFactory, Signer } from 'ethers'
+import { BigNumber, Contract, ContractFactory, Signer } from 'ethers'
 import { smockit, MockContract } from '@eth-optimism/smock'
 
 /* Internal Imports */
@@ -33,8 +32,8 @@ const QUEUE_ORIGIN = {
 }
 
 const getCreateAddress = async (stateManager: Contract, creator: string) => {
-  let creatorNonce = await stateManager.getAccountNonce(creator)
-  let createAddress = ethers.utils.getContractAddress({
+  const creatorNonce = await stateManager.getAccountNonce(creator)
+  const createAddress = ethers.utils.getContractAddress({
     from: creator,
     nonce: creatorNonce,
   })
@@ -228,7 +227,7 @@ describe('OVM_ExecutionManager Benchmarks', () => {
     })
 
     it('Gas Benchmark: un-cached minimal contract deployment', async () => {
-      let createAddr = await getCreateAddress(
+      const createAddr = await getCreateAddress(
         OVM_StateManager,
         Helper_SimpleDeployer.address
       )
@@ -254,7 +253,7 @@ describe('OVM_ExecutionManager Benchmarks', () => {
 
     it('Gas Benchmark: cached minimal contract deployment', async () => {
       // Set destination for second contract deployment
-      let createAddr = await getCreateAddress(
+      const createAddr = await getCreateAddress(
         OVM_StateManager,
         Helper_SimpleDeployer.address
       )
@@ -284,7 +283,7 @@ describe('OVM_ExecutionManager Benchmarks', () => {
         [1]
       )
 
-      let createAddr = await getCreateAddress(
+      const createAddr = await getCreateAddress(
         OVM_StateManager,
         Helper_SimpleDeployer.address
       )
@@ -313,7 +312,7 @@ describe('OVM_ExecutionManager Benchmarks', () => {
         [1]
       )
       // Set destination for contract deployment
-      let createAddr = await getCreateAddress(
+      const createAddr = await getCreateAddress(
         OVM_StateManager,
         Helper_SimpleDeployer.address
       )
@@ -330,7 +329,7 @@ describe('OVM_ExecutionManager Benchmarks', () => {
       const benchmark: number = 5_537_215
       expect(gasCost).to.be.lte(benchmark)
       expect(gasCost).to.be.gte(
-        benchmark - 1_000,  
+        benchmark - 1_000,
         'Gas cost has significantly decreased, consider updating the benchmark to reflect the change'
       )
     })
