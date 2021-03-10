@@ -205,7 +205,6 @@ library Lib_SafeExecutionManagerWrapper {
 
     /**
      * Performs a safe ovmINCREMENTNONCE call.
-     * @param _nonce New account nonce.
      */
     function safeINCREMENTNONCE()
         internal

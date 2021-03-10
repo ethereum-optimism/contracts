@@ -454,7 +454,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
     /**
      * Bumps the nonce of the current ovmADDRESS by one.
-     * @param _nonce New nonce for the current contract.
      */
     function ovmINCREMENTNONCE()
         override
