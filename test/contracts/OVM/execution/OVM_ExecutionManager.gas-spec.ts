@@ -122,7 +122,7 @@ describe('OVM_ExecutionManager Benchmarks', () => {
       )
     })
   })
-  describe('em.run() benchmark: deploying a minimal contract', async () => {
+  describe('em.run() benchmark: contract deployment', async () => {
     let Helper_SimpleDeployer: Contract
     let wallet: Signer
     let OVM_SafetyChecker: Contract
