@@ -453,21 +453,20 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /**
-     * Sets the nonce of the current ovmADDRESS. New nonce must be greater than old nonce or this
-     * function will have no effect.
+     * Bumps the nonce of the current ovmADDRESS by one.
      * @param _nonce New nonce for the current contract.
      */
-    function ovmSETNONCE(
-        uint256 _nonce
-    )
+    function ovmINCREMENTNONCE()
         override
         public
         notStatic
     {
         address account = ovmADDRESS();
-        uint256 oldNonce = _getAccountNonce(account);
-        if (_nonce > oldNonce) {
-            _setAccountNonce(account, _nonce);
+        uint256 nonce = _getAccountNonce(account);
+
+        // Prevent overflow.
+        if (nonce + 1 > nonce) {
+            _setAccountNonce(account, nonce + 1);
         }
     }
 

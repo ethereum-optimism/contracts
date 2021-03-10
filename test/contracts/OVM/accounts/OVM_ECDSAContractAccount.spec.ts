@@ -108,10 +108,6 @@ describe('OVM_ECDSAContractAccount', () => {
       expect(ovmCALL._gasLimit).to.equal(DEFAULT_EIP155_TX.gasLimit)
       expect(ovmCALL._address).to.equal(DEFAULT_EIP155_TX.to)
       expect(ovmCALL._calldata).to.equal(DEFAULT_EIP155_TX.data)
-
-      const ovmSETNONCE: any =
-        Mock__OVM_ExecutionManager.smocked.ovmSETNONCE.calls[0]
-      expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce + 1)
     })
 
     it(`should successfully execute an ETHSignedTransaction`, async () => {
@@ -136,10 +132,6 @@ describe('OVM_ECDSAContractAccount', () => {
       expect(ovmCALL._gasLimit).to.equal(DEFAULT_EIP155_TX.gasLimit)
       expect(ovmCALL._address).to.equal(DEFAULT_EIP155_TX.to)
       expect(ovmCALL._calldata).to.equal(DEFAULT_EIP155_TX.data)
-
-      const ovmSETNONCE: any =
-        Mock__OVM_ExecutionManager.smocked.ovmSETNONCE.calls[0]
-      expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce + 1)
     })
 
     it(`should ovmCREATE if EIP155Transaction.to is zero address`, async () => {
