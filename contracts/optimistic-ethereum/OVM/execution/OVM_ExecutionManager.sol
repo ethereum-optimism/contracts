@@ -947,7 +947,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         messageRecord.nuisanceGasLeft = nuisanceGasLimit;
 
         // Make the call and make sure to pass in the gas limit. Another instance of hidden
-        // complexity. `_target` is guaranteed to be a safe contract, meaning its return/revert
+        // complexity. `_contract` is guaranteed to be a safe contract, meaning its return/revert
         // behavior can be controlled. In particular, we enforce that flags are passed through
         // revert data as to retrieve execution metadata that would normally be reverted out of
         // existence.
