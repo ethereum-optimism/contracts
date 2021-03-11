@@ -919,7 +919,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @param _data Data for the message (either calldata or creation code)
      * @param _isCreate Whether this is a create-type message.
      * @return _success Whether or not the message (either a call or deployment) succeeded.
-     * @return _returndata Data returned by the message.
+     * @return Data returned by the message.
      */
     function _handleExternalMessage(
         MessageContext memory _nextMessageContext,
