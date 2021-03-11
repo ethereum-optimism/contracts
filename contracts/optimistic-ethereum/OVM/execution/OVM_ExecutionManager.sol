@@ -1502,6 +1502,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             messageRecord.revertFlag = _flag;
 			console.log('Caller: %s', msg.sender);
 			console.log('return without resetting context :/');
+			// _resetContext(); // uncomment to fix me.
             assembly {
                 return(0, 1)
             }
