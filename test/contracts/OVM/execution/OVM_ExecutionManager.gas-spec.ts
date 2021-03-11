@@ -183,16 +183,16 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       )
 
       // Setup the SM to satisfy all the checks executed during EM.run()
-      await MODDABLE__STATE_MANAGER.putAccount(
-        "0x4200000000000000000000000000000000000002",
-        {
-          nonce: BigNumber.from(123),
-          balance: BigNumber.from(456),
-          storageRoot: DUMMY_BYTES32[0],
-          codeHash: DUMMY_BYTES32[1],
-          ethAddress: MOCK__OVM_DeployerWhitelist.address,
-        },
-      );
+      // await MODDABLE__STATE_MANAGER.putAccount(
+      //   "0x4200000000000000000000000000000000000002",
+      //   {
+      //     nonce: BigNumber.from(123),
+      //     balance: BigNumber.from(456),
+      //     storageRoot: DUMMY_BYTES32[0],
+      //     codeHash: DUMMY_BYTES32[1],
+      //     ethAddress: MOCK__OVM_DeployerWhitelist.address,
+      //   },
+      // );
       await MODDABLE__STATE_MANAGER.setExecutionManager(OVM_ExecutionManager.address)
 
 
