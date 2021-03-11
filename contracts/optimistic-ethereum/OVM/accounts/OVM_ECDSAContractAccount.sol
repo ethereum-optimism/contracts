@@ -120,7 +120,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
             // EVM doesn't tell us whether a contract creation failed, even if it reverted during
             // initialization. Always return `true` for our success value here.
-            return ( created == address(0) ) ?
+            return ( created != address(0) ) ?
                 (true, abi.encode(created))
                 : (false, revertData);
         } else {
