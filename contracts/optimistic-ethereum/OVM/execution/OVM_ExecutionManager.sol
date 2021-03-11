@@ -795,7 +795,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      ********************************************/
 
     /**
-     * Checks whether the given address is on the whitelst to ovmCREATE/ovmCREATE2, and reverts if not.
+     * Checks whether the given address is on the whitelist to ovmCREATE/ovmCREATE2, and reverts if not.
      * @param _deployerAddress Address attempting to deploy a contract.
      */
     function _checkDeployerAllowed(
@@ -803,7 +803,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
-        // From an OVM semanitcs perspectibe, this will appear the identical to
+        // From an OVM semantics perspective, this will appear identical to
         // the deployer ovmCALLing the whitelist.  This is fine--in a sense, we are forcing them to.
         (bool success, bytes memory data) = ovmCALL(
             gasleft(),
@@ -1096,7 +1096,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 false,
                 _encodeRevertData(
                     RevertFlag.UNSAFE_BYTECODE,
-                    Lib_ErrorUtils.encodeRevertString("Constrcutor attempted to deploy unsafe opcodes.")
+                    Lib_ErrorUtils.encodeRevertString("Constructor attempted to deploy unsafe opcodes.")
                 )
             );
         }
@@ -1109,7 +1109,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             Lib_EthUtils.getCodeHash(ethAddress)
         );
 
-        // Succressfuly deployments will not give acces to returndata, in both the EVM and the OVM.
+        // Successful deployments will not give access to returndata, in both the EVM and the OVM.
         return (true, hex'');
     }
 
