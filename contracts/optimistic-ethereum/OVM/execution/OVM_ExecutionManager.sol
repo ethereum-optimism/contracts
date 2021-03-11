@@ -1030,7 +1030,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @param _creationCode Code to pass into CREATE for deployment.
      * @param _address OVM address being deployed to.
      * @return _success Whether or not the call succeeded.
-     * @return _returndata If creation fails: revert data.  Otherwise: empty.
+     * @return If creation fails: revert data. Otherwise: empty.
      */
     function _handleExternalCreate(
         uint _gasLimit,
