@@ -365,7 +365,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @notice Overrides CREATE.
      * @param _bytecode Code to be used to CREATE a new contract.
      * @return Address of the created contract.
-     * @return Revert data, iff the creation threw an exception.
+     * @return Revert data, if and only if the creation threw an exception.
      */
     function ovmCREATE(
         bytes memory _bytecode
@@ -403,7 +403,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @param _bytecode Code to be used to CREATE2 a new contract.
      * @param _salt Value used to determine the contract's address.
      * @return Address of the created contract.
-     * @return Revert data, iff the creation threw an exception.
+     * @return Revert data, if and only if the creation threw an exception.
      */
     function ovmCREATE2(
         bytes memory _bytecode,
@@ -826,7 +826,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @param _contractAddress Address to associate the created contract with.
      * @param _bytecode Bytecode to be used to create the contract.
      * @return Final OVM contract address.
-     * @return Revertdata, iff the creation threw an exception.
+     * @return Revertdata, if and only if the creation threw an exception.
      */
     function _createContract(
         address _contractAddress,
@@ -1060,7 +1060,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 false,
                 _encodeRevertData(
                     RevertFlag.UNSAFE_BYTECODE,
-                    Lib_ErrorUtils.encodeRevertString("Contract creation code contains unsafe opcodes.  Did you use the right compiler or pass an unsafe constructor argument?")
+                    Lib_ErrorUtils.encodeRevertString("Contract creation code contains unsafe opcodes. Did you use the right compiler or pass an unsafe constructor argument?")
                 )
             );
         }
