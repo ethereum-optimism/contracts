@@ -2,6 +2,7 @@
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 
@@ -14,7 +15,7 @@ import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
  * the Execution Manager and State Transitioner. It runs on L1 during the setup and execution of a fraud proof.
  * The same logic runs on L2, but has been implemented as a precompile in the L2 go-ethereum client
  * (see https://github.com/ethereum-optimism/go-ethereum/blob/master/core/vm/ovm_state_manager.go).
- * 
+ *
  * Compiler used: solc
  * Runtime target: EVM
  */
@@ -63,7 +64,7 @@ contract OVM_StateManager is iOVM_StateManager {
      **********************/
 
     /**
-     * Simple authentication, this contract should only be accessible to the owner (which is expected to be the State Transitioner during `PRE_EXECUTION` 
+     * Simple authentication, this contract should only be accessible to the owner (which is expected to be the State Transitioner during `PRE_EXECUTION`
      * or the OVM_ExecutionManager during transaction execution.
      */
     modifier authenticated() {
@@ -176,6 +177,10 @@ contract OVM_StateManager is iOVM_StateManager {
             bool
         )
     {
+		if (accounts[_address].codeHash == bytes32(0)) {
+			// failure case:
+			console.log('I do not hasAccount: %s', _address);
+		}
         return accounts[_address].codeHash != bytes32(0);
     }
 

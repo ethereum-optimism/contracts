@@ -3,6 +3,8 @@
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
+
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
@@ -192,12 +194,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Check gas right before the call to get total gas consumed by OVM transaction.
         uint256 gasProvided = gasleft();
 
+		console.log('pre-ovmCall');
         // Run the transaction, make sure to meter the gas usage.
         ovmCALL(
             _transaction.gasLimit - gasMeterConfig.minTransactionGasLimit,
             _transaction.entrypoint,
             _transaction.data
         );
+		console.log('post-ovmCall');
         uint256 gasUsed = gasProvided - gasleft();
 
         // TEMPORARY: Gas metering is disabled for minnet.
@@ -633,7 +637,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // DELEGATECALL does not change anything about the message context.
         MessageContext memory nextMessageContext = messageContext;
-        
+
         bool isStaticEntrypoint = false;
 
         return _callContract(
@@ -886,6 +890,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // From an OVM semanitcs perspectibe, this will appear the identical to
         // the deployer ovmCALLing the whitelist.  This is fine--in a sense, we are forcing them to.
+		console.log('pre-call to DeployerWhitelist');
         (bool success, bytes memory data) = ovmCALL(
             gasleft(),
             0x4200000000000000000000000000000000000002,
@@ -1024,13 +1029,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         uint256 nuisanceGasLimit = _getNuisanceGasLimit(_gasLimit);
         messageRecord.nuisanceGasLeft = nuisanceGasLimit;
 
+		console.log('_handleExternalInteraction pre-call to %s', _target);
         // Make the call and make sure to pass in the gas limit. Another instance of hidden
         // complexity. `_target` is guaranteed to be a safe contract, meaning its return/revert
         // behavior can be controlled. In particular, we enforce that flags are passed through
         // revert data as to retrieve execution metadata that would normally be reverted out of
         // existence.
         (bool success, bytes memory returndata) = _target.call{gas: _gasLimit}(_data);
-
+		console.log('_handleExternalInteraction post-call, success: %s', success);
         // Switch back to the original message context now that we're out of the call.
         _switchMessageContext(_nextMessageContext, prevMessageContext);
 
@@ -1047,11 +1053,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 uint256 ovmGasRefund,
                 bytes memory returndataFromFlag
             ) = _decodeRevertData(returndata);
-
+			console.log('_handleExternalInteraction: Revert flag enum value: %s', uint(flag));
             // INVALID_STATE_ACCESS is the only flag that triggers an immediate abort of the
             // parent EVM message. This behavior is necessary because INVALID_STATE_ACCESS must
             // halt any further transaction execution that could impact the execution result.
             if (flag == RevertFlag.INVALID_STATE_ACCESS) {
+				console.log('we r gonnna RevertFlag.INVALID_STATE_ACCESS');
                 _revertWithFlag(flag);
             }
 
@@ -1493,7 +1500,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         if (isCreation) {
             messageRecord.revertFlag = _flag;
-
+			console.log('Caller: %s', msg.sender);
+			console.log('return without resetting context :/');
             assembly {
                 return(0, 1)
             }

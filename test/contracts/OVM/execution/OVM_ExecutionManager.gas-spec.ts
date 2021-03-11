@@ -47,7 +47,7 @@ const DUMMY_TRANSACTION = {
   data: 0,
 }
 
-describe.only('OVM_ExecutionManager Benchmarks', () => {
+describe('OVM_ExecutionManager Benchmarks', () => {
   describe('em.run() benchmark: executing a minimal contract', async () => {
     let wallet: Signer
     let Factory__OVM_ExecutionManager: ContractFactory
@@ -118,7 +118,7 @@ describe.only('OVM_ExecutionManager Benchmarks', () => {
       )
     })
   })
-  describe('em.run() benchmark: deploying a minimal contract', async () => {
+  describe.only('em.run() benchmark: deploying a minimal contract', async () => {
     let Helper_SimpleDeployer: Contract
     let wallet: Signer
     let OVM_SafetyChecker: Contract
