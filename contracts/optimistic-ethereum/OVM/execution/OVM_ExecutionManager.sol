@@ -631,7 +631,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // DELEGATECALL does not change anything about the message context.
         MessageContext memory nextMessageContext = messageContext;
-        
+
         bool isStaticEntrypoint = false;
 
         return _callContract(
@@ -1509,6 +1509,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (isCreation) {
             messageRecord.revertFlag = _flag;
 
+			_resetContext();
             assembly {
                 return(0, 1)
             }
