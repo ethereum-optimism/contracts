@@ -35,7 +35,9 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, Abs_BaseCros
         address _libAddressManager
     )
         Lib_AddressResolver(_libAddressManager)
-    {}
+    {
+        xDomainMessageSender = DEFAULT_XDOMAIN_SENDER;
+    }
 
 
     /********************
@@ -77,6 +79,7 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, Abs_BaseCros
 
         xDomainMessageSender = _sender;
         (bool success, ) = _target.call(_message);
+        xDomainMessageSender = DEFAULT_XDOMAIN_SENDER;
 
         // Mark the message as received if the call was successful. Ensures that a message can be
         // relayed multiple times in the case that the call reverted.

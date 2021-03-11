@@ -18,6 +18,14 @@ import { Lib_ReentrancyGuard } from "../../../libraries/utils/Lib_ReentrancyGuar
  * Runtime target: defined by child contract
  */
 abstract contract Abs_BaseCrossDomainMessenger is iAbs_BaseCrossDomainMessenger, Lib_ReentrancyGuard {
+    /**********************
+     *      Constants     *
+     **********************/
+
+    // The default x-domain message sender being set to a non-zero value makes
+    // deployment a bit more expensive, but in exchange the refund on every call to
+    // `relayMessage` by the L1 and L2 messengers will be higher.
+    address internal constant DEFAULT_XDOMAIN_SENDER = 0x000000000000000000000000000000000000dEaD;
 
     /**********************
      * Contract Variables *
@@ -33,7 +41,9 @@ abstract contract Abs_BaseCrossDomainMessenger is iAbs_BaseCrossDomainMessenger,
      * Public Functions *
      ********************/
 
-    constructor() Lib_ReentrancyGuard() {}
+    constructor() Lib_ReentrancyGuard() internal {
+        xDomainMessageSender = DEFAULT_XDOMAIN_SENDER;
+    }
 
     /**
      * Sends a cross domain message to the target messenger.
