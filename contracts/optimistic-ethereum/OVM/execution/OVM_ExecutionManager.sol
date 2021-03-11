@@ -929,7 +929,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         bool _isCreate
     )
         internal
-        returns(
+        returns (
             bool,
             bytes memory
         )
