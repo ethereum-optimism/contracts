@@ -13,7 +13,6 @@ import {
   ZERO_ADDRESS,
   NON_ZERO_ADDRESS,
   getXDomainCalldata,
-  DEFAULT_XDOMAIN_SENDER,
 } from '../../../../helpers'
 
 describe('OVM_L2CrossDomainMessenger', () => {
@@ -74,14 +73,6 @@ describe('OVM_L2CrossDomainMessenger', () => {
     OVM_L2CrossDomainMessenger = await Factory__OVM_L2CrossDomainMessenger.deploy(
       AddressManager.address
     )
-  })
-
-  describe('xDomainMessageSender', async () => {
-    it('defaults to 0xdead', async () => {
-      expect(
-        await OVM_L2CrossDomainMessenger.xDomainMessageSender()
-      ).to.be.equal(DEFAULT_XDOMAIN_SENDER)
-    })
   })
 
   describe('sendMessage', () => {
@@ -147,11 +138,13 @@ describe('OVM_L2CrossDomainMessenger', () => {
     })
 
     it('the xDomainMessageSender is reset to the original value', async () => {
+      await expect(
+        OVM_L2CrossDomainMessenger.xDomainMessageSender()
+      ).to.be.revertedWith('xDomainMessageSender is not set')
       await OVM_L2CrossDomainMessenger.relayMessage(target, sender, message, 0)
-
-      expect(
-        await OVM_L2CrossDomainMessenger.xDomainMessageSender()
-      ).to.be.equal(DEFAULT_XDOMAIN_SENDER)
+      await expect(
+        OVM_L2CrossDomainMessenger.xDomainMessageSender()
+      ).to.be.revertedWith('xDomainMessageSender is not set')
     })
 
     it('should revert if trying to send the same message twice', async () => {
