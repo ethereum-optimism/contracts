@@ -35,15 +35,13 @@ abstract contract Abs_BaseCrossDomainMessenger is iAbs_BaseCrossDomainMessenger,
     mapping (bytes32 => bool) public successfulMessages;
     mapping (bytes32 => bool) public sentMessages;
     uint256 public messageNonce;
-    address override public xDomainMessageSender;
+    address override public xDomainMessageSender = DEFAULT_XDOMAIN_SENDER;
 
     /********************
      * Public Functions *
      ********************/
 
-    constructor() Lib_ReentrancyGuard() internal {
-        xDomainMessageSender = DEFAULT_XDOMAIN_SENDER;
-    }
+    constructor() Lib_ReentrancyGuard() internal {}
 
     /**
      * Sends a cross domain message to the target messenger.

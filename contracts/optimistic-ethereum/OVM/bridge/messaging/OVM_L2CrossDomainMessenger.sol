@@ -35,9 +35,7 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, Abs_BaseCros
         address _libAddressManager
     )
         Lib_AddressResolver(_libAddressManager)
-    {
-        xDomainMessageSender = DEFAULT_XDOMAIN_SENDER;
-    }
+    {}
 
 
     /********************
