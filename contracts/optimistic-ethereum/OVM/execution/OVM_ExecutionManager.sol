@@ -3,20 +3,23 @@
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
+
 /* Library Imports */
 import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 import { Lib_EthUtils } from "../../libraries/utils/Lib_EthUtils.sol";
 
-/* Interface Imports */
+/* Inherited Interface Imports */
 import { iOVM_ExecutionManager } from "../../iOVM/execution/iOVM_ExecutionManager.sol";
+
+/* External Interface Imports */
 import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
+import { iOVM_SafetyCache } from "../../iOVM/execution/iOVM_SafetyCache.sol";
 import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol";
 
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
-import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol";
 
 /**
  * @title OVM_ExecutionManager
@@ -39,7 +42,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * External Contract References *
      ********************************/
 
-    iOVM_SafetyChecker internal ovmSafetyChecker;
+    iOVM_SafetyCache internal ovmSafetyCache;
     iOVM_StateManager internal ovmStateManager;
 
 
@@ -81,7 +84,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         Lib_AddressResolver(_libAddressManager)
     {
-        ovmSafetyChecker = iOVM_SafetyChecker(resolve("OVM_SafetyChecker"));
+        ovmSafetyCache = iOVM_SafetyCache(resolve("OVM_SafetyCache"));
         gasMeterConfig = _gasMeterConfig;
         globalContext = _globalContext;
         _resetContext();
@@ -808,8 +811,15 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _revertWithFlag(RevertFlag.CREATE_COLLISION);
         }
 
-        // Check the creation bytecode against the OVM_SafetyChecker.
-        if (ovmSafetyChecker.isBytecodeSafe(_bytecode) == false) {
+        bytes32 codehash = keccak256(abi.encode(_bytecode));
+        // check if codehash is registered as safe in the cache
+        bool safe = ovmSafetyCache.isRegisteredSafeBytecode(codehash);
+        if (safe == false) {
+            // If not safe, try to register it.
+            safe = ovmSafetyCache.checkAndRegisterSafeBytecode(_bytecode);
+        }
+        // Check status of safe one more time.
+        if (safe == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
@@ -840,7 +850,16 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Again simply checking that the deployed code is safe too. Contracts can generate
         // arbitrary deployment code, so there's no easy way to analyze this beforehand.
         bytes memory deployedCode = Lib_EthUtils.getCode(ethAddress);
-        if (ovmSafetyChecker.isBytecodeSafe(deployedCode) == false) {
+
+        bytes32 deployedCodehash = keccak256(abi.encode(deployedCode));
+        // check if codehash is registered as safe in the cache
+        bool deployedSafe = ovmSafetyCache.isRegisteredSafeBytecode(deployedCodehash);
+        if (deployedSafe == false) {
+            // If not safe, try to register it.
+            deployedSafe = ovmSafetyCache.checkAndRegisterSafeBytecode(deployedCode);
+        }
+        // Check status of safe one more time.
+        if (deployedSafe == false) {
             _revertWithFlag(RevertFlag.UNSAFE_BYTECODE);
         }
 
@@ -870,7 +889,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /********************************************
-     * Public Functions: Deployment Witelisting *
+     * Internal Functions: Deployment Witelisting *
      ********************************************/
 
     /**
@@ -1094,23 +1113,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /******************************************
      * Internal Functions: State Manipulation *
      ******************************************/
-
-    /**
-     * Checks whether an account exists within the OVM_StateManager.
-     * @param _address Address of the account to check.
-     * @return _exists Whether or not the account exists.
-     */
-    function _hasAccount(
-        address _address
-    )
-        internal
-        returns (
-            bool _exists
-        )
-    {
-        _checkAccountLoad(_address);
-        return ovmStateManager.hasAccount(_address);
-    }
 
     /**
      * Checks whether a known empty account exists within the OVM_StateManager.

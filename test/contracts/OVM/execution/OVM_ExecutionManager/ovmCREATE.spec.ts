@@ -39,7 +39,7 @@ const test_ovmCREATE: TestDefinition = {
   preState: {
     ExecutionManager: {
       ovmStateManager: '$OVM_STATE_MANAGER',
-      ovmSafetyChecker: '$OVM_SAFETY_CHECKER',
+      ovmSafetyCache: '$OVM_SAFETY_CACHE',
       messageRecord: {
         nuisanceGasLeft: OVM_TX_GAS_LIMIT,
       },
