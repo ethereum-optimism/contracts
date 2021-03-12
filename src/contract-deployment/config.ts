@@ -30,9 +30,6 @@ export interface RollupDeployConfig {
   l1CrossDomainMessengerConfig: {
     relayerAddress?: string | Signer
   }
-  ethConfig: {
-    initialAmount: number
-  }
   whitelistConfig: {
     owner: string | Signer
     allowArbitraryContractDeployment: boolean
@@ -110,6 +107,13 @@ export const makeContractDeployConfig = async (
         )
       },
     },
+    OVM_L1ETHGateway: {
+      factory: getContractFactory('OVM_L1ETHGateway'),
+      params: [
+        AddressManager.address,
+        '0x4200000000000000000000000000000000000006',
+      ],
+    },
     OVM_L1MultiMessageRelayer: {
       factory: getContractFactory('OVM_L1MultiMessageRelayer'),
       params: [AddressManager.address],
@@ -136,6 +140,9 @@ export const makeContractDeployConfig = async (
         )
         await _sendTx(
           AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
+        )
+        await _sendTx(
+          AddressManager.setAddress('OVM_Proposer', sequencerAddress)
         )
         await _sendTx(AddressManager.setAddress('Sequencer', sequencerAddress))
       },
@@ -215,11 +222,8 @@ export const makeContractDeployConfig = async (
     OVM_ETH: {
       factory: getContractFactory('OVM_ETH'),
       params: [
-        AddressManager.address,
-        config.ethConfig.initialAmount,
-        'Ether',
-        18,
-        'ETH',
+        '0x4200000000000000000000000000000000000007',
+        '0x0000000000000000000000000000000000000000', // will be overridden by geth when state dump is ingested.  Storage key: 0x0000000000000000000000000000000000000000000000000000000000000008
       ],
     },
     'OVM_ChainStorageContainer:CTC:batches': {
@@ -233,6 +237,9 @@ export const makeContractDeployConfig = async (
     'OVM_ChainStorageContainer:SCC:batches': {
       factory: getContractFactory('OVM_ChainStorageContainer'),
       params: [AddressManager.address, 'OVM_StateCommitmentChain'],
+    },
+    ERC1820Registry: {
+      factory: getContractFactory('ERC1820Registry'),
     },
   }
 }

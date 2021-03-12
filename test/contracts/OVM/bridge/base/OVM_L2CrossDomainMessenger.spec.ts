@@ -1,4 +1,4 @@
-import { expect } from '../../../setup'
+import { expect } from '../../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
@@ -12,19 +12,8 @@ import {
   NON_NULL_BYTES32,
   ZERO_ADDRESS,
   NON_ZERO_ADDRESS,
-} from '../../../helpers'
-import { getContractInterface } from '../../../../src'
-
-const getXDomainCalldata = (
-  sender: string,
-  target: string,
-  message: string,
-  messageNonce: number
-): string => {
-  return getContractInterface(
-    'OVM_L2CrossDomainMessenger'
-  ).encodeFunctionData('relayMessage', [target, sender, message, messageNonce])
-}
+  getXDomainCalldata,
+} from '../../../../helpers'
 
 describe('OVM_L2CrossDomainMessenger', () => {
   let signer: Signer
@@ -146,6 +135,16 @@ describe('OVM_L2CrossDomainMessenger', () => {
       expect(Mock__TargetContract.smocked.setTarget.calls[0]).to.deep.equal([
         NON_ZERO_ADDRESS,
       ])
+    })
+
+    it('the xDomainMessageSender is reset to the original value', async () => {
+      await expect(
+        OVM_L2CrossDomainMessenger.xDomainMessageSender()
+      ).to.be.revertedWith('xDomainMessageSender is not set')
+      await OVM_L2CrossDomainMessenger.relayMessage(target, sender, message, 0)
+      await expect(
+        OVM_L2CrossDomainMessenger.xDomainMessageSender()
+      ).to.be.revertedWith('xDomainMessageSender is not set')
     })
 
     it('should revert if trying to send the same message twice', async () => {

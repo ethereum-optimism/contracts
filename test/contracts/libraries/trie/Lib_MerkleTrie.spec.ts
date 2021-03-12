@@ -4,9 +4,10 @@ import { expect } from '../../../setup'
 import * as rlp from 'rlp'
 import { ethers } from 'hardhat'
 import { Contract } from 'ethers'
+import { toHexString } from '@eth-optimism/core-utils'
 
 /* Internal Imports */
-import { toHexString, TrieTestGenerator } from '../../../helpers'
+import { TrieTestGenerator } from '../../../helpers'
 
 const NODE_COUNTS = [1, 2, 128]
 
@@ -122,7 +123,7 @@ describe('Lib_MerkleTrie', () => {
             })
             it(`should revert when the first proof element is not the root node`, async () => {
               const test = await generator.makeInclusionProofTest(0)
-              let decodedProof = rlp.decode(test.proof)
+              const decodedProof = rlp.decode(test.proof)
               decodedProof[0].write('abcd', 8) // change the 1st element (root) of the proof
               const badProof = rlp.encode(decodedProof as rlp.Input)
               await expect(
@@ -156,7 +157,7 @@ describe('Lib_MerkleTrie', () => {
 
     it(`should revert on an incorrect proof node prefix`, async () => {
       const test = await generator.makeInclusionProofTest(0)
-      let decodedProof = rlp.decode(test.proof)
+      const decodedProof = rlp.decode(test.proof)
       decodedProof[0].write('a', 3) // change the prefix
       test.root = ethers.utils.keccak256(toHexString(decodedProof[0]))
       const badProof = rlp.encode(decodedProof as rlp.Input)

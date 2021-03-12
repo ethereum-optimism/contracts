@@ -3,10 +3,10 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Interface Imports */
-import { iAbs_BaseCrossDomainMessenger } from "../../iOVM/bridge/iAbs_BaseCrossDomainMessenger.sol";
+import { iAbs_BaseCrossDomainMessenger } from "../../../iOVM/bridge/messaging/iAbs_BaseCrossDomainMessenger.sol";
 
 /* Library Imports */
-import { Lib_ReentrancyGuard } from "../../libraries/utils/Lib_ReentrancyGuard.sol";
+import { Lib_ReentrancyGuard } from "../../../libraries/utils/Lib_ReentrancyGuard.sol";
 
 /**
  * @title Abs_BaseCrossDomainMessenger
@@ -18,6 +18,14 @@ import { Lib_ReentrancyGuard } from "../../libraries/utils/Lib_ReentrancyGuard.s
  * Runtime target: defined by child contract
  */
 abstract contract Abs_BaseCrossDomainMessenger is iAbs_BaseCrossDomainMessenger, Lib_ReentrancyGuard {
+    /**************
+     *  Constants *
+     **************/
+
+    // The default x-domain message sender being set to a non-zero value makes
+    // deployment a bit more expensive, but in exchange the refund on every call to
+    // `relayMessage` by the L1 and L2 messengers will be higher.
+    address internal constant DEFAULT_XDOMAIN_SENDER = 0x000000000000000000000000000000000000dEaD;
 
     /**********************
      * Contract Variables *
@@ -27,13 +35,18 @@ abstract contract Abs_BaseCrossDomainMessenger is iAbs_BaseCrossDomainMessenger,
     mapping (bytes32 => bool) public successfulMessages;
     mapping (bytes32 => bool) public sentMessages;
     uint256 public messageNonce;
-    address override public xDomainMessageSender;
+    address internal xDomainMsgSender = DEFAULT_XDOMAIN_SENDER;
 
     /********************
      * Public Functions *
      ********************/
 
     constructor() Lib_ReentrancyGuard() internal {}
+
+    function xDomainMessageSender() public override view returns (address) {
+        require(xDomainMsgSender != DEFAULT_XDOMAIN_SENDER, "xDomainMessageSender is not set");
+        return xDomainMsgSender;
+    }
 
     /**
      * Sends a cross domain message to the target messenger.

@@ -3,13 +3,13 @@ pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
 /* Library Imports */
-import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
-import { Lib_ReentrancyGuard } from "../../libraries/utils/Lib_ReentrancyGuard.sol";
+import { Lib_AddressResolver } from "../../../libraries/resolver/Lib_AddressResolver.sol";
+import { Lib_ReentrancyGuard } from "../../../libraries/utils/Lib_ReentrancyGuard.sol";
 
 /* Interface Imports */
-import { iOVM_L2CrossDomainMessenger } from "../../iOVM/bridge/iOVM_L2CrossDomainMessenger.sol";
-import { iOVM_L1MessageSender } from "../../iOVM/precompiles/iOVM_L1MessageSender.sol";
-import { iOVM_L2ToL1MessagePasser } from "../../iOVM/precompiles/iOVM_L2ToL1MessagePasser.sol";
+import { iOVM_L2CrossDomainMessenger } from "../../../iOVM/bridge/messaging/iOVM_L2CrossDomainMessenger.sol";
+import { iOVM_L1MessageSender } from "../../../iOVM/precompiles/iOVM_L1MessageSender.sol";
+import { iOVM_L2ToL1MessagePasser } from "../../../iOVM/precompiles/iOVM_L2ToL1MessagePasser.sol";
 
 /* Contract Imports */
 import { Abs_BaseCrossDomainMessenger } from "./Abs_BaseCrossDomainMessenger.sol";
@@ -34,7 +34,6 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, Abs_BaseCros
     constructor(
         address _libAddressManager
     )
-        public
         Lib_AddressResolver(_libAddressManager)
     {}
 
@@ -76,8 +75,9 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, Abs_BaseCros
             "Provided message has already been received."
         );
 
-        xDomainMessageSender = _sender;
+        xDomainMsgSender = _sender;
         (bool success, ) = _target.call(_message);
+        xDomainMsgSender = DEFAULT_XDOMAIN_SENDER;
 
         // Mark the message as received if the call was successful. Ensures that a message can be
         // relayed multiple times in the case that the call reverted.
@@ -108,6 +108,7 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, Abs_BaseCros
      * @return _valid Whether or not the message is valid.
      */
     function _verifyXDomainMessage()
+        view
         internal
         returns (
             bool _valid

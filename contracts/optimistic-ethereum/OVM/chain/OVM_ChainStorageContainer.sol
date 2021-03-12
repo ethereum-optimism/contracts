@@ -14,7 +14,7 @@ import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageCo
  * This provides gas efficiency gains by enabling it to overwrite storage slots which can no longer be used
  * in a fraud proof due to the fraud window having passed, and the associated chain state or
  * transactions being finalized.
- * Three disctint Chain Storage Containers will be deployed on Layer 1:
+ * Three distinct Chain Storage Containers will be deployed on Layer 1:
  * 1. Stores transaction batches for the Canonical Transaction Chain
  * 2. Stores queued transactions for the Canonical Transaction Chain
  * 3. Stores chain state batches for the State Commitment Chain
@@ -51,7 +51,6 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
         address _libAddressManager,
         string memory _owner
     )
-        public
         Lib_AddressResolver(_libAddressManager)
     {
         owner = _owner;
@@ -146,7 +145,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
     /**
      * @inheritdoc iOVM_ChainStorageContainer
      */
-    function push2(
+    function pushTwo(
         bytes32 _objectA,
         bytes32 _objectB
     )
@@ -154,13 +153,13 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
         public
         onlyOwner
     {
-        buffer.push2(_objectA, _objectB);
+        buffer.pushTwo(_objectA, _objectB);
     }
 
     /**
      * @inheritdoc iOVM_ChainStorageContainer
      */
-    function push2(
+    function pushTwo(
         bytes32 _objectA,
         bytes32 _objectB,
         bytes27 _globalMetadata
@@ -169,7 +168,7 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
         public
         onlyOwner
     {
-        buffer.push2(_objectA, _objectB, _globalMetadata);
+        buffer.pushTwo(_objectA, _objectB, _globalMetadata);
     }
 
     /**
@@ -188,6 +187,23 @@ contract OVM_ChainStorageContainer is iOVM_ChainStorageContainer, Lib_AddressRes
         return buffer.get(uint40(_index));
     }
 
+    /**
+     * @inheritdoc iOVM_ChainStorageContainer
+     */
+    function getTwo(
+        uint256 _index
+    )
+        override
+        public
+        view
+        returns (
+            bytes32,
+            bytes32
+        )
+    {
+        return buffer.getTwo(uint40(_index));
+    }
+    
     /**
      * @inheritdoc iOVM_ChainStorageContainer
      */

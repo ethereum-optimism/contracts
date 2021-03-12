@@ -118,7 +118,7 @@ library Lib_RingBuffer {
      * @param _valueA Second value to push to the buffer.
      * @param _extraData Optional global extra data.
      */
-    function push2(
+    function pushTwo(
         RingBuffer storage _self,
         bytes32 _valueA,
         bytes32 _valueB,
@@ -136,7 +136,7 @@ library Lib_RingBuffer {
      * @param _valueA First value to push to the buffer.
      * @param _valueA Second value to push to the buffer.
      */
-    function push2(
+    function pushTwo(
         RingBuffer storage _self,
         bytes32 _valueA,
         bytes32 _valueB
@@ -145,7 +145,7 @@ library Lib_RingBuffer {
     {
         RingBufferContext memory ctx = _self.getContext();
 
-        _self.push2(
+        _self.pushTwo(
             _valueA,
             _valueB,
             ctx.extraData
@@ -212,6 +212,30 @@ library Lib_RingBuffer {
     }
 
     /**
+     * Retrieves two consecutive elements from the buffer.
+     * @param _self Buffer to access.
+     * @param _index Element index to retrieve.
+     * @return Value of the element at index `_index`.
+     * @return Value of the element at index `_index + 1`.
+     */
+    function getTwo(
+        RingBuffer storage _self,
+        uint256 _index
+    )
+        internal
+        view
+        returns (
+            bytes32,
+            bytes32
+        )
+    {
+        return (
+            _self.get(_index),
+            _self.get(_index + 1)
+        );
+    }
+
+    /**
      * Deletes all elements after (and including) a given index.
      * @param _self Buffer to access.
      * @param _index Index of the element to delete from (inclusive).
@@ -230,9 +254,6 @@ library Lib_RingBuffer {
             _index < ctx.globalIndex && _index >= ctx.prevResetIndex,
             "Index out of bounds."
         );
-
-        Buffer storage currBuffer = _self.getBuffer(ctx.currBufferIndex);
-        Buffer storage prevBuffer = _self.getBuffer(ctx.currBufferIndex + 1);
 
         if (_index < ctx.currResetIndex) {
             // We're switching back to the previous buffer.

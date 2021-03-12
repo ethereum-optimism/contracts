@@ -4,15 +4,10 @@ import { expect } from '../../../setup'
 import { ethers, waffle } from 'hardhat'
 import { ContractFactory, Contract, Wallet } from 'ethers'
 import { MockContract, smockit } from '@eth-optimism/smock'
-import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
-import { AbiCoder, keccak256 } from 'ethers/lib/utils'
-import {
-  DEFAULT_EIP155_TX,
-  remove0x,
-  serializeNativeTransaction,
-  signNativeTransaction,
-} from '../../../helpers'
-import { getContractInterface } from '../../../../src'
+import { remove0x } from '@eth-optimism/core-utils'
+
+/* Internal Imports */
+import { decodeSolidityError } from '../../../helpers'
 
 const callPrecompile = async (
   Helper_PrecompileCaller: Contract,
@@ -123,7 +118,7 @@ describe('OVM_ProxyEOA', () => {
       ])
       const ovmREVERT: any =
         Mock__OVM_ExecutionManager.smocked.ovmREVERT.calls[0]
-      expect(ethers.utils.toUtf8String(ovmREVERT._data)).to.equal(
+      expect(decodeSolidityError(ovmREVERT._data)).to.equal(
         'EOAs can only upgrade their own EOA implementation'
       )
     })

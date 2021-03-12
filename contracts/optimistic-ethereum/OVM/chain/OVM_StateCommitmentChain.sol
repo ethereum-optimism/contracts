@@ -49,7 +49,6 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
         uint256 _fraudProofWindow,
         uint256 _sequencerPublishWindow
     )
-        public
         Lib_AddressResolver(_libAddressManager)
     {
         FRAUD_PROOF_WINDOW = _fraudProofWindow;
@@ -319,7 +318,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
     )
         internal
     {
-        address sequencer = resolve("OVM_Sequencer");
+        address sequencer = resolve("OVM_Proposer");
         (uint40 totalElements, uint40 lastSequencerTimestamp) = _getBatchExtraData();
 
         if (msg.sender == sequencer) {
