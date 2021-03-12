@@ -187,6 +187,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             return;
         }
 
+        // TEMPORARY: Gas metering is disabled for minnet.
+        // // Check gas right before the call to get total gas consumed by OVM transaction.
+        // uint256 gasProvided = gasleft();
+
         // Run the transaction, make sure to meter the gas usage.
         ovmCALL(
             _transaction.gasLimit - gasMeterConfig.minTransactionGasLimit,
@@ -196,6 +200,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // TEMPORARY: Gas metering is disabled for minnet.
         // // Update the cumulative gas based on the amount of gas used.
+        // uint256 gasUsed = gasProvided - gasleft();
         // _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);
 
         // Wipe the execution context.
