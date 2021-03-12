@@ -41,7 +41,7 @@ abstract contract Abs_BaseCrossDomainMessenger is iAbs_BaseCrossDomainMessenger,
      * Public Functions *
      ********************/
 
-    constructor() Lib_ReentrancyGuard() internal {}
+    constructor() Lib_ReentrancyGuard() {}
 
     function xDomainMessageSender() public override view returns (address) {
         require(xDomainMsgSender != DEFAULT_XDOMAIN_SENDER, "xDomainMessageSender is not set");
