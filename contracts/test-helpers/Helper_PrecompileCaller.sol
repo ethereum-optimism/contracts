@@ -48,6 +48,6 @@ contract Helper_PrecompileCaller is Helper_SimpleProxy {
         )
     {
         callPrecompile(_precompile, _data);
-        return msg.sender;
+        return address(0); // unused: silence compiler
     }
 }
