@@ -185,7 +185,6 @@ contract Helper_TestRunner_CREATE is Helper_TestRunner {
         bytes memory _bytecode,
         TestStep[] memory _steps
     )
-        public
     {
         if (_steps.length > 0) {
             runMultipleTestSteps(_steps);
