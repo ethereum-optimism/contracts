@@ -141,6 +141,9 @@ export const makeContractDeployConfig = async (
         await _sendTx(
           AddressManager.setAddress('OVM_Sequencer', sequencerAddress)
         )
+        await _sendTx(
+          AddressManager.setAddress('OVM_Proposer', sequencerAddress)
+        )
         await _sendTx(AddressManager.setAddress('Sequencer', sequencerAddress))
       },
     },
@@ -234,6 +237,9 @@ export const makeContractDeployConfig = async (
     'OVM_ChainStorageContainer:SCC:batches': {
       factory: getContractFactory('OVM_ChainStorageContainer'),
       params: [AddressManager.address, 'OVM_StateCommitmentChain'],
+    },
+    ERC1820Registry: {
+      factory: getContractFactory('ERC1820Registry'),
     },
   }
 }
