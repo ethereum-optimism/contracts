@@ -13,7 +13,6 @@ import {
   ZERO_ADDRESS,
   NON_ZERO_ADDRESS,
   getXDomainCalldata,
-  DEFAULT_XDOMAIN_SENDER,
 } from '../../../../helpers'
 
 describe('OVM_L2CrossDomainMessenger', () => {
@@ -76,14 +75,6 @@ describe('OVM_L2CrossDomainMessenger', () => {
     )
   })
 
-  describe('xDomainMessageSender', async () => {
-    it('defaults to 0xdead', async () => {
-      expect(
-        await OVM_L2CrossDomainMessenger.xDomainMessageSender()
-      ).to.be.equal(DEFAULT_XDOMAIN_SENDER)
-    })
-  })
-
   describe('sendMessage', () => {
     const target = NON_ZERO_ADDRESS
     const message = NON_NULL_BYTES32
@@ -144,14 +135,6 @@ describe('OVM_L2CrossDomainMessenger', () => {
       expect(Mock__TargetContract.smocked.setTarget.calls[0]).to.deep.equal([
         NON_ZERO_ADDRESS,
       ])
-    })
-
-    it('the xDomainMessageSender is reset to the original value', async () => {
-      await OVM_L2CrossDomainMessenger.relayMessage(target, sender, message, 0)
-
-      expect(
-        await OVM_L2CrossDomainMessenger.xDomainMessageSender()
-      ).to.be.equal(DEFAULT_XDOMAIN_SENDER)
     })
 
     it('should revert if trying to send the same message twice', async () => {

@@ -18,7 +18,6 @@ import {
   TrieTestGenerator,
   getNextBlockNumber,
   getXDomainCalldata,
-  DEFAULT_XDOMAIN_SENDER,
 } from '../../../../helpers'
 import { keccak256 } from 'ethers/lib/utils'
 
@@ -98,14 +97,6 @@ describe('OVM_L1CrossDomainMessenger', () => {
       xDomainMessenerImpl
     )
     await OVM_L1CrossDomainMessenger.initialize(AddressManager.address)
-  })
-
-  describe('xDomainMessageSender', async () => {
-    it('defaults to 0xdead', async () => {
-      expect(
-        await OVM_L1CrossDomainMessenger.xDomainMessageSender()
-      ).to.be.equal(DEFAULT_XDOMAIN_SENDER)
-    })
   })
 
   describe('sendMessage', () => {
@@ -327,20 +318,6 @@ describe('OVM_L1CrossDomainMessenger', () => {
           )
         )
       ).to.equal(true)
-    })
-
-    it('the xDomainMessageSender is reset to the original value', async () => {
-      await OVM_L1CrossDomainMessenger.relayMessage(
-        target,
-        sender,
-        message,
-        0,
-        proof
-      )
-
-      expect(
-        await OVM_L1CrossDomainMessenger.xDomainMessageSender()
-      ).to.be.equal(DEFAULT_XDOMAIN_SENDER)
     })
 
     it('should revert if trying to send the same message twice', async () => {
