@@ -43,10 +43,9 @@ contract Helper_PrecompileCaller is Helper_SimpleProxy {
         bytes memory _data
     )
         public
-        returns (
-            address
-        )
+        returns (address _l1MessageSender)
     {
         callPrecompile(_precompile, _data);
+        return msg.sender;
     }
 }
