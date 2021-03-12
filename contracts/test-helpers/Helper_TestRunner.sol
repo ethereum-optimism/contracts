@@ -175,6 +175,7 @@ contract Helper_TestRunner {
 
     function _failStep()
         internal
+        pure
     {
         revert("Test step failed.");
     }
