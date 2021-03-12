@@ -111,12 +111,12 @@ abstract contract Abs_BaseCrossDomainMessenger is iAbs_BaseCrossDomainMessenger,
 
     /**
      * Sends a cross domain message.
-     * @param _message Message to send.
-     * @param _gasLimit Gas limit for the provided message.
+     * param // Message to send.
+     * param // Gas limit for the provided message.
      */
     function _sendXDomainMessage(
-        bytes memory _message,
-        uint256 _gasLimit
+        bytes memory, // _message,
+        uint256 // _gasLimit
     )
         virtual
         internal

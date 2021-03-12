@@ -1625,12 +1625,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * Validates the gas limit for a given transaction.
      * @param _gasLimit Gas limit provided by the transaction.
-     * @param _queueOrigin Queue from which the transaction originated.
+     * param _queueOrigin Queue from which the transaction originated.
      * @return _valid Whether or not the gas limit is valid.
      */
     function _isValidGasLimit(
         uint256 _gasLimit,
-        Lib_OVMCodec.QueueOrigin _queueOrigin
+        Lib_OVMCodec.QueueOrigin // _queueOrigin
     )
         view
         internal
