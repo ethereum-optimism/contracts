@@ -848,7 +848,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         nextMessageContext.ovmADDRESS = _contractAddress;
 
         // Run the common logic which occurs between call-type and create-type messages,
-        // passing in the creation bytecode and `true` for create-specific logic.
+        // passing in the creation bytecode and `true` to trigger create-specific logic.
         (bool success, bytes memory data) = _handleExternalMessage(
             nextMessageContext,
             gasleft(),
@@ -1099,7 +1099,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 false,
                 _encodeRevertData(
                     RevertFlag.UNSAFE_BYTECODE,
-                    Lib_ErrorUtils.encodeRevertString("Constructor attempted to deploy unsafe opcodes.")
+                    Lib_ErrorUtils.encodeRevertString("Constructor attempted to deploy unsafe bytecode.")
                 )
             );
         }
