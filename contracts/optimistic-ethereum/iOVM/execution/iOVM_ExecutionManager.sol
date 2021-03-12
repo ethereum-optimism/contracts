@@ -11,7 +11,6 @@ interface iOVM_ExecutionManager {
      *********/
 
     enum RevertFlag {
-        DID_NOT_REVERT,
         OUT_OF_GAS,
         INTENTIONAL_REVERT,
         EXCEEDS_NUISANCE_GAS,

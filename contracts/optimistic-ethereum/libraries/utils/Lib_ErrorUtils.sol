@@ -13,7 +13,7 @@ library Lib_ErrorUtils {
 
     /**
      * Encodes an error string into raw solidity-style revert data.
-     * (i.e. ascii bytes, prefixed with keccak("error(string))")
+     * (i.e. ascii bytes, prefixed with bytes4(keccak("error(string))"))
      * @param _reason Reason for the reversion.
      * @return Standard solidity revert data for the given reason.
      */

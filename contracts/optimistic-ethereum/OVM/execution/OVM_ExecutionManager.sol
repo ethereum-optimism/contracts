@@ -847,8 +847,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         nextMessageContext.ovmCALLER = messageContext.ovmADDRESS;
         nextMessageContext.ovmADDRESS = _contractAddress;
 
-        // _handleExternalMessage deals with common checks between call-type and create-type messages.
-        // the _isCreate bool then triggers some create-type-only logic.
+        // Run the common logic which occurs between call-type and create-type messages,
+        // passing in the creation bytecode and `true` for create-specific logic.
         (bool success, bytes memory data) = _handleExternalMessage(
             nextMessageContext,
             gasleft(),
@@ -891,6 +891,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             (uint256(_contract) & uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000))
             == uint256(0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000)
         ) {
+            // EVM does not return data in the success case, see: https://github.com/ethereum/go-ethereum/blob/aae7660410f0ef90279e14afaaf2f429fdc2a186/core/vm/instructions.go#L600-L604
             return (true, hex'');
         }
 
@@ -954,7 +955,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         (bool success, bytes memory returndata) =
             _isCreate
-            ? _handleExternalCreate(_gasLimit, _data, _contract)
+            ? _handleContractCreation(_gasLimit, _data, _contract)
             : _contract.call{gas: _gasLimit}(_data);
 
         // Switch back to the original message context now that we're out of the call.
@@ -1032,7 +1033,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @return Whether or not the call succeeded.
      * @return If creation fails: revert data. Otherwise: empty.
      */
-    function _handleExternalCreate(
+    function _handleContractCreation(
         uint _gasLimit,
         bytes memory _creationCode,
         address _address
@@ -1045,6 +1046,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // Check that there is not already code at this address.
         if (_hasEmptyAccount(_address) == false) {
+            // Note: in the EVM, this case burns all allotted gas.  For improved
+            // developer experience, we do return the remaining ones.
             return (
                 false,
                 _encodeRevertData(
@@ -1096,7 +1099,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 false,
                 _encodeRevertData(
                     RevertFlag.UNSAFE_BYTECODE,
-                    Lib_ErrorUtils.encodeRevertString("Constrcutor attempted to deploy unsafe opcodes.")
+                    Lib_ErrorUtils.encodeRevertString("Constructor attempted to deploy unsafe bytecode.")
                 )
             );
         }
@@ -1109,7 +1112,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             Lib_EthUtils.getCodeHash(ethAddress)
         );
 
-        // Succressfuly deployments will not give acces to returndata, in both the EVM and the OVM.
+        // Successful deployments will not give access to returndata, in both the EVM and the OVM.
         return (true, hex'');
     }
 
