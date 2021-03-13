@@ -1849,6 +1849,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             if (created == address(0)) {
                 return (false, revertData);
             } else {
+                // The eth_call RPC endpoint for to = undefined will return the deployed bytecode 
+                // in the success case, differing from standard create messages.
                 return (true, Lib_EthUtils.getCode(created));
             }
         } else {
