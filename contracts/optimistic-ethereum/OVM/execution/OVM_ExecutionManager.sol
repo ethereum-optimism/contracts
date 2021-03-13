@@ -187,8 +187,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             return;
         }
 
-        // Check gas right before the call to get total gas consumed by OVM transaction.
-        uint256 gasProvided = gasleft();
+        // TEMPORARY: Gas metering is disabled for minnet.
+        // // Check gas right before the call to get total gas consumed by OVM transaction.
+        // uint256 gasProvided = gasleft();
 
         // Run the transaction, make sure to meter the gas usage.
         ovmCALL(
@@ -196,10 +197,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _transaction.entrypoint,
             _transaction.data
         );
-        uint256 gasUsed = gasProvided - gasleft();
 
         // TEMPORARY: Gas metering is disabled for minnet.
         // // Update the cumulative gas based on the amount of gas used.
+        // uint256 gasUsed = gasProvided - gasleft();
         // _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);
 
         // Wipe the execution context.
@@ -632,8 +633,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // DELEGATECALL does not change anything about the message context.
         MessageContext memory nextMessageContext = messageContext;
         
-        bool isStaticEntrypoint = false;
-
         return _callContract(
             nextMessageContext,
             _gasLimit,
@@ -1625,12 +1624,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * Validates the gas limit for a given transaction.
      * @param _gasLimit Gas limit provided by the transaction.
-     * @param _queueOrigin Queue from which the transaction originated.
+     * param _queueOrigin Queue from which the transaction originated.
      * @return _valid Whether or not the gas limit is valid.
      */
     function _isValidGasLimit(
         uint256 _gasLimit,
-        Lib_OVMCodec.QueueOrigin _queueOrigin
+        Lib_OVMCodec.QueueOrigin // _queueOrigin
     )
         view
         internal
@@ -1837,9 +1836,23 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         _initContext(_transaction);
 
         messageRecord.nuisanceGasLeft = uint(-1);
-        messageContext.ovmADDRESS = _transaction.entrypoint;
-        messageContext.ovmCALLER = _from;
 
-        return _transaction.entrypoint.call{gas: _transaction.gasLimit}(_transaction.data);
+        messageContext.ovmADDRESS = _from;
+
+        bool isCreate = _transaction.entrypoint == address(0);
+        if (isCreate) {
+            address created = ovmCREATE(_transaction.data);
+            if (created == address(0)) {
+                return (false, hex"");
+            } else {
+                return (true, Lib_EthUtils.getCode(created));
+            }
+        } else {
+            return ovmCALL(
+                _transaction.gasLimit,
+                _transaction.entrypoint,
+                _transaction.data
+            );
+        }
     }
 }

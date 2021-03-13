@@ -75,8 +75,9 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, Abs_BaseCros
             "Provided message has already been received."
         );
 
-        xDomainMessageSender = _sender;
+        xDomainMsgSender = _sender;
         (bool success, ) = _target.call(_message);
+        xDomainMsgSender = DEFAULT_XDOMAIN_SENDER;
 
         // Mark the message as received if the call was successful. Ensures that a message can be
         // relayed multiple times in the case that the call reverted.
@@ -121,11 +122,11 @@ contract OVM_L2CrossDomainMessenger is iOVM_L2CrossDomainMessenger, Abs_BaseCros
     /**
      * Sends a cross domain message.
      * @param _message Message to send.
-     * @param _gasLimit Gas limit for the provided message.
+     * param _gasLimit Gas limit for the provided message.
      */
     function _sendXDomainMessage(
         bytes memory _message,
-        uint256 _gasLimit
+        uint256 // _gasLimit
     )
         override
         internal
