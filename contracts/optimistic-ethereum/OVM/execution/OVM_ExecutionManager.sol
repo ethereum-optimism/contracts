@@ -1074,7 +1074,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         address ethAddress = Lib_EthUtils.createContract(_creationCode);
         
         if (ethAddress == address(0)) {
-            // If the creation fails, the EVM lets us grab its revert data.  This may contain a revert flag
+            // If the creation fails, the EVM lets us grab its revert data. This may contain a revert flag
             // to be used above in _handleExternalMessage.
             uint256 revertDataSize;
             assembly { revertDataSize := returndatasize() }
