@@ -61,7 +61,7 @@ abstract contract Abs_DepositedERC721 is iOVM_DepositedERC721, OVM_CrossDomainEn
     )
         public
     {
-        require(address(_tokenGateway) == address(0), "Contract has already been initialized");
+        require(address(tokenGateway) == address(0), "Contract has already been initialized");
 
         tokenGateway = _tokenGateway;
 

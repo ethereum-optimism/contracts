@@ -18,6 +18,8 @@ const ERR_INVALID_X_DOMAIN_MSG_SENDER =
   'OVM_XCHAIN: wrong sender of cross-domain message'
 const MOCK_L1GATEWAY_ADDRESS: string =
   '0x1234123412341234123412341234123412341234'
+const ERR_NOT_YET_INITIALISED = 'Contract has not yet been initialized'
+const ERR_ALREADY_INITIALISED = 'Contract has already been initialized'
 
 describe('OVM_L2DepositedERC20', () => {
   let alice: Signer
@@ -195,13 +197,29 @@ describe('OVM_L2DepositedERC20', () => {
   })
 
   // low priority todos: see question in contract
-  describe.skip('Initialization logic', () => {
-    it('should not allow calls to onlyInitialized functions', async () => {
-      // TODO
+  describe('Initialization logic', () => {
+    it('should not allow calls to onlyInitialized functions before initialization', async () => {
+
+      OVM_L2DepositedERC20 = await (
+        await ethers.getContractFactory('OVM_L2DepositedERC20')
+      ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', 'oWETH')
+
+      await expect(
+        OVM_L2DepositedERC20.finalizeDeposit(ZERO_ADDRESS, 1)
+      ).to.be.revertedWith(ERR_NOT_YET_INITIALISED)
     })
 
     it('should only allow initialization once and emits initialized event', async () => {
-      // TODO
+
+      OVM_L2DepositedERC20 = await (
+        await ethers.getContractFactory('OVM_L2DepositedERC20')
+      ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', 'oWETH')
+
+      await expect(OVM_L2DepositedERC20.init(NON_ZERO_ADDRESS)).to.emit(OVM_L2DepositedERC20, 'Initialized')
+
+      await expect(
+        OVM_L2DepositedERC20.init(ZERO_ADDRESS)
+      ).to.be.revertedWith(ERR_ALREADY_INITIALISED)
     })
   })
 })

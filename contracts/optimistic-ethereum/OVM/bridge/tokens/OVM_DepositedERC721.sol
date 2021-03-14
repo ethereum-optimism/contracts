@@ -24,7 +24,7 @@ import { Abs_DepositedERC721 } from "./Abs_DepositedERC721.sol";
  * Compiler used: optimistic-solc
  * Runtime target: OVM, EVM
  */
-abstract contract OVM_DepositedERC721 is Abs_DepositedERC721, ERC721URIStorage {
+contract OVM_DepositedERC721 is Abs_DepositedERC721, ERC721URIStorage {
 
     /***************
      * Constructor *
