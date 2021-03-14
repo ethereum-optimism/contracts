@@ -23,7 +23,6 @@ describe('OVM_ERC721Gateway', () => {
   let Factory__ERC721: ContractFactory
   let ERC721: Contract
   before(async () => {
-
     Mock__OVM_DepositedERC721 = await smockit(
       await ethers.getContractFactory('OVM_DepositedERC721')
     )
@@ -32,7 +31,6 @@ describe('OVM_ERC721Gateway', () => {
     Factory__ERC721 = await smoddit('TestERC721')
 
     ERC721 = await Factory__ERC721.deploy('TestERC721', 'ERC')
-
   })
 
   let OVM_ERC721Gateway: Contract
@@ -127,7 +125,6 @@ describe('OVM_ERC721Gateway', () => {
   })
 
   describe('deposits', () => {
-
     let depositer: string
     const depositTokenId = 321
 
@@ -155,16 +152,12 @@ describe('OVM_ERC721Gateway', () => {
 
       // the Signer sets approve for the L1 Gateway
       await ERC721.approve(OVM_ERC721Gateway.address, depositTokenId)
-
     })
 
     it('deposit() escrows the deposit amount and sends the correct deposit message', async () => {
-
       // expect depositer to be initial owner
       const initialTokenOwner = await ERC721.ownerOf(depositTokenId)
-      expect(initialTokenOwner).to.equal(
-        depositer
-      )
+      expect(initialTokenOwner).to.equal(depositer)
 
       // depositer calls deposit on the gateway and the gateway calls transferFrom on the token
       await OVM_ERC721Gateway.deposit(depositTokenId)
@@ -173,9 +166,7 @@ describe('OVM_ERC721Gateway', () => {
 
       // expect the gateway to be the new owner of the token
       const newTokenOwner = await ERC721.ownerOf(depositTokenId)
-      expect(newTokenOwner).to.equal(
-        OVM_ERC721Gateway.address
-      )
+      expect(newTokenOwner).to.equal(OVM_ERC721Gateway.address)
 
       // Check the correct cross-chain call was sent:
       // Message should be sent to the L2ERC20Gateway on L2

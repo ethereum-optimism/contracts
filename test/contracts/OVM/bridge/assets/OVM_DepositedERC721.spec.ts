@@ -3,10 +3,7 @@ import { expect } from '../../../../setup'
 /* External Imports */
 import { ethers } from 'hardhat'
 import { Signer, ContractFactory, Contract } from 'ethers'
-import {
-  smockit,
-  MockContract
-} from '@eth-optimism/smock'
+import { smockit, MockContract } from '@eth-optimism/smock'
 
 /* Internal Imports */
 import { NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../../helpers'
@@ -84,9 +81,8 @@ describe('OVM_DepositedERC721', () => {
     })
 
     it('should mint the specified token to the depositor', async () => {
-
       const depositToken = 123
-      const depositTokenURI = "https://ipfs.io/ipfs/QmS8fT4ALexGgu1XDeN2XWLTSgqihReBGnFz51ujMNDfi2"
+      const depositTokenURI = 'test-token-uri'
       Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(
         () => MOCK_GATEWAY_ADDRESS
       )
@@ -104,28 +100,21 @@ describe('OVM_DepositedERC721', () => {
       aliceBalance.should.equal(1)
 
       // Assert that Alice is now the owner of the deposited token
-      const tokenOwner = await OVM_DepositedERC721.ownerOf(
-        depositToken
-      )
+      const tokenOwner = await OVM_DepositedERC721.ownerOf(depositToken)
       tokenOwner.should.equal(await alice.getAddress())
 
       // Assert that deposited token has URI set
-      const tokenURI = await OVM_DepositedERC721.tokenURI(
-        depositToken
-      )
+      const tokenURI = await OVM_DepositedERC721.tokenURI(depositToken)
       tokenURI.should.equal(depositTokenURI)
     })
   })
 
-
-
   describe('withdrawals', () => {
     //const ALICE_INITIAL_BALANCE = 2
     const depositToken = 123
-    const depositTokenURI = "https://ipfs.io/ipfs/QmS8fT4ALexGgu1XDeN2XWLTSgqihReBGnFz51ujMNDfi2"
+    const depositTokenURI = 'test-token-uri'
 
     beforeEach(async () => {
-
       Mock__OVM_L2CrossDomainMessenger.smocked.xDomainMessageSender.will.return.with(
         () => MOCK_GATEWAY_ADDRESS
       )
@@ -136,7 +125,6 @@ describe('OVM_DepositedERC721', () => {
         depositTokenURI,
         { from: Mock__OVM_L2CrossDomainMessenger.address }
       )
-
     })
 
     it('withdraw() burns and sends the correct withdrawal message', async () => {
@@ -144,17 +132,16 @@ describe('OVM_DepositedERC721', () => {
       const withdrawalCallToMessenger =
         Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
 
-
       // Assert Alice's balance went down
       const aliceBalance = await OVM_DepositedERC721.balanceOf(
         await alice.getAddress()
       )
-      expect(aliceBalance).to.deep.equal(
-        ethers.BigNumber.from(0)
-      )
+      expect(aliceBalance).to.deep.equal(ethers.BigNumber.from(0))
 
       // Assert that the withdrawn token no longer exists
-      await expect(OVM_DepositedERC721.ownerOf(depositToken)).to.be.revertedWith(ERR_NON_EXISTENT_TOKEN)
+      await expect(
+        OVM_DepositedERC721.ownerOf(depositToken)
+      ).to.be.revertedWith(ERR_NON_EXISTENT_TOKEN)
 
       // Assert the correct cross-chain call was sent:
       // Message should be sent to the L1ERC20Gateway on L1
@@ -172,23 +159,21 @@ describe('OVM_DepositedERC721', () => {
       )
     })
 
-
     it('withdrawTo() burns and sends the correct withdrawal message', async () => {
       await OVM_DepositedERC721.withdrawTo(await bob.getAddress(), depositToken)
       const withdrawalCallToMessenger =
         Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
 
-
       // Assert Alice's balance went down
       const aliceBalance = await OVM_DepositedERC721.balanceOf(
         await alice.getAddress()
       )
-      expect(aliceBalance).to.deep.equal(
-        ethers.BigNumber.from(0)
-      )
+      expect(aliceBalance).to.deep.equal(ethers.BigNumber.from(0))
 
       // Assert that the withdrawn token no longer exists
-      await expect(OVM_DepositedERC721.ownerOf(depositToken)).to.be.revertedWith(ERR_NON_EXISTENT_TOKEN)
+      await expect(
+        OVM_DepositedERC721.ownerOf(depositToken)
+      ).to.be.revertedWith(ERR_NON_EXISTENT_TOKEN)
 
       // Assert the correct cross-chain call was sent:
       // Message should be sent to the L1ERC20Gateway on L1
@@ -222,12 +207,14 @@ describe('OVM_DepositedERC721', () => {
       OVM_DepositedERC721 = await (
         await ethers.getContractFactory('OVM_DepositedERC721')
       ).deploy(NON_ZERO_ADDRESS, 'OptimisticPunks', 'OP')
-      await expect(OVM_DepositedERC721.init(NON_ZERO_ADDRESS)).to.emit(OVM_DepositedERC721, 'Initialized')
+      await expect(OVM_DepositedERC721.init(NON_ZERO_ADDRESS)).to.emit(
+        OVM_DepositedERC721,
+        'Initialized'
+      )
 
-      await expect(
-        OVM_DepositedERC721.init(ZERO_ADDRESS)
-      ).to.be.revertedWith(ERR_ALREADY_INITIALISED)
+      await expect(OVM_DepositedERC721.init(ZERO_ADDRESS)).to.be.revertedWith(
+        ERR_ALREADY_INITIALISED
+      )
     })
   })
-
 })

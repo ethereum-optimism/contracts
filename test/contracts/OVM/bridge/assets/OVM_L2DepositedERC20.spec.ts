@@ -199,7 +199,6 @@ describe('OVM_L2DepositedERC20', () => {
   // low priority todos: see question in contract
   describe('Initialization logic', () => {
     it('should not allow calls to onlyInitialized functions before initialization', async () => {
-
       OVM_L2DepositedERC20 = await (
         await ethers.getContractFactory('OVM_L2DepositedERC20')
       ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', 'oWETH')
@@ -210,16 +209,17 @@ describe('OVM_L2DepositedERC20', () => {
     })
 
     it('should only allow initialization once and emits initialized event', async () => {
-
       OVM_L2DepositedERC20 = await (
         await ethers.getContractFactory('OVM_L2DepositedERC20')
       ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', 'oWETH')
 
-      await expect(OVM_L2DepositedERC20.init(NON_ZERO_ADDRESS)).to.emit(OVM_L2DepositedERC20, 'Initialized')
-
-      await expect(
-        OVM_L2DepositedERC20.init(ZERO_ADDRESS)
-      ).to.be.revertedWith(ERR_ALREADY_INITIALISED)
+      await expect(OVM_L2DepositedERC20.init(NON_ZERO_ADDRESS)).to.emit(
+        OVM_L2DepositedERC20,
+        'Initialized'
+      )
+      await expect(OVM_L2DepositedERC20.init(ZERO_ADDRESS)).to.be.revertedWith(
+        ERR_ALREADY_INITIALISED
+      )
     })
   })
 })

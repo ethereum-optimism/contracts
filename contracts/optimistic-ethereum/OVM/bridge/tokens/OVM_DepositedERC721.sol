@@ -66,6 +66,5 @@ contract OVM_DepositedERC721 is Abs_DepositedERC721, ERC721URIStorage {
     {
         _mint(_to, _tokenId);
         _setTokenURI(_tokenId, _tokenURI);
-
     }
 }
