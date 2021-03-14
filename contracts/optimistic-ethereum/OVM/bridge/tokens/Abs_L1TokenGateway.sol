@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// @unsupported: ovm 
+// @unsupported: ovm
 pragma solidity >0.5.0 <0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -16,7 +16,7 @@ import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomai
  * It synchronizes a corresponding L2 representation of the "deposited token", informing it
  * of new deposits and releasing L1 funds when there are newly finalized withdrawals.
  *
- * NOTE: This abstract contract gives all the core functionality of an L1 token gateway, 
+ * NOTE: This abstract contract gives all the core functionality of an L1 token gateway,
  * but provides easy hooks in case developers need extensions in child contracts.
  * In many cases, the default OVM_L1ERC20Gateway will suffice.
  *
@@ -41,7 +41,7 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
      */
     constructor(
         address _l2DepositedToken,
-        address _l1messenger 
+        address _l1messenger
     )
         OVM_CrossDomainEnabled(_l1messenger)
     {
@@ -74,7 +74,7 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
 
     /**
      * @dev Core logic to be performed when a deposit is initiated on L1.
-     * In most cases, this will simply send locked funds to the withdrawer.
+     * In most cases, this will simply send funds to the Gateway contract.
      *
      * param _from Address being deposited from on L1.
      * param _to Address being deposited into on L2.
@@ -183,9 +183,9 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
      *************************/
 
     /**
-     * @dev Complete a withdrawal from L2 to L1, and credit funds to the recipient's balance of the 
-     * L1 ERC20 token. 
-     * This call will fail if the initialized withdrawal from L2 has not been finalized. 
+     * @dev Complete a withdrawal from L2 to L1, and credit funds to the recipient's balance of the
+     * L1 ERC20 token.
+     * This call will fail if the initialized withdrawal from L2 has not been finalized.
      *
      * @param _to L1 address to credit the withdrawal to
      * @param _amount Amount of the ERC20 to withdraw
@@ -195,7 +195,7 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
         uint _amount
     )
         external
-        override 
+        override
         onlyFromCrossDomainAccount(l2DepositedToken)
     {
         // Call our withdrawal accounting handler implemented by child contracts.
