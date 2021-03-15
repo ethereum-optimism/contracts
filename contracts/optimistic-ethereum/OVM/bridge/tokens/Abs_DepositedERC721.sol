@@ -82,7 +82,7 @@ abstract contract Abs_DepositedERC721 is iOVM_DepositedERC721, OVM_CrossDomainEn
      ********************************/
 
     // Default gas value which can be overridden if more complex logic runs on L2.
-    uint32 constant DEFAULT_FINALIZE_WITHDRAWAL_GAS = 100000;
+    uint32 constant DEFAULT_FINALIZE_WITHDRAWAL_GAS = 1200000;
 
     /**
      * @dev Core logic to be performed when a withdrawal from L2 is initialized.
