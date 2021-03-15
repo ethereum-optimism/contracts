@@ -25,20 +25,6 @@ contract TestLib_RingBuffer {
         );
     }
 
-    function push2(
-        bytes32 _valueA,
-        bytes32 _valueB,
-        bytes27 _extraData
-    )
-        public
-    {
-        buf.push2(
-            _valueA,
-            _valueB,
-            _extraData
-        );
-    }
-
     function get(
         uint256 _index
     )
