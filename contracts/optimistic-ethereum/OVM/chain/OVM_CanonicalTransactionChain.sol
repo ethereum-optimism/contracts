@@ -313,14 +313,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         iOVM_ChainStorageContainer queueRef = queue();
 
-        queueRef.pushTwo(
-            transactionHash,
-            timestampAndBlockNumber
-        );
+        queueRef.push(transactionHash);
+        queueRef.push(timestampAndBlockNumber);
 
         // The underlying queue data structure stores 2 elements
         // per insertion, so to get the real queue length we need
-        // to divide by 2 and subtract 1. See the usage of `pushTwo(..)`.
+        // to divide by 2 and subtract 1.
         uint256 queueIndex = queueRef.length() / 2 - 1;
         emit TransactionEnqueued(
             msg.sender,
@@ -334,13 +332,14 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
     /**
      * Appends a given number of queued transactions as a single batch.
-     * @param _numQueuedTransactions Number of transactions to append.
+     * param _numQueuedTransactions Number of transactions to append.
      */
     function appendQueueBatch(
-        uint256 _numQueuedTransactions
+        uint256 // _numQueuedTransactions
     )
         override
         public
+        pure
     {
         // TEMPORARY: Disable `appendQueueBatch` for minnet
         revert("appendQueueBatch is currently disabled.");
@@ -469,7 +468,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                 curContext,
                 nextContext,
                 nextQueueIndex,
-                queueLength,
                 queueRef
             );
 
@@ -751,11 +749,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     {
         // The underlying queue data structure stores 2 elements
         // per insertion, so to get the actual desired queue index
-        // we need to multiply by 2. See the usage of `pushTwo(..)`.
-        (
-            bytes32 transactionHash,
-            bytes32 timestampAndBlockNumber
-        ) = _queueRef.getTwo(uint40(_index * 2));
+        // we need to multiply by 2.
+        uint40 trueIndex = uint40(_index * 2);
+        bytes32 transactionHash = _queueRef.get(trueIndex);
+        bytes32 timestampAndBlockNumber = _queueRef.get(trueIndex + 1);
 
         uint40 elementTimestamp;
         uint40 elementBlockNumber;
@@ -786,7 +783,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     {
         // The underlying queue data structure stores 2 elements
         // per insertion, so to get the real queue length we need
-        // to divide by 2. See the usage of `pushTwo(..)`.
+        // to divide by 2.
         return uint40(_queueRef.length() / 2);
     }
 
@@ -1007,14 +1004,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @param _prevContext The previously validated batch context.
      * @param _nextContext The batch context to validate with this call.
      * @param _nextQueueIndex Index of the next queue element to process for the _nextContext's subsequentQueueElements.
-     * @param _queueLength The length of the queue at the start of the batchAppend call.
      * @param _queueRef The storage container for the queue.
      */
     function _validateNextBatchContext(
         BatchContext memory _prevContext,
         BatchContext memory _nextContext,
         uint40 _nextQueueIndex,
-        uint40 _queueLength,
         iOVM_ChainStorageContainer _queueRef
     )
         internal
