@@ -353,6 +353,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         override
         public
+        view
     {
         _revertWithFlag(RevertFlag.INTENTIONAL_REVERT, _data);
     }
@@ -1026,14 +1027,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * This function sanitizes the return types for creation messages to match calls (bool, bytes).
      * This allows for consistent handling of both types of messages in _handleExternalMessage().
      * 
-     * @param _gasLimit Amount of gas to be passed into this creation.
+     * param _gasLimit Amount of gas to be passed into this creation.
      * @param _creationCode Code to pass into CREATE for deployment.
      * @param _address OVM address being deployed to.
      * @return Whether or not the call succeeded.
      * @return If creation fails: revert data. Otherwise: empty.
      */
     function _handleContractCreation(
-        uint _gasLimit,
+        uint, // _gasLimit,
         bytes memory _creationCode,
         address _address
     )
@@ -1538,6 +1539,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         RevertFlag _flag
     )
         internal
+        view
     {
         _revertWithFlag(_flag, bytes(''));
     }
