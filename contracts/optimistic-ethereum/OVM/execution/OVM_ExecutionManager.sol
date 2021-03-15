@@ -228,7 +228,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address _CALLER
         )
     {
-        return messageContext.ovmCALLER;
+        address caller = messageContext.ovmCALLER;
+        if (caller == address(0)) {
+            _revertWithFlag(RevertFlag.UNINITIALIZED_ACCESS);
+        } else {
+            return caller;
+        }
     }
 
     /**
@@ -1073,7 +1078,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Actually execute the EVM create message,
         address ethAddress = Lib_EthUtils.createContract(_creationCode);
-        
+
         if (ethAddress == address(0)) {
             // If the creation fails, the EVM lets us grab its revert data. This may contain a revert flag
             // to be used above in _handleExternalMessage.
