@@ -19,10 +19,7 @@ const callPredeploy = async (
   if (ethCall) {
     return Helper_PredeployCaller.callStatic.callPredeployAbi(
       predeploy.address,
-      predeploy.interface.encodeFunctionData(
-        functionName,
-        functionParams || []
-      )
+      predeploy.interface.encodeFunctionData(functionName, functionParams || [])
     )
   }
   return Helper_PredeployCaller.callPredeploy(
@@ -133,10 +130,7 @@ describe('OVM_ProxyEOA', () => {
         '0x1234',
       ])
       const calldata = '0xdeadbeef'
-      await Helper_PredeployCaller.callPredeploy(
-        OVM_ProxyEOA.address,
-        calldata
-      )
+      await Helper_PredeployCaller.callPredeploy(OVM_ProxyEOA.address, calldata)
 
       const ovmDELEGATECALL: any =
         Mock__OVM_ExecutionManager.smocked.ovmDELEGATECALL.calls[0]
