@@ -170,12 +170,17 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
     OVM_ETH: '0x4200000000000000000000000000000000000006',
     OVM_L2CrossDomainMessenger: '0x4200000000000000000000000000000000000007',
     Lib_AddressManager: '0x4200000000000000000000000000000000000008',
+    OVM_SafeExecutionManagerCaller: '0x4200000000000000000000000000000000000009',
     ERC1820Registry: '0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24',
   }
 
   const ovmCompiled = [
     'OVM_L2ToL1MessagePasser',
     'OVM_L2CrossDomainMessenger',
+    'OVM_SafeExecutionManagerCaller',
+    'OVM_ECDSAContractAccount',
+    'OVM_SequencerEntrypoint',
+    'OVM_ProxySequencerEntrypoint',
     'Lib_AddressManager',
     'OVM_ETH',
   ]

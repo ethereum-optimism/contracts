@@ -163,6 +163,10 @@ export const makeContractDeployConfig = async (
       factory: getContractFactory('OVM_L1MessageSender'),
       params: [],
     },
+    OVM_SafeExecutionManagerCaller: {
+      factory: getContractFactory('OVM_SafeExecutionManagerCaller'),
+      params: [],
+    },
     OVM_L2ToL1MessagePasser: {
       factory: getContractFactory('OVM_L2ToL1MessagePasser'),
       params: [],

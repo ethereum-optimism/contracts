@@ -345,22 +345,14 @@ library Lib_SafeExecutionManagerWrapper {
             bytes memory _returndata
         )
     {
-        address ovmExecutionManager = msg.sender;
-        (
-            bool success,
-            bytes memory returndata
-        ) = ovmExecutionManager.call{gas: _gasLimit}(_calldata);
+        (bool success, bytes memory returndata) = address(
+            0x4200000000000000000000000000000000000009
+        ).delegatecall{gas: _gasLimit}(_calldata);
 
-        if (success == false) {
-            assembly {
-                revert(add(returndata, 0x20), mload(returndata))
-            }
-        } else if (returndata.length == 1) {
-            assembly {
-                return(0, 1)
-            }
-        } else {
+        if (success) {
             return returndata;
+        } else {
+            revert(string(returndata));
         }
     }
 
