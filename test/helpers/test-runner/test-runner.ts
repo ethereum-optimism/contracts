@@ -37,6 +37,7 @@ import {
   NULL_BYTES32,
 } from '../constants'
 import { getStorageXOR } from '../'
+import { UNSAFE_BYTECODE } from '../dummy'
 
 export class ExecutionManagerTestRunner {
   private snapshot: string
@@ -193,7 +194,11 @@ export class ExecutionManagerTestRunner {
     ).deploy()
 
     const MockSafetyChecker = await smockit(SafetyChecker)
-    MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(true)
+    MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(
+      (bytecode: string) => {
+        return bytecode !== UNSAFE_BYTECODE
+      }
+    )
 
     this.contracts.OVM_SafetyChecker = MockSafetyChecker
 
@@ -489,6 +494,19 @@ export class ExecutionManagerTestRunner {
         return step.expectedReturnValue
       } else {
         returnData = [step.expectedReturnValue]
+      }
+    }
+
+    if (isTestStep_CREATE(step) || isTestStep_CREATE2(step)) {
+      if (!isRevertFlagError(step.expectedReturnValue)) {
+        if (typeof step.expectedReturnValue === 'string') {
+          returnData = [step.expectedReturnValue, '0x']
+        } else {
+          returnData = [
+            step.expectedReturnValue.address,
+            step.expectedReturnValue.revertData || '0x',
+          ]
+        }
       }
     }
 
