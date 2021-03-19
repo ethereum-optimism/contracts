@@ -89,13 +89,23 @@ contract OVM_SequencerEntrypoint {
             s
         );
 
-        Lib_SafeExecutionManagerWrapper.safeCALL(
+        (bool success, bytes memory returndata) = Lib_SafeExecutionManagerWrapper.safeCALL(
             gasleft(),
             target,
             callbytes
         );
+
+        if (success) {
+            assembly {
+                return(add(returndata, 0x20), mload(returndata))
+            }
+        } else {
+            Lib_SafeExecutionManagerWrapper.safeREVERTbytes(
+                returndata
+            );
+        }
     }
-    
+
 
     /**********************
      * Internal Functions *

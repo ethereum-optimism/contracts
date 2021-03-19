@@ -158,6 +158,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         override
         public
+        returns (
+            bool,
+            bytes memory
+        )
     {
         require(transactionContext.ovmNUMBER == 0, "Only be callable at the start of a transaction");
         // Store our OVM_StateManager instance (significantly easier than attempting to pass the
@@ -185,7 +189,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // reverts for INVALID_STATE_ACCESS.
         if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
             _resetContext();
-            return;
+            return (false, bytes(""));
         }
 
         // TEMPORARY: Gas metering is disabled for minnet.
@@ -193,7 +197,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // uint256 gasProvided = gasleft();
 
         // Run the transaction, make sure to meter the gas usage.
-        ovmCALL(
+        (bool success, bytes memory returndata) = ovmCALL(
             _transaction.gasLimit - gasMeterConfig.minTransactionGasLimit,
             _transaction.entrypoint,
             _transaction.data
@@ -209,6 +213,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Reset the ovmStateManager.
         ovmStateManager = iOVM_StateManager(address(0));
+
+        return (success, returndata);
     }
 
 

@@ -250,6 +250,19 @@ library Lib_SafeExecutionManagerWrapper {
         );
     }
 
+    function safeREVERTbytes(
+        bytes memory _revertdata
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmREVERT(bytes)",
+                _revertdata
+            )
+        );
+    }
+
     /**
      * Performs a safe REVERT.
      * @param _reason String revert reason to pass along with the REVERT.
@@ -354,10 +367,6 @@ library Lib_SafeExecutionManagerWrapper {
         if (success == false) {
             assembly {
                 revert(add(returndata, 0x20), mload(returndata))
-            }
-        } else if (returndata.length == 1) {
-            assembly {
-                return(0, 1)
             }
         } else {
             return returndata;
