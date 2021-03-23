@@ -151,6 +151,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * Starts the execution of a transaction via the OVM_ExecutionManager.
      * @param _transaction Transaction data to be executed.
      * @param _ovmStateManager iOVM_StateManager implementation providing account state.
+     * @return `true` if the top-level CALL succeeded, `false` if it reverted.
+     * @return Data returned by the top-level CALL.
      */
     function run(
         Lib_OVMCodec.Transaction memory _transaction,
