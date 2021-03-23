@@ -353,6 +353,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         override
         public
+        view
     {
         _revertWithFlag(RevertFlag.INTENTIONAL_REVERT, _data);
     }
@@ -1538,6 +1539,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         RevertFlag _flag
     )
         internal
+        view
     {
         _revertWithFlag(_flag, bytes(''));
     }
