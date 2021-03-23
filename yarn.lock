@@ -39,11 +39,13 @@
   resolved "https://registry.yarnpkg.com/@ensdomains/resolver/-/resolver-0.2.4.tgz#c10fe28bf5efbf49bff4666d909aed0265efbc89"
   integrity sha512-bvaTH34PMCbv6anRa9I/0zjLJgY4EuznbEMgbV77JBCQ9KNC46rzi0avuxpOfu+xDjPEtSFGqVEOr5GlUSGudA==
 
-"@eth-optimism/contracts@^0.1.9":
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/@eth-optimism/contracts/-/contracts-0.1.9.tgz#01a8b7816b2fcc8408c102d81e455868e4a09bc3"
-  integrity sha512-vLW6vnFymdSWveF7qMUwYNFGSOYI90qosOJLxalOLi2dvJ6Glh7wtnCF6GvXMb3bNQ1fS5eFwHzjhWIbBMvWRA==
+"@eth-optimism/contracts@^0.1.10":
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/@eth-optimism/contracts/-/contracts-0.1.11.tgz#d33354b69e1bdaf11eac799a1f4dfb17295a04e7"
+  integrity sha512-Ak4VoPwn9ZTH7Th5Ioh9HxGt9mtriOuiH1YuOtRihnhmmsJ0DO5k5dqdzbckUKYDW1s3sA7N6Yw3pbtZ9qiVWw==
   dependencies:
+    "@eth-optimism/core-utils" "^0.1.8"
+    "@eth-optimism/dev" "^1.1.1"
     "@ethersproject/abstract-provider" "^5.0.8"
     "@ethersproject/contracts" "^5.0.5"
     "@ethersproject/hardware-wallets" "^5.0.8"
@@ -83,10 +85,10 @@
     tslint-plugin-prettier "^2.3.0"
     typescript "^4.1.5"
 
-"@eth-optimism/ethereumjs-vm@^4.2.0-alpha.2":
-  version "4.2.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@eth-optimism/ethereumjs-vm/-/ethereumjs-vm-4.2.0-alpha.2.tgz#e8af5e0594224c36bb9f6756cf0ff38467d265b8"
-  integrity sha512-9poKtgi0En8uSyhPZeM0cwjBGHRU9xwnlpvpZUuYvwP8972DzpfPEQ4zyqiOb1qNUbW9ruu2YlRyQQN70m+6/w==
+"@eth-optimism/ethereumjs-vm@^4.2.0-alpha.3":
+  version "4.2.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@eth-optimism/ethereumjs-vm/-/ethereumjs-vm-4.2.0-alpha.3.tgz#f1831462b395629627e7f774b6eca7cfe33d46b4"
+  integrity sha512-gqqMDJEx+WY5UcU6yyC2xNZyIwyl3dFPwfGi6VcrtlyzMwXj4OIYtSEZOBAgufNt02Z19Exbww4lornXgTgGyw==
   dependencies:
     async "^2.1.2"
     async-eventemitter "^0.2.2"
@@ -107,13 +109,13 @@
     util.promisify "^1.0.0"
     uuid "^8.3.0"
 
-"@eth-optimism/plugins@^0.0.17":
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/@eth-optimism/plugins/-/plugins-0.0.17.tgz#e7b9fa9bd99d687d564975f206c01fde1124e735"
-  integrity sha512-jvF4Q9kAZ0T1I4COaUrgqxDY2GW9uRRgwc4IlY7JS1LGKK0fYeGf6alxhkXdZAmZBiwCEFpmTx0JTp8YxG7G4g==
+"@eth-optimism/plugins@^0.0.20":
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/@eth-optimism/plugins/-/plugins-0.0.20.tgz#cf4a250e52eaffbb6c0d9ac6f7125171c716a58d"
+  integrity sha512-M6X97WR7pEMpVUDAVGIhEdvt1kraF8smF+HbSTJFTOLrfTp2EtMzDv/HZzkAcQ7h+4GAWuHIQ07/ovw/l0WqcA==
   dependencies:
-    "@eth-optimism/contracts" "^0.1.9"
-    "@eth-optimism/ethereumjs-vm" "^4.2.0-alpha.2"
+    "@eth-optimism/contracts" "^0.1.10"
+    "@eth-optimism/ethereumjs-vm" "^4.2.0-alpha.3"
     "@nomiclabs/hardhat-truffle5" "^2.0.0"
     bn.js "^5.1.3"
     ethereumjs-account "^3.0.0"
@@ -4322,7 +4324,7 @@ functional-red-black-tree@^1.0.1, functional-red-black-tree@~1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
-ganache-core@^2.10.2, ganache-core@^2.12.1:
+ganache-core@^2.10.2, ganache-core@^2.12.1, ganache-core@^2.13.2:
   version "2.13.2"
   resolved "https://registry.yarnpkg.com/ganache-core/-/ganache-core-2.13.2.tgz#27e6fc5417c10e6e76e2e646671869d7665814a3"
   integrity sha512-tIF5cR+ANQz0+3pHWxHjIwHqFXcVo0Mb+kcsNhglNFALcYo49aQpnS9dqHartqPfMFjiHh/qFoD3mYK0d/qGgw==
