@@ -250,19 +250,6 @@ library Lib_SafeExecutionManagerWrapper {
         );
     }
 
-    function safeREVERTbytes(
-        bytes memory _revertdata
-    )
-        internal
-    {
-        _safeExecutionManagerInteraction(
-            abi.encodeWithSignature(
-                "ovmREVERT(bytes)",
-                _revertdata
-            )
-        );
-    }
-
     /**
      * Performs a safe REVERT.
      * @param _reason String revert reason to pass along with the REVERT.
@@ -278,6 +265,23 @@ library Lib_SafeExecutionManagerWrapper {
                 Lib_ErrorUtils.encodeRevertString(
                     _reason
                 )
+            )
+        );
+    }
+
+    /**
+     * Same as safeREVERT, but does *not* attach the sighash of Error(string).
+     * @param _revertdata Data to revert with.
+     */
+    function safeREVERTbytes(
+        bytes memory _revertdata
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmREVERT(bytes)",
+                _revertdata
             )
         );
     }
