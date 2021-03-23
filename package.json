@@ -46,7 +46,7 @@
     "glob": "^7.1.6"
   },
   "devDependencies": {
-    "@eth-optimism/plugins": "^0.0.20",
+    "@eth-optimism/plugins": "https://github.com/ethereum-optimism/plugins#chore/trim-deps",
     "@eth-optimism/smock": "0.2.1-alpha.0",
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
