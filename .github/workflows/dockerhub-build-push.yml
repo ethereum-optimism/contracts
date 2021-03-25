@@ -5,8 +5,6 @@ on:
     branches:
       - master
       - develop
-      - testnet
-      - uat
 
 jobs:
   build:
@@ -32,7 +30,7 @@ jobs:
           ./build.sh -s deployer -b $BRANCH
           if [ $BRANCH == 'master' ]; then
               docker push ethereumoptimism/deployer:latest
-          elif [[ $BRANCH == 'uat' || $BRANCH == 'testnet' || $BRANCH == 'develop' ]]; then
+          elif [[ $BRANCH == 'develop' ]]; then
               docker push ethereumoptimism/deployer:$BRANCH
           fi
       - name: Logout of DockerHub
