@@ -152,7 +152,7 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
         override
         onlyInitialized()
     {
-        _initiateWithdrawal(msg.sender, _amount);
+        _initiateWithdrawal(msg.sender, msg.sender, _amount);
     }
 
     /**
@@ -168,17 +168,19 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
         override
         onlyInitialized()
     {
-        _initiateWithdrawal(_to, _amount);
+        _initiateWithdrawal(_to, msg.sender, _amount);
     }
 
     /**
      * @dev Performs the logic for deposits by storing the token and informing the L2 token Gateway of the deposit.
      *
      * @param _to Account to give the withdrawal to on L1
+     * @param _from Account to take the withdrawal on L2
      * @param _amount Amount of the token to withdraw
      */
     function _initiateWithdrawal(
         address _to,
+        address _from,
         uint _amount
     )
         internal
@@ -190,6 +192,7 @@ abstract contract Abs_L2DepositedToken is iOVM_L2DepositedToken, OVM_CrossDomain
         bytes memory data = abi.encodeWithSelector(
             iOVM_L1TokenGateway.finalizeWithdrawal.selector,
             _to,
+            _from,
             _amount
         );
 

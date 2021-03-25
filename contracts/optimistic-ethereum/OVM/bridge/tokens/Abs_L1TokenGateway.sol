@@ -64,6 +64,7 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
      */
     function _handleFinalizeWithdrawal(
         address, // _to,
+        address, // _from,
         uint256 // _amount
     )
         internal
@@ -188,22 +189,25 @@ abstract contract Abs_L1TokenGateway is iOVM_L1TokenGateway, OVM_CrossDomainEnab
      * This call will fail if the initialized withdrawal from L2 has not been finalized. 
      *
      * @param _to L1 address to credit the withdrawal to
+     * @param _from address that started withdrawal
      * @param _amount Amount of the ERC20 to withdraw
      */
     function finalizeWithdrawal(
         address _to,
+        address _from,
         uint _amount
     )
         external
-        override 
+        override
         onlyFromCrossDomainAccount(l2DepositedToken)
     {
         // Call our withdrawal accounting handler implemented by child contracts.
         _handleFinalizeWithdrawal(
             _to,
+            _from,
             _amount
         );
 
-        emit WithdrawalFinalized(_to, _amount);
+        emit WithdrawalFinalized(_to, _from, _amount);
     }
 }

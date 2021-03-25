@@ -149,7 +149,7 @@ describe('OVM_L2DepositedERC20', () => {
       expect(withdrawalCallToMessenger._message).to.equal(
         await Factory__OVM_L1ERC20Gateway.interface.encodeFunctionData(
           'finalizeWithdrawal',
-          [await alice.getAddress(), withdrawAmount]
+          [await alice.getAddress(), await alice.getAddress(), withdrawAmount]
         )
       )
       // Hardcoded gaslimit should be correct
@@ -184,7 +184,7 @@ describe('OVM_L2DepositedERC20', () => {
       expect(withdrawalCallToMessenger._message).to.equal(
         await Factory__OVM_L1ERC20Gateway.interface.encodeFunctionData(
           'finalizeWithdrawal',
-          [await bob.getAddress(), withdrawAmount]
+          [await bob.getAddress(), await alice.getAddress(), withdrawAmount]
         )
       )
       // Hardcoded gaslimit should be correct
