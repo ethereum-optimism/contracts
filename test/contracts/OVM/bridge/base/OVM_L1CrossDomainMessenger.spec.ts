@@ -4,21 +4,18 @@ import { expect } from '../../../../setup'
 import { ethers } from 'hardhat'
 import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
 import { smockit, MockContract } from '@eth-optimism/smock'
+import { remove0x, toHexString } from '@eth-optimism/core-utils'
 
 /* Internal Imports */
 import {
   makeAddressManager,
   setProxyTarget,
   NON_NULL_BYTES32,
-  ZERO_ADDRESS,
   NON_ZERO_ADDRESS,
-  NULL_BYTES32,
   DUMMY_BATCH_HEADERS,
   DUMMY_BATCH_PROOFS,
   TrieTestGenerator,
-  toHexString,
   getNextBlockNumber,
-  remove0x,
   getXDomainCalldata,
 } from '../../../../helpers'
 import { keccak256 } from 'ethers/lib/utils'
@@ -232,8 +229,8 @@ describe('OVM_L1CrossDomainMessenger', () => {
         true
       )
 
-      const proof = {
-        stateRoot: NULL_BYTES32,
+      const proof1 = {
+        stateRoot: ethers.constants.HashZero,
         stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
         stateRootProof: DUMMY_BATCH_PROOFS[0],
         stateTrieWitness: '0x',
@@ -246,7 +243,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
           sender,
           message,
           0,
-          proof
+          proof1
         )
       ).to.be.revertedWith('Provided message could not be verified.')
     })
@@ -256,8 +253,8 @@ describe('OVM_L1CrossDomainMessenger', () => {
         false
       )
 
-      const proof = {
-        stateRoot: NULL_BYTES32,
+      const proof1 = {
+        stateRoot: ethers.constants.HashZero,
         stateRootBatchHeader: DUMMY_BATCH_HEADERS[0],
         stateRootProof: DUMMY_BATCH_PROOFS[0],
         stateTrieWitness: '0x',
@@ -270,7 +267,7 @@ describe('OVM_L1CrossDomainMessenger', () => {
           sender,
           message,
           0,
-          proof
+          proof1
         )
       ).to.be.revertedWith('Provided message could not be verified.')
     })
@@ -320,6 +317,22 @@ describe('OVM_L1CrossDomainMessenger', () => {
           )
         )
       ).to.equal(true)
+    })
+
+    it('the xDomainMessageSender is reset to the original value', async () => {
+      await expect(
+        OVM_L1CrossDomainMessenger.xDomainMessageSender()
+      ).to.be.revertedWith('xDomainMessageSender is not set')
+      await OVM_L1CrossDomainMessenger.relayMessage(
+        target,
+        sender,
+        message,
+        0,
+        proof
+      )
+      await expect(
+        OVM_L1CrossDomainMessenger.xDomainMessageSender()
+      ).to.be.revertedWith('xDomainMessageSender is not set')
     })
 
     it('should revert if trying to send the same message twice', async () => {

@@ -22,8 +22,15 @@ import { Lib_SafeMathWrapper } from "../../libraries/wrappers/Lib_SafeMathWrappe
  */
 contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
+    /*************
+     * Constants *
+     *************/
+
+    // TODO: should be the amount sufficient to cover the gas costs of all of the transactions up
+    // to and including the CALL/CREATE which forms the entrypoint of the transaction.
+    uint256 constant EXECUTION_VALIDATION_GAS_OVERHEAD = 25000;
     address constant ETH_ERC20_ADDRESS = 0x4200000000000000000000000000000000000006;
-    uint256 constant EXECUTION_VALIDATION_GAS_OVERHEAD = 25000; // TODO: should be the amount sufficient to cover the gas costs of all of the transactions up to and including the CALL/CREATE which forms the entrypoint of the transaction.
+
 
     /********************
      * Public Functions *
@@ -36,8 +43,8 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
      * @param _v Signature `v` parameter.
      * @param _r Signature `r` parameter.
      * @param _s Signature `s` parameter.
-     * @return _success Whether or not the call returned (rather than reverted).
-     * @return _returndata Data returned by the call.
+     * @return Whether or not the call returned (rather than reverted).
+     * @return Data returned by the call.
      */
     function execute(
         bytes memory _transaction,
@@ -49,8 +56,8 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         override
         public
         returns (
-            bool _success,
-            bytes memory _returndata
+            bool,
+            bytes memory
         )
     {
         bool isEthSign = _signatureType == Lib_OVMCodec.EOASignatureType.ETH_SIGNED_MESSAGE;
@@ -84,7 +91,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             "Transaction nonce does not match the expected nonce."
         );
 
-        // TEMPORARY: Disable gas checks for minnet.
+        // TEMPORARY: Disable gas checks for mainnet.
         // // Need to make sure that the gas is sufficient to execute the transaction.
         // Lib_SafeExecutionManagerWrapper.safeREQUIRE(
         //    gasleft() >= Lib_SafeMathWrapper.add(decodedTx.gasLimit, EXECUTION_VALIDATION_GAS_OVERHEAD),
@@ -106,14 +113,17 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
 
         // Contract creations are signalled by sending a transaction to the zero address.
         if (decodedTx.to == address(0)) {
-            address created = Lib_SafeExecutionManagerWrapper.safeCREATE(
+            (address created, bytes memory revertData) = Lib_SafeExecutionManagerWrapper.safeCREATE(
                 decodedTx.gasLimit,
                 decodedTx.data
             );
 
-            // EVM doesn't tell us whether a contract creation failed, even if it reverted during
-            // initialization. Always return `true` for our success value here.
-            return (true, abi.encode(created));
+            // Return true if the contract creation succeeded, false w/ revertData otherwise.
+            if (created != address(0)) {
+                return (true, abi.encode(created));
+            } else {
+                return (false, revertData);
+            }
         } else {
             // We only want to bump the nonce for `ovmCALL` because `ovmCREATE` automatically bumps
             // the nonce of the calling account. Normally an EOA would bump the nonce for both

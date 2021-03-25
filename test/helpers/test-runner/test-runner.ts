@@ -35,9 +35,9 @@ import {
   OVM_TX_GAS_LIMIT,
   RUN_OVM_TEST_GAS,
   NON_NULL_BYTES32,
-  NULL_BYTES32,
 } from '../constants'
 import { getStorageXOR } from '../'
+import { UNSAFE_BYTECODE } from '../dummy'
 
 export class ExecutionManagerTestRunner {
   private snapshot: string
@@ -70,7 +70,7 @@ export class ExecutionManagerTestRunner {
       contractStorage: {
         ['0x4200000000000000000000000000000000000002']: {
           '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR(
-            NULL_BYTES32
+            ethers.constants.HashZero
           ),
         },
       },
@@ -83,6 +83,7 @@ export class ExecutionManagerTestRunner {
   }
 
   public run(test: TestDefinition) {
+    // tslint:disable-next-line:ban-comma-operator
     ;(test.preState = merge(
       cloneDeep(this.defaultPreState),
       cloneDeep(test.preState)
@@ -193,7 +194,11 @@ export class ExecutionManagerTestRunner {
     ).deploy()
 
     const MockSafetyChecker = await smockit(SafetyChecker)
-    MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(true)
+    MockSafetyChecker.smocked.isBytecodeSafe.will.return.with(
+      (bytecode: string) => {
+        return bytecode !== UNSAFE_BYTECODE
+      }
+    )
 
     this.contracts.OVM_SafetyChecker = MockSafetyChecker
 
@@ -255,7 +260,7 @@ export class ExecutionManagerTestRunner {
         return this.contracts.OVM_SafetyChecker.address
       } else if (kv === '$OVM_CALL_HELPER') {
         return this.contracts.Helper_TestRunner.address
-      } else if (kv == '$OVM_DEPLOYER_WHITELIST') {
+      } else if (kv === '$OVM_DEPLOYER_WHITELIST') {
         return this.contracts.OVM_DeployerWhitelist.address
       } else if (kv.startsWith('$DUMMY_OVM_ADDRESS_')) {
         return ExecutionManagerTestRunner.getDummyAddress(kv)
@@ -490,6 +495,19 @@ export class ExecutionManagerTestRunner {
         return step.expectedReturnValue
       } else {
         returnData = [step.expectedReturnValue]
+      }
+    }
+
+    if (isTestStep_CREATE(step) || isTestStep_CREATE2(step)) {
+      if (!isRevertFlagError(step.expectedReturnValue)) {
+        if (typeof step.expectedReturnValue === 'string') {
+          returnData = [step.expectedReturnValue, '0x']
+        } else {
+          returnData = [
+            step.expectedReturnValue.address,
+            step.expectedReturnValue.revertData || '0x',
+          ]
+        }
       }
     }
 

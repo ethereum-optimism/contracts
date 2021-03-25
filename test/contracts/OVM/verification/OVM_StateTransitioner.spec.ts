@@ -3,7 +3,7 @@ import { expect } from '../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { BigNumber, Contract, ContractFactory } from 'ethers'
+import { BigNumber, constants, Contract } from 'ethers'
 import * as rlp from 'rlp'
 
 /* Internal Imports */
@@ -11,11 +11,8 @@ import {
   makeAddressManager,
   NON_NULL_BYTES32,
   NON_ZERO_ADDRESS,
-  NULL_BYTES32,
   setProxyTarget,
   TrieTestGenerator,
-  ZERO_ADDRESS,
-  numberToHexString,
 } from '../../../helpers'
 import {
   MockContract,
@@ -24,7 +21,7 @@ import {
   smoddit,
   ModifiableContractFactory,
 } from '@eth-optimism/smock'
-import { keccak256 } from 'ethers/lib/utils'
+import { toHexString } from '@eth-optimism/core-utils'
 
 describe('OVM_StateTransitioner', () => {
   let AddressManager: Contract
@@ -86,14 +83,14 @@ describe('OVM_StateTransitioner', () => {
     OVM_StateTransitioner = await Factory__OVM_StateTransitioner.deploy(
       AddressManager.address,
       0,
-      NULL_BYTES32,
-      NULL_BYTES32
+      ethers.constants.HashZero,
+      ethers.constants.HashZero
     )
   })
 
   describe('proveContractState', () => {
-    let ovmContractAddress = NON_ZERO_ADDRESS
-    let ethContractAddress = ZERO_ADDRESS
+    const ovmContractAddress = NON_ZERO_ADDRESS
+    let ethContractAddress = constants.AddressZero
     let account: any
     beforeEach(() => {
       Mock__OVM_StateManager.smocked.hasAccount.will.return.with(false)
@@ -101,15 +98,15 @@ describe('OVM_StateTransitioner', () => {
       account = {
         nonce: 0,
         balance: 0,
-        storageRoot: NULL_BYTES32,
-        codeHash: NULL_BYTES32,
+        storageRoot: ethers.constants.HashZero,
+        codeHash: ethers.constants.HashZero,
       }
     })
 
     describe('when provided a valid code hash', () => {
       beforeEach(async () => {
         ethContractAddress = OVM_StateTransitioner.address
-        account.codeHash = keccak256(
+        account.codeHash = ethers.utils.keccak256(
           await ethers.provider.getCode(OVM_StateTransitioner.address)
         )
       })
@@ -149,7 +146,7 @@ describe('OVM_StateTransitioner', () => {
             AddressManager.address,
             0,
             test.accountTrieRoot,
-            NULL_BYTES32
+            ethers.constants.HashZero
           )
         })
 
@@ -207,9 +204,9 @@ describe('OVM_StateTransitioner', () => {
       })
 
       describe('when provided an invalid slot inclusion proof', () => {
-        let key = keccak256('0x1234')
-        let val = keccak256('0x5678')
-        let proof = '0x'
+        const key = ethers.utils.keccak256('0x1234')
+        const val = ethers.utils.keccak256('0x5678')
+        const proof = '0x'
         beforeEach(async () => {
           const generator = await TrieTestGenerator.fromNodes({
             nodes: [
@@ -230,14 +227,18 @@ describe('OVM_StateTransitioner', () => {
 
         it('should revert', async () => {
           await expect(
-            OVM_StateTransitioner.proveStorageSlot(ZERO_ADDRESS, key, proof)
+            OVM_StateTransitioner.proveStorageSlot(
+              constants.AddressZero,
+              key,
+              proof
+            )
           ).to.be.reverted
         })
       })
 
       describe('when provided a valid slot inclusion proof', () => {
-        let key = keccak256('0x1234')
-        let val = keccak256('0x5678')
+        const key = ethers.utils.keccak256('0x1234')
+        const val = ethers.utils.keccak256('0x5678')
         let proof: string
         beforeEach(async () => {
           const generator = await TrieTestGenerator.fromNodes({
@@ -260,12 +261,16 @@ describe('OVM_StateTransitioner', () => {
 
         it('should insert the storage slot', async () => {
           await expect(
-            OVM_StateTransitioner.proveStorageSlot(ZERO_ADDRESS, key, proof)
+            OVM_StateTransitioner.proveStorageSlot(
+              constants.AddressZero,
+              key,
+              proof
+            )
           ).to.not.be.reverted
 
           expect(
             Mock__OVM_StateManager.smocked.putContractStorage.calls[0]
-          ).to.deep.equal([ZERO_ADDRESS, key, val])
+          ).to.deep.equal([constants.AddressZero, key, val])
         })
       })
     })
@@ -278,9 +283,9 @@ describe('OVM_StateTransitioner', () => {
         timestamp: '0x12',
         blockNumber: '0x34',
         l1QueueOrigin: '0x00',
-        l1TxOrigin: ZERO_ADDRESS,
-        entrypoint: ZERO_ADDRESS,
-        gasLimit: numberToHexString(gasLimit),
+        l1TxOrigin: constants.AddressZero,
+        entrypoint: constants.AddressZero,
+        gasLimit: toHexString(gasLimit),
         data: '0x1234',
       }
 
@@ -329,15 +334,15 @@ describe('OVM_StateTransitioner', () => {
       })
     })
 
-    let ovmContractAddress = NON_ZERO_ADDRESS
+    const ovmContractAddress = NON_ZERO_ADDRESS
     let account: any
     beforeEach(() => {
       account = {
         nonce: 0,
         balance: 0,
-        storageRoot: NULL_BYTES32,
-        codeHash: NULL_BYTES32,
-        ethAddress: ZERO_ADDRESS,
+        storageRoot: ethers.constants.HashZero,
+        codeHash: ethers.constants.HashZero,
+        ethAddress: constants.AddressZero,
         isFresh: false,
       }
       Mock__OVM_StateManager.smocked.hasAccount.will.return.with(false)
@@ -414,22 +419,22 @@ describe('OVM_StateTransitioner', () => {
       })
     })
 
-    let ovmContractAddress = NON_ZERO_ADDRESS
+    const ovmContractAddress = NON_ZERO_ADDRESS
     let account: any
-    let key = keccak256('0x1234')
-    let val = keccak256('0x5678')
-    let newVal = keccak256('0x4321')
+    const key = ethers.utils.keccak256('0x1234')
+    const val = ethers.utils.keccak256('0x5678')
+    const newVal = ethers.utils.keccak256('0x4321')
     beforeEach(() => {
       account = {
         nonce: 0,
         balance: 0,
-        storageRoot: NULL_BYTES32,
-        codeHash: NULL_BYTES32,
+        storageRoot: ethers.constants.HashZero,
+        codeHash: ethers.constants.HashZero,
       }
 
       Mock__OVM_StateManager.smocked.getAccount.will.return.with({
         ...account,
-        ethAddress: ZERO_ADDRESS,
+        ethAddress: constants.AddressZero,
         isFresh: false,
       })
 
@@ -460,9 +465,7 @@ describe('OVM_StateTransitioner', () => {
       })
 
       describe('with a valid proof', () => {
-        let accountTrieProof: string
         let storageTrieProof: string
-        let postStateRoot: string
         beforeEach(async () => {
           const storageGenerator = await TrieTestGenerator.fromNodes({
             nodes: [
@@ -501,14 +504,11 @@ describe('OVM_StateTransitioner', () => {
           Mock__OVM_StateManager.smocked.getAccount.will.return.with({
             ...account,
             storageRoot: storageTest.root,
-            ethAddress: ZERO_ADDRESS,
+            ethAddress: constants.AddressZero,
             isFresh: false,
           })
 
-          accountTrieProof = test.accountTrieWitness
           storageTrieProof = storageTest.proof
-
-          postStateRoot = test.newAccountTrieRoot
 
           OVM_StateTransitioner.smodify.put({
             postStateRoot: test.accountTrieRoot,

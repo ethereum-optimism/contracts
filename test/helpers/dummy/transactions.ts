@@ -1,5 +1,4 @@
-import { ZERO_ADDRESS, NULL_BYTES32 } from '../constants'
-import { ethers } from 'ethers'
+import { constants, ethers } from 'ethers'
 
 export interface Transaction {
   timestamp: number
@@ -18,10 +17,10 @@ export const DUMMY_OVM_TRANSACTIONS: Array<Transaction> = [
     timestamp: i,
     blockNumber: 0,
     l1QueueOrigin: 0,
-    l1TxOrigin: ZERO_ADDRESS,
-    entrypoint: ZERO_ADDRESS,
+    l1TxOrigin: constants.AddressZero,
+    entrypoint: constants.AddressZero,
     gasLimit: 0,
-    data: NULL_BYTES32,
+    data: ethers.constants.HashZero,
   }
 })
 

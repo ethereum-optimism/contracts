@@ -20,7 +20,7 @@ import '@openzeppelin/contracts/math/SafeMath.sol';
 /**
  * @title OVM_StateCommitmentChain
  * @dev The State Commitment Chain (SCC) contract contains a list of proposed state roots which
- * Proposers assert to be a result of each transaction in the Canonical Transaction Chain (CTC). 
+ * Proposers assert to be a result of each transaction in the Canonical Transaction Chain (CTC).
  * Elements here have a 1:1 correspondence with transactions in the CTC, and should be the unique
  * state root calculated off-chain by applying the canonical transactions one by one.
  *
@@ -49,7 +49,6 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
         uint256 _fraudProofWindow,
         uint256 _sequencerPublishWindow
     )
-        public
         Lib_AddressResolver(_libAddressManager)
     {
         FRAUD_PROOF_WINDOW = _fraudProofWindow;
@@ -319,7 +318,7 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
     )
         internal
     {
-        address sequencer = resolve("OVM_Sequencer");
+        address sequencer = resolve("OVM_Proposer");
         (uint40 totalElements, uint40 lastSequencerTimestamp) = _getBatchExtraData();
 
         if (msg.sender == sequencer) {
@@ -335,6 +334,9 @@ contract OVM_StateCommitmentChain is iOVM_StateCommitmentChain, Lib_AddressResol
             );
         }
 
+        // For efficiency reasons getMerkleRoot modifies the `_batch` argument in place
+        // while calculating the root hash therefore any arguments passed to it must not
+        // be used again afterwards
         Lib_OVMCodec.ChainBatchHeader memory batchHeader = Lib_OVMCodec.ChainBatchHeader({
             batchIndex: getTotalBatches(),
             batchRoot: Lib_MerkleTree.getMerkleRoot(_batch),
