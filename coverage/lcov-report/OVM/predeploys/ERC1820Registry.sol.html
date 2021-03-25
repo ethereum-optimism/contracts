@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for OVM/predeploys/ERC1820Registry.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">OVM/predeploys/</a> ERC1820Registry.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>0/38</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/22</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/10</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>0/39</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: CC0-1.0
+/* ERC1820 Pseudo-introspection Registry Contract
+ * This standard defines a universal registry smart contract where any address (contract or regular account) can
+ * register which interface it supports and which smart contract is responsible for its implementation.
+ *
+ * Written in 2019 by Jordi Baylina and Jacques Dafflon
+ *
+ * To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to
+ * this software to the public domain worldwide. This software is distributed without any warranty.
+ *
+ * You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see
+ * &lt;http://creativecommons.org/publicdomain/zero/1.0/&gt;.
+ */
+pragma solidity &gt;0.5.0 &lt;0.8.0;
+&nbsp;
+/// @dev The interface a contract MUST implement if it is the implementer of
+/// some (other) interface for any address other than itself.
+interface ERC1820ImplementerInterface {
+    /// @notice Indicates whether the contract implements the interface 'interfaceHash' for the address 'addr' or not.
+    /// @param interfaceHash keccak256 hash of the name of the interface
+    /// @param addr Address for which the contract will implement the interface
+    /// @return ERC1820_ACCEPT_MAGIC only if the contract implements 'interfaceHash' for the address 'addr'.
+    function canImplementInterfaceForAddress(bytes32 interfaceHash, address addr) external view returns(bytes32);
+}
+&nbsp;
+/**
+ * @title ERC1820 Pseudo-introspection Registry Contract
+ * @author Jordi Baylina and Jacques Dafflon
+ * @dev This contract is the official implementation of the ERC1820 Registry 
+ * For more details, see https://eips.ethereum.org/EIPS/eip-1820
+ *
+ * Compiler used: optimistic-solc
+ * Runtime target: OVM
+ */
+contract ERC1820Registry {
+    bytes4 constant internal INVALID_ID = 0xffffffff;
+    bytes4 constant internal ERC165ID = 0x01ffc9a7;
+    bytes32 constant internal ERC1820_ACCEPT_MAGIC = keccak256(abi.encodePacked("ERC1820_ACCEPT_MAGIC"));
+&nbsp;
+    mapping(address =&gt; mapping(bytes32 =&gt; address)) internal interfaces;
+    mapping(address =&gt; address) internal managers;
+    mapping(address =&gt; mapping(bytes4 =&gt; bool)) internal erc165Cached;
+&nbsp;
+    /// @notice Indicates a contract is the 'implementer' of 'interfaceHash' for 'addr'.
+    event InterfaceImplementerSet(address indexed addr, bytes32 indexed interfaceHash, address indexed implementer);
+    /// @notice Indicates 'newManager' is the address of the new manager for 'addr'.
+    event ManagerChanged(address indexed addr, address indexed newManager);
+&nbsp;
+    /// @notice Query if an address implements an interface and through which contract.
+    /// @param _addr Address being queried for the implementer of an interface.
+    /// (If '_addr' is the zero address then 'msg.sender' is assumed.)
+    /// @param _interfaceHash Keccak256 hash of the name of the interface as a string.
+    /// E.g., 'web3.utils.keccak256("ERC777TokensRecipient")' for the 'ERC777TokensRecipient' interface.
+    /// @return The address of the contract which implements the interface '_interfaceHash' for '_addr'
+    /// or '0' if '_addr' did not register an implementer for this interface.
+<span class="fstat-no" title="function not covered" >    function getInterfaceImplementer(address _addr, bytes32 _interfaceHash) external view returns (address) {</span>
+<span class="cstat-no" title="statement not covered" >        address addr = _addr == address(0) ? msg.sender : _addr;</span>
+<span class="cstat-no" title="statement not covered" >        if (isERC165Interface(_interfaceHash)) {</span>
+<span class="cstat-no" title="statement not covered" >            bytes4 erc165InterfaceHash = bytes4(_interfaceHash);</span>
+<span class="cstat-no" title="statement not covered" >            return implementsERC165Interface(addr, erc165InterfaceHash) ? addr : address(0);</span>
+        }
+<span class="cstat-no" title="statement not covered" >        return interfaces[addr][_interfaceHash];</span>
+    }
+&nbsp;
+    /// @notice Sets the contract which implements a specific interface for an address.
+    /// Only the manager defined for that address can set it.
+    /// (Each address is the manager for itself until it sets a new manager.)
+    /// @param _addr Address for which to set the interface.
+    /// (If '_addr' is the zero address then 'msg.sender' is assumed.)
+    /// @param _interfaceHash Keccak256 hash of the name of the interface as a string.
+    /// E.g., 'web3.utils.keccak256("ERC777TokensRecipient")' for the 'ERC777TokensRecipient' interface.
+    /// @param _implementer Contract address implementing '_interfaceHash' for '_addr'.
+<span class="fstat-no" title="function not covered" >    function setInterfaceImplementer(address _addr, bytes32 _interfaceHash, address _implementer) external {</span>
+<span class="cstat-no" title="statement not covered" >        address addr = _addr == address(0) ? msg.sender : _addr;</span>
+<span class="cstat-no" title="statement not covered" >        require(getManager(addr) == msg.sender, "Not the manager")</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        require(!isERC165Interface(_interfaceHash), "Must not be an ERC165 hash")</span>;
+<span class="cstat-no" title="statement not covered" >        if (_implementer != address(0) &amp;&amp; _implementer != msg.sender) {</span>
+<span class="cstat-no" title="statement not covered" >            require(</span>
+                ERC1820ImplementerInterface(_implementer)
+                    .canImplementInterfaceForAddress(_interfaceHash, addr) == ERC1820_ACCEPT_MAGIC,
+                "Does not implement the interface"
+            );
+        }
+<span class="cstat-no" title="statement not covered" >        interfaces[addr][_interfaceHash] = _implementer</span>;
+<span class="cstat-no" title="statement not covered" >        emit InterfaceImplementerSet(addr, _interfaceHash, _implementer);</span>
+    }
+&nbsp;
+    /// @notice Sets '_newManager' as manager for '_addr'.
+    /// The new manager will be able to call 'setInterfaceImplementer' for '_addr'.
+    /// @param _addr Address for which to set the new manager.
+    /// @param _newManager Address of the new manager for 'addr'. (Pass '0x0' to reset the manager to '_addr'.)
+<span class="fstat-no" title="function not covered" >    function setManager(address _addr, address _newManager) external {</span>
+<span class="cstat-no" title="statement not covered" >        require(getManager(_addr) == msg.sender, "Not the manager")</span>;
+<span class="cstat-no" title="statement not covered" >        managers[_addr] = _newManager == _addr ? address(0) : _newManager</span>;
+<span class="cstat-no" title="statement not covered" >        emit ManagerChanged(_addr, _newManager);</span>
+    }
+&nbsp;
+    /// @notice Get the manager of an address.
+    /// @param _addr Address for which to return the manager.
+    /// @return Address of the manager for a given address.
+<span class="fstat-no" title="function not covered" >    function getManager(address _addr) public view returns(address) {</span>
+        // By default the manager of an address is the same address
+<span class="cstat-no" title="statement not covered" >        if (managers[_addr] == address(0)) {</span>
+<span class="cstat-no" title="statement not covered" >            return _addr;</span>
+        } else {
+<span class="cstat-no" title="statement not covered" >            return managers[_addr];</span>
+        }
+    }
+&nbsp;
+    /// @notice Compute the keccak256 hash of an interface given its name.
+    /// @param _interfaceName Name of the interface.
+    /// @return The keccak256 hash of an interface name.
+<span class="fstat-no" title="function not covered" >    function interfaceHash(string calldata _interfaceName) external pure returns(bytes32) {</span>
+<span class="cstat-no" title="statement not covered" >        return keccak256(abi.encodePacked(_interfaceName));</span>
+    }
+&nbsp;
+    /* --- ERC165 Related Functions --- */
+    /* --- Developed in collaboration with William Entriken. --- */
+&nbsp;
+    /// @notice Updates the cache with whether the contract implements an ERC165 interface or not.
+    /// @param _contract Address of the contract for which to update the cache.
+    /// @param _interfaceId ERC165 interface for which to update the cache.
+<span class="fstat-no" title="function not covered" >    function updateERC165Cache(address _contract, bytes4 _interfaceId) external {</span>
+<span class="cstat-no" title="statement not covered" >        interfaces[_contract][_interfaceId] = implementsERC165InterfaceNoCache(</span>
+            _contract, _interfaceId) ? _contract : address(0);
+<span class="cstat-no" title="statement not covered" >        erc165Cached[_contract][_interfaceId] = true</span>;
+    }
+&nbsp;
+    /// @notice Checks whether a contract implements an ERC165 interface or not.
+    //  If the result is not cached a direct lookup on the contract address is performed.
+    //  If the result is not cached or the cached value is out-of-date, the cache MUST be updated manually by calling
+    //  'updateERC165Cache' with the contract address.
+    /// @param _contract Address of the contract to check.
+    /// @param _interfaceId ERC165 interface to check.
+    /// @return True if '_contract' implements '_interfaceId', false otherwise.
+<span class="fstat-no" title="function not covered" >    function implementsERC165Interface(address _contract, bytes4 _interfaceId) public view returns (bool) {</span>
+<span class="cstat-no" title="statement not covered" >        if (!erc165Cached[_contract][_interfaceId]) {</span>
+<span class="cstat-no" title="statement not covered" >            return implementsERC165InterfaceNoCache(_contract, _interfaceId);</span>
+        }
+<span class="cstat-no" title="statement not covered" >        return interfaces[_contract][_interfaceId] == _contract;</span>
+    }
+&nbsp;
+    /// @notice Checks whether a contract implements an ERC165 interface or not without using nor updating the cache.
+    /// @param _contract Address of the contract to check.
+    /// @param _interfaceId ERC165 interface to check.
+    /// @return True if '_contract' implements '_interfaceId', false otherwise.
+<span class="fstat-no" title="function not covered" >    function implementsERC165InterfaceNoCache(address _contract, bytes4 _interfaceId) public view returns (bool) {</span>
+<span class="cstat-no" title="statement not covered" >        uint256 success;</span>
+<span class="cstat-no" title="statement not covered" >        uint256 result;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        (success, result) = noThrowCall(_contract, ERC165ID)</span>;
+<span class="cstat-no" title="statement not covered" >        if (success == 0 || result == 0) {</span>
+<span class="cstat-no" title="statement not covered" >            return false;</span>
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        (success, result) = noThrowCall(_contract, INVALID_ID)</span>;
+<span class="cstat-no" title="statement not covered" >        if (success == 0 || result != 0) {</span>
+<span class="cstat-no" title="statement not covered" >            return false;</span>
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        (success, result) = noThrowCall(_contract, _interfaceId)</span>;
+<span class="cstat-no" title="statement not covered" >        if (success == 1 &amp;&amp; result == 1) {</span>
+<span class="cstat-no" title="statement not covered" >            return true;</span>
+        }
+<span class="cstat-no" title="statement not covered" >        return false;</span>
+    }
+&nbsp;
+    /// @notice Checks whether the hash is a ERC165 interface (ending with 28 zeroes) or not.
+    /// @param _interfaceHash The hash to check.
+    /// @return True if '_interfaceHash' is an ERC165 interface (ending with 28 zeroes), false otherwise.
+<span class="fstat-no" title="function not covered" >    function isERC165Interface(bytes32 _interfaceHash) internal pure returns (bool) {</span>
+<span class="cstat-no" title="statement not covered" >        return _interfaceHash &amp; 0x00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF == 0;</span>
+    }
+&nbsp;
+    /// @dev Make a call on a contract without throwing if the function does not exist.
+<span class="fstat-no" title="function not covered" >    function noThrowCall(address _contract, bytes4 _interfaceId)</span>
+        internal view returns (uint256 success, uint256 result)
+    {
+<span class="cstat-no" title="statement not covered" >        bytes4 erc165ID = ERC165ID;</span>
+&nbsp;
+        assembly {
+            let x := mload(0x40)               // Find empty storage location using "free memory pointer"
+            mstore(x, erc165ID)                // Place signature at beginning of empty storage
+            mstore(add(x, 0x04), _interfaceId) // Place first argument directly next to signature
+&nbsp;
+            success := staticcall(
+                30000,                         // 30k gas
+                _contract,                     // To addr
+                x,                             // Inputs are stored at location x
+                0x24,                          // Inputs are 36 (4 + 32) bytes long
+                x,                             // Store output over input (saves space)
+                0x20                           // Outputs are 32 bytes long
+            )
+&nbsp;
+            result := mload(x)                 // Load the result
+        }
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Mar 24 2021 20:31:28 GMT-0400 (Eastern Daylight Time)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>

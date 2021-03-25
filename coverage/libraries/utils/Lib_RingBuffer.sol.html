@@ -1,0 +1,1193 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for libraries/utils/Lib_RingBuffer.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">libraries/utils/</a> Lib_RingBuffer.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">78.13% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>50/64</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">54.17% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>13/24</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">81.82% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>9/11</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">77.46% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>55/71</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line medium'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">572×</span>
+<span class="cline-any cline-yes">572×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">572×</span>
+<span class="cline-any cline-yes">134×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">572×</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">572×</span>
+<span class="cline-any cline-yes">572×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">572×</span>
+<span class="cline-any cline-yes">572×</span>
+<span class="cline-any cline-yes">572×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">470×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">470×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">538×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">538×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">535×</span>
+<span class="cline-any cline-yes">535×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">535×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">535×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">535×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">535×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">441×</span>
+<span class="cline-any cline-yes">441×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">550×</span>
+<span class="cline-any cline-yes">550×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">573×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2572×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1642×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity &gt;0.5.0 &lt;0.8.0;
+&nbsp;
+library Lib_RingBuffer {
+    using Lib_RingBuffer for RingBuffer;
+&nbsp;
+    /***********
+     * Structs *
+     ***********/
+&nbsp;
+    struct Buffer {
+        uint256 length;
+        mapping (uint256 =&gt; bytes32) buf;
+    }
+&nbsp;
+    struct RingBuffer {
+        bytes32 contextA;
+        bytes32 contextB;
+        Buffer bufferA;
+        Buffer bufferB;
+        uint256 nextOverwritableIndex;
+    }
+&nbsp;
+    struct RingBufferContext {
+        // contextA
+        uint40 globalIndex;
+        bytes27 extraData;
+&nbsp;
+        // contextB
+        uint64 currBufferIndex;
+        uint40 prevResetIndex;
+        uint40 currResetIndex;
+    }
+&nbsp;
+&nbsp;
+    /*************
+     * Constants *
+     *************/
+&nbsp;
+    uint256 constant MIN_CAPACITY = 16;
+&nbsp;
+&nbsp;
+    /**********************
+     * Internal Functions *
+     **********************/
+&nbsp;
+    /**
+     * Pushes a single element to the buffer.
+     * @param _self Buffer to access.
+     * @param _value Value to push to the buffer.
+     * @param _extraData Optional global extra data.
+     */
+    function push(
+        RingBuffer storage _self,
+        bytes32 _value,
+        bytes27 _extraData
+    )
+        internal
+    {
+        RingBufferContext memory ctx = _self.getContext();
+        Buffer storage currBuffer = _self.getBuffer(ctx.currBufferIndex);
+&nbsp;
+        // Set a minimum capacity.
+        if (currBuffer.length == 0) {
+            currBuffer.length = MIN_CAPACITY;
+        }
+&nbsp;
+        // Check if we need to expand the buffer.
+        if (ctx.globalIndex - ctx.currResetIndex &gt;= currBuffer.length) {
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (ctx.currResetIndex &lt; _self.nextOverwritableIndex) {
+                // We're going to overwrite the inactive buffer.
+                // Bump the buffer index, reset the delete offset, and set our reset indices.
+                ctx.currBufferIndex++;
+<span class="cstat-no" title="statement not covered" >                ctx.prevResetIndex = ctx.currResetIndex</span>;
+<span class="cstat-no" title="statement not covered" >                ctx.currResetIndex = ctx.globalIndex</span>;
+&nbsp;
+                // Swap over to the next buffer.
+<span class="cstat-no" title="statement not covered" >                currBuffer = _self.getBuffer(ctx.currBufferIndex)</span>;
+            } else {
+                // We're not overwriting yet, double the length of the current buffer.
+                currBuffer.length *= 2;
+            }
+        }
+&nbsp;
+        // Index to write to is the difference of the global and reset indices.
+        uint256 writeHead = ctx.globalIndex - ctx.currResetIndex;
+        currBuffer.buf[writeHead] = _value;
+&nbsp;
+        // Bump the global index and insert our extra data, then save the context.
+        ctx.globalIndex++;
+        ctx.extraData = _extraData;
+        _self.setContext(ctx);
+    }
+&nbsp;
+    /**
+     * Pushes a single element to the buffer.
+     * @param _self Buffer to access.
+     * @param _value Value to push to the buffer.
+     */
+    function push(
+        RingBuffer storage _self,
+        bytes32 _value
+    )
+        internal
+    {
+        RingBufferContext memory ctx = _self.getContext();
+        
+        _self.push(
+            _value,
+            ctx.extraData
+        );
+    }
+&nbsp;
+    /**
+     * Retrieves an element from the buffer.
+     * @param _self Buffer to access.
+     * @param _index Element index to retrieve.
+     * @return Value of the element at the given index.
+     */
+    function get(
+        RingBuffer storage _self,
+        uint256 _index
+    )
+        internal
+        view
+        returns (
+            bytes32    
+        )
+    {
+        RingBufferContext memory ctx = _self.getContext();
+&nbsp;
+        require(
+            _index &lt; ctx.globalIndex,
+            "Index out of bounds."
+        );
+&nbsp;
+        Buffer storage currBuffer = _self.getBuffer(ctx.currBufferIndex);
+        Buffer storage prevBuffer = _self.getBuffer(ctx.currBufferIndex + 1);
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (_index &gt;= ctx.currResetIndex) {
+            // We're trying to load an element from the current buffer.
+            // Relative index is just the difference from the reset index.
+            uint256 relativeIndex = _index - ctx.currResetIndex;
+&nbsp;
+            // Shouldn't happen but why not check.
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(
+                relativeIndex &lt; currBuffer.length,
+                "Index out of bounds."
+            );
+&nbsp;
+            return currBuffer.buf[relativeIndex];
+        } else {
+            // We're trying to load an element from the previous buffer.
+            // Relative index is the difference from the reset index in the other direction.
+<span class="cstat-no" title="statement not covered" >            uint256 relativeIndex = ctx.currResetIndex - _index;</span>
+&nbsp;
+            // Condition only fails in the case that we deleted and flipped buffers.
+<span class="cstat-no" title="statement not covered" >            require(</span>
+                ctx.currResetIndex &gt; ctx.prevResetIndex,
+                "Index out of bounds."
+            );
+&nbsp;
+            // Make sure we're not trying to read beyond the array.
+<span class="cstat-no" title="statement not covered" >            require(</span>
+                relativeIndex &lt;= prevBuffer.length,
+                "Index out of bounds."
+            );
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            return prevBuffer.buf[prevBuffer.length - relativeIndex];</span>
+        }
+    }
+&nbsp;
+    /**
+     * Deletes all elements after (and including) a given index.
+     * @param _self Buffer to access.
+     * @param _index Index of the element to delete from (inclusive).
+     * @param _extraData Optional global extra data.
+     */
+    function deleteElementsAfterInclusive(
+        RingBuffer storage _self,
+        uint40 _index,
+        bytes27 _extraData
+    )
+        internal
+    {
+        RingBufferContext memory ctx = _self.getContext();
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            _index &lt; ctx.globalIndex &amp;&amp; _index &gt;= ctx.prevResetIndex,
+            "Index out of bounds."
+        );
+&nbsp;
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (_index &lt; ctx.currResetIndex) {
+            // We're switching back to the previous buffer.
+            // Reduce the buffer index, set the current reset index back to match the previous one.
+            // We use the equality of these two values to prevent reading beyond this buffer.
+            ctx.currBufferIndex--;
+<span class="cstat-no" title="statement not covered" >            ctx.currResetIndex = ctx.prevResetIndex</span>;
+        }
+&nbsp;
+        // Set our global index and extra data, save the context.
+        ctx.globalIndex = _index;
+        ctx.extraData = _extraData;
+        _self.setContext(ctx);
+    }
+&nbsp;
+    /**
+     * Deletes all elements after (and including) a given index.
+     * @param _self Buffer to access.
+     * @param _index Index of the element to delete from (inclusive).
+     */
+<span class="fstat-no" title="function not covered" >    function deleteElementsAfterInclusive(</span>
+        RingBuffer storage _self,
+        uint40 _index
+    )
+        internal
+    {
+<span class="cstat-no" title="statement not covered" >        RingBufferContext memory ctx = _self.getContext();</span>
+<span class="cstat-no" title="statement not covered" >        _self.deleteElementsAfterInclusive(</span>
+            _index,
+            ctx.extraData
+        );
+    }
+&nbsp;
+    /**
+     * Retrieves the current global index.
+     * @param _self Buffer to access.
+     * @return Current global index.
+     */
+    function getLength(
+        RingBuffer storage _self
+    )
+        internal
+        view
+        returns (
+            uint40
+        )
+    {
+        RingBufferContext memory ctx = _self.getContext();
+        return ctx.globalIndex;
+    }
+&nbsp;
+    /**
+     * Changes current global extra data.
+     * @param _self Buffer to access.
+     * @param _extraData New global extra data.
+     */
+<span class="fstat-no" title="function not covered" >    function setExtraData(</span>
+        RingBuffer storage _self,
+        bytes27 _extraData
+    )
+        internal
+    {
+<span class="cstat-no" title="statement not covered" >        RingBufferContext memory ctx = _self.getContext();</span>
+<span class="cstat-no" title="statement not covered" >        ctx.extraData = _extraData</span>;
+<span class="cstat-no" title="statement not covered" >        _self.setContext(ctx)</span>;
+    }
+&nbsp;
+    /**
+     * Retrieves the current global extra data.
+     * @param _self Buffer to access.
+     * @return Current global extra data.
+     */
+    function getExtraData(
+        RingBuffer storage _self
+    )
+        internal
+        view
+        returns (
+            bytes27
+        )
+    {
+        RingBufferContext memory ctx = _self.getContext();
+        return ctx.extraData;
+    }
+&nbsp;
+    /**
+     * Sets the current ring buffer context.
+     * @param _self Buffer to access.
+     * @param _ctx Current ring buffer context.
+     */
+    function setContext(
+        RingBuffer storage _self,
+        RingBufferContext memory _ctx
+    )
+        internal
+    {
+        bytes32 contextA;
+        bytes32 contextB;
+&nbsp;
+        uint40 globalIndex = _ctx.globalIndex;
+        bytes27 extraData = _ctx.extraData;
+        assembly {
+            contextA := globalIndex
+            contextA := or(contextA, extraData)
+        }
+&nbsp;
+        uint64 currBufferIndex = _ctx.currBufferIndex;
+        uint40 prevResetIndex = _ctx.prevResetIndex;
+        uint40 currResetIndex = _ctx.currResetIndex;
+        assembly {
+            contextB := currBufferIndex
+            contextB := or(contextB, shl(64, prevResetIndex))
+            contextB := or(contextB, shl(104, currResetIndex))
+        }
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (_self.contextA != contextA) {
+            _self.contextA = contextA;
+        }
+&nbsp;
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (_self.contextB != contextB) {
+<span class="cstat-no" title="statement not covered" >            _self.contextB = contextB</span>;
+        }
+    }
+&nbsp;
+    /**
+     * Retrieves the current ring buffer context.
+     * @param _self Buffer to access.
+     * @return Current ring buffer context.
+     */
+    function getContext(
+        RingBuffer storage _self
+    )
+        internal
+        view
+        returns (
+            RingBufferContext memory
+        )
+    {
+        bytes32 contextA = _self.contextA;
+        bytes32 contextB = _self.contextB;
+&nbsp;
+        uint40 globalIndex;
+        bytes27 extraData;
+        assembly {
+            globalIndex := and(contextA, 0x000000000000000000000000000000000000000000000000000000FFFFFFFFFF)
+            extraData   := and(contextA, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000)
+        }
+&nbsp;
+        uint64 currBufferIndex;
+        uint40 prevResetIndex;
+        uint40 currResetIndex;
+        assembly {
+            currBufferIndex :=          and(contextB, 0x000000000000000000000000000000000000000000000000FFFFFFFFFFFFFFFF)
+            prevResetIndex  := shr(64,  and(contextB, 0x00000000000000000000000000000000000000FFFFFFFFFF0000000000000000))
+            currResetIndex  := shr(104, and(contextB, 0x0000000000000000000000000000FFFFFFFFFF00000000000000000000000000))
+        }
+&nbsp;
+        return RingBufferContext({
+            globalIndex: globalIndex,
+            extraData: extraData,
+            currBufferIndex: currBufferIndex,
+            prevResetIndex: prevResetIndex,
+            currResetIndex: currResetIndex
+        });
+    }
+&nbsp;
+    /**
+     * Retrieves the a buffer from the ring buffer by index.
+     * @param _self Buffer to access.
+     * @param _which Index of the sub buffer to access.
+     * @return Sub buffer for the index.
+     */
+    function getBuffer(
+        RingBuffer storage _self,
+        uint256 _which
+    )
+        internal
+        view
+        returns (
+            Buffer storage
+        )
+    {
+        return _which % 2 == 0 ? _self.bufferA : _self.bufferB;
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Mar 24 2021 20:31:28 GMT-0400 (Eastern Daylight Time)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>

@@ -1,0 +1,3755 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for OVM/chain/OVM_CanonicalTransactionChain.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">OVM/chain/</a> OVM_CanonicalTransactionChain.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">95.51% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>149/156</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">87.5% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>63/72</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">84.38% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>27/32</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">95.88% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>163/170</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+517
+518
+519
+520
+521
+522
+523
+524
+525
+526
+527
+528
+529
+530
+531
+532
+533
+534
+535
+536
+537
+538
+539
+540
+541
+542
+543
+544
+545
+546
+547
+548
+549
+550
+551
+552
+553
+554
+555
+556
+557
+558
+559
+560
+561
+562
+563
+564
+565
+566
+567
+568
+569
+570
+571
+572
+573
+574
+575
+576
+577
+578
+579
+580
+581
+582
+583
+584
+585
+586
+587
+588
+589
+590
+591
+592
+593
+594
+595
+596
+597
+598
+599
+600
+601
+602
+603
+604
+605
+606
+607
+608
+609
+610
+611
+612
+613
+614
+615
+616
+617
+618
+619
+620
+621
+622
+623
+624
+625
+626
+627
+628
+629
+630
+631
+632
+633
+634
+635
+636
+637
+638
+639
+640
+641
+642
+643
+644
+645
+646
+647
+648
+649
+650
+651
+652
+653
+654
+655
+656
+657
+658
+659
+660
+661
+662
+663
+664
+665
+666
+667
+668
+669
+670
+671
+672
+673
+674
+675
+676
+677
+678
+679
+680
+681
+682
+683
+684
+685
+686
+687
+688
+689
+690
+691
+692
+693
+694
+695
+696
+697
+698
+699
+700
+701
+702
+703
+704
+705
+706
+707
+708
+709
+710
+711
+712
+713
+714
+715
+716
+717
+718
+719
+720
+721
+722
+723
+724
+725
+726
+727
+728
+729
+730
+731
+732
+733
+734
+735
+736
+737
+738
+739
+740
+741
+742
+743
+744
+745
+746
+747
+748
+749
+750
+751
+752
+753
+754
+755
+756
+757
+758
+759
+760
+761
+762
+763
+764
+765
+766
+767
+768
+769
+770
+771
+772
+773
+774
+775
+776
+777
+778
+779
+780
+781
+782
+783
+784
+785
+786
+787
+788
+789
+790
+791
+792
+793
+794
+795
+796
+797
+798
+799
+800
+801
+802
+803
+804
+805
+806
+807
+808
+809
+810
+811
+812
+813
+814
+815
+816
+817
+818
+819
+820
+821
+822
+823
+824
+825
+826
+827
+828
+829
+830
+831
+832
+833
+834
+835
+836
+837
+838
+839
+840
+841
+842
+843
+844
+845
+846
+847
+848
+849
+850
+851
+852
+853
+854
+855
+856
+857
+858
+859
+860
+861
+862
+863
+864
+865
+866
+867
+868
+869
+870
+871
+872
+873
+874
+875
+876
+877
+878
+879
+880
+881
+882
+883
+884
+885
+886
+887
+888
+889
+890
+891
+892
+893
+894
+895
+896
+897
+898
+899
+900
+901
+902
+903
+904
+905
+906
+907
+908
+909
+910
+911
+912
+913
+914
+915
+916
+917
+918
+919
+920
+921
+922
+923
+924
+925
+926
+927
+928
+929
+930
+931
+932
+933
+934
+935
+936
+937
+938
+939
+940
+941
+942
+943
+944
+945
+946
+947
+948
+949
+950
+951
+952
+953
+954
+955
+956
+957
+958
+959
+960
+961
+962
+963
+964
+965
+966
+967
+968
+969
+970
+971
+972
+973
+974
+975
+976
+977
+978
+979
+980
+981
+982
+983
+984
+985
+986
+987
+988
+989
+990
+991
+992
+993
+994
+995
+996
+997
+998
+999
+1000
+1001
+1002
+1003
+1004
+1005
+1006
+1007
+1008
+1009
+1010
+1011
+1012
+1013
+1014
+1015
+1016
+1017
+1018
+1019
+1020
+1021
+1022
+1023
+1024
+1025
+1026
+1027
+1028
+1029
+1030
+1031
+1032
+1033
+1034
+1035
+1036
+1037
+1038
+1039
+1040
+1041
+1042
+1043
+1044
+1045
+1046
+1047
+1048
+1049
+1050
+1051
+1052
+1053
+1054
+1055
+1056
+1057
+1058
+1059
+1060
+1061
+1062
+1063
+1064
+1065
+1066
+1067
+1068
+1069
+1070
+1071
+1072
+1073
+1074
+1075
+1076
+1077
+1078
+1079
+1080
+1081
+1082
+1083
+1084
+1085
+1086
+1087
+1088
+1089
+1090
+1091
+1092
+1093
+1094
+1095
+1096
+1097
+1098
+1099
+1100
+1101
+1102
+1103
+1104
+1105
+1106
+1107
+1108
+1109
+1110
+1111
+1112
+1113
+1114
+1115
+1116
+1117
+1118
+1119
+1120
+1121
+1122
+1123
+1124
+1125
+1126
+1127
+1128
+1129
+1130
+1131
+1132
+1133
+1134
+1135
+1136
+1137
+1138
+1139
+1140
+1141
+1142
+1143
+1144
+1145
+1146
+1147
+1148
+1149
+1150
+1151
+1152
+1153
+1154
+1155
+1156
+1157
+1158
+1159
+1160
+1161
+1162
+1163
+1164
+1165
+1166
+1167
+1168
+1169
+1170
+1171
+1172
+1173
+1174
+1175
+1176
+1177
+1178
+1179
+1180
+1181
+1182
+1183
+1184
+1185
+1186
+1187
+1188
+1189
+1190
+1191
+1192
+1193
+1194
+1195
+1196
+1197
+1198
+1199
+1200
+1201
+1202
+1203
+1204
+1205
+1206
+1207
+1208
+1209
+1210
+1211
+1212
+1213
+1214
+1215
+1216
+1217
+1218
+1219
+1220
+1221
+1222
+1223
+1224
+1225
+1226
+1227
+1228
+1229
+1230
+1231</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">222×</span>
+<span class="cline-any cline-yes">222×</span>
+<span class="cline-any cline-yes">222×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">559×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">382×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">291×</span>
+<span class="cline-any cline-yes">291×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">47×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">239×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">238×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">237×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">236×</span>
+<span class="cline-any cline-yes">236×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">236×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-yes">37600×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-yes">235×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">104×</span>
+<span class="cline-any cline-yes">104×</span>
+<span class="cline-any cline-yes">104×</span>
+<span class="cline-any cline-yes">104×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">104×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">103×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">102×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">101×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-yes">232×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">232×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">226×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">221×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">221×</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">221×</span>
+<span class="cline-any cline-yes">179×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">178×</span>
+<span class="cline-any cline-yes">178×</span>
+<span class="cline-any cline-yes">178×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">88×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">82×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">232×</span>
+<span class="cline-any cline-yes">232×</span>
+<span class="cline-any cline-yes">232×</span>
+<span class="cline-any cline-yes">232×</span>
+<span class="cline-any cline-yes">232×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">232×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">232×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">476×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">476×</span>
+<span class="cline-any cline-yes">476×</span>
+<span class="cline-any cline-yes">476×</span>
+<span class="cline-any cline-yes">476×</span>
+<span class="cline-any cline-yes">476×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">476×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">179×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">267×</span>
+<span class="cline-any cline-yes">267×</span>
+<span class="cline-any cline-yes">265×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">265×</span>
+<span class="cline-any cline-yes">265×</span>
+<span class="cline-any cline-yes">265×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">265×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-yes">419×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">439×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">81×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">100×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">96×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">95×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">178×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">177×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">176×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">174×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">226×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">225×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">224×</span>
+<span class="cline-any cline-yes">175×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">88×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">85×</span>
+<span class="cline-any cline-yes">83×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">179×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+// @unsupported: ovm
+pragma solidity &gt;0.5.0 &lt;0.8.0;
+pragma experimental ABIEncoderV2;
+&nbsp;
+/* Library Imports */
+import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
+import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
+import { Lib_MerkleTree } from "../../libraries/utils/Lib_MerkleTree.sol";
+import { Lib_Math } from "../../libraries/utils/Lib_Math.sol";
+&nbsp;
+/* Interface Imports */
+import { iOVM_CanonicalTransactionChain } from "../../iOVM/chain/iOVM_CanonicalTransactionChain.sol";
+import { iOVM_ChainStorageContainer } from "../../iOVM/chain/iOVM_ChainStorageContainer.sol";
+&nbsp;
+/* Contract Imports */
+import { OVM_ExecutionManager } from "../execution/OVM_ExecutionManager.sol";
+&nbsp;
+&nbsp;
+/**
+ * @title OVM_CanonicalTransactionChain
+ * @dev The Canonical Transaction Chain (CTC) contract is an append-only log of transactions
+ * which must be applied to the rollup state. It defines the ordering of rollup transactions by
+ * writing them to the 'CTC:batches' instance of the Chain Storage Container.
+ * The CTC also allows any account to 'enqueue' an L2 transaction, which will require that the Sequencer
+ * will eventually append it to the rollup state.
+ * If the Sequencer does not include an enqueued transaction within the 'force inclusion period',
+ * then any account may force it to be included by calling appendQueueBatch().
+ *
+ * Compiler used: solc
+ * Runtime target: EVM
+ */
+contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_AddressResolver {
+&nbsp;
+    /*************
+     * Constants *
+     *************/
+&nbsp;
+    // L2 tx gas-related
+    uint256 constant public MIN_ROLLUP_TX_GAS = 100000;
+    uint256 constant public MAX_ROLLUP_TX_SIZE = 10000;
+    uint256 constant public L2_GAS_DISCOUNT_DIVISOR = 32;
+&nbsp;
+    // Encoding-related (all in bytes)
+    uint256 constant internal BATCH_CONTEXT_SIZE = 16;
+    uint256 constant internal BATCH_CONTEXT_LENGTH_POS = 12;
+    uint256 constant internal BATCH_CONTEXT_START_POS = 15;
+    uint256 constant internal TX_DATA_HEADER_SIZE = 3;
+    uint256 constant internal BYTES_TILL_TX_DATA = 65;
+&nbsp;
+&nbsp;
+    /*************
+     * Variables *
+     *************/
+&nbsp;
+    uint256 public forceInclusionPeriodSeconds;
+    uint256 public forceInclusionPeriodBlocks;
+    uint256 public maxTransactionGasLimit;
+&nbsp;
+&nbsp;
+    /***************
+     * Constructor *
+     ***************/
+&nbsp;
+    constructor(
+        address _libAddressManager,
+        uint256 _forceInclusionPeriodSeconds,
+        uint256 _forceInclusionPeriodBlocks,
+        uint256 _maxTransactionGasLimit
+    )
+        Lib_AddressResolver(_libAddressManager)
+    {
+        forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
+        forceInclusionPeriodBlocks = _forceInclusionPeriodBlocks;
+        maxTransactionGasLimit = _maxTransactionGasLimit;
+    }
+&nbsp;
+&nbsp;
+    /********************
+     * Public Functions *
+     ********************/
+&nbsp;
+    /**
+     * Accesses the batch storage container.
+     * @return Reference to the batch storage container.
+     */
+    function batches()
+        override
+        public
+        view
+        returns (
+            iOVM_ChainStorageContainer
+        )
+    {
+        return iOVM_ChainStorageContainer(
+            resolve("OVM_ChainStorageContainer:CTC:batches")
+        );
+    }
+&nbsp;
+    /**
+     * Accesses the queue storage container.
+     * @return Reference to the queue storage container.
+     */
+    function queue()
+        override
+        public
+        view
+        returns (
+            iOVM_ChainStorageContainer
+        )
+    {
+        return iOVM_ChainStorageContainer(
+            resolve("OVM_ChainStorageContainer:CTC:queue")
+        );
+    }
+&nbsp;
+    /**
+     * Retrieves the total number of elements submitted.
+     * @return _totalElements Total submitted elements.
+     */
+    function getTotalElements()
+        override
+        public
+        view
+        returns (
+            uint256 _totalElements
+        )
+    {
+        (uint40 totalElements,,,) = _getBatchExtraData();
+        return uint256(totalElements);
+    }
+&nbsp;
+    /**
+     * Retrieves the total number of batches submitted.
+     * @return _totalBatches Total submitted batches.
+     */
+<span class="fstat-no" title="function not covered" >    function getTotalBatches()</span>
+        override
+        public
+        view
+        returns (
+            uint256 _totalBatches
+        )
+    {
+<span class="cstat-no" title="statement not covered" >        return batches().length();</span>
+    }
+&nbsp;
+    /**
+     * Returns the index of the next element to be enqueued.
+     * @return Index for the next queue element.
+     */
+    function getNextQueueIndex()
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+        (,uint40 nextQueueIndex,,) = _getBatchExtraData();
+        return nextQueueIndex;
+    }
+&nbsp;
+    /**
+     * Returns the timestamp of the last transaction.
+     * @return Timestamp for the last transaction.
+     */
+<span class="fstat-no" title="function not covered" >    function getLastTimestamp()</span>
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+<span class="cstat-no" title="statement not covered" >        (,,uint40 lastTimestamp,) = _getBatchExtraData();</span>
+<span class="cstat-no" title="statement not covered" >        return lastTimestamp;</span>
+    }
+&nbsp;
+    /**
+     * Returns the blocknumber of the last transaction.
+     * @return Blocknumber for the last transaction.
+     */
+<span class="fstat-no" title="function not covered" >    function getLastBlockNumber()</span>
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+<span class="cstat-no" title="statement not covered" >        (,,,uint40 lastBlockNumber) = _getBatchExtraData();</span>
+<span class="cstat-no" title="statement not covered" >        return lastBlockNumber;</span>
+    }
+&nbsp;
+    /**
+     * Gets the queue element at a particular index.
+     * @param _index Index of the queue element to access.
+     * @return _element Queue element at the given index.
+     */
+    function getQueueElement(
+        uint256 _index
+    )
+        override
+        public
+        view
+        returns (
+            Lib_OVMCodec.QueueElement memory _element
+        )
+    {
+        return _getQueueElement(
+            _index,
+            queue()
+        );
+    }
+&nbsp;
+    /**
+     * Get the number of queue elements which have not yet been included.
+     * @return Number of pending queue elements.
+     */
+<span class="fstat-no" title="function not covered" >    function getNumPendingQueueElements()</span>
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+<span class="cstat-no" title="statement not covered" >        return getQueueLength() - getNextQueueIndex();</span>
+    }
+&nbsp;
+   /**
+     * Retrieves the length of the queue, including
+     * both pending and canonical transactions.
+     * @return Length of the queue.
+     */
+<span class="fstat-no" title="function not covered" >    function getQueueLength()</span>
+        override
+        public
+        view
+        returns (
+            uint40
+        )
+    {
+<span class="cstat-no" title="statement not covered" >        return _getQueueLength(</span>
+            queue()
+        );
+    }
+&nbsp;
+    /**
+     * Adds a transaction to the queue.
+     * @param _target Target L2 contract to send the transaction to.
+     * @param _gasLimit Gas limit for the enqueued L2 transaction.
+     * @param _data Transaction data.
+     */
+    function enqueue(
+        address _target,
+        uint256 _gasLimit,
+        bytes memory _data
+    )
+        override
+        public
+    {
+        require(
+            _data.length &lt;= MAX_ROLLUP_TX_SIZE,
+            "Transaction data size exceeds maximum for rollup transaction."
+        );
+&nbsp;
+        require(
+            _gasLimit &lt;= maxTransactionGasLimit,
+            "Transaction gas limit exceeds maximum for rollup transaction."
+        );
+&nbsp;
+        require(
+            _gasLimit &gt;= MIN_ROLLUP_TX_GAS,
+            "Transaction gas limit too low to enqueue."
+        );
+&nbsp;
+        // We need to consume some amount of L1 gas in order to rate limit transactions going into
+        // L2. However, L2 is cheaper than L1 so we only need to burn some small proportion of the
+        // provided L1 gas.
+        uint256 gasToConsume = _gasLimit/L2_GAS_DISCOUNT_DIVISOR;
+        uint256 startingGas = gasleft();
+&nbsp;
+        // Although this check is not necessary (burn below will run out of gas if not true), it
+        // gives the user an explicit reason as to why the enqueue attempt failed.
+        require(
+            startingGas &gt; gasToConsume,
+            "Insufficient gas for L2 rate limiting burn."
+        );
+&nbsp;
+        // Here we do some "dumb" work in order to burn gas, although we should probably replace
+        // this with something like minting gas token later on.
+        uint256 i;
+        while(startingGas - gasleft() &lt; gasToConsume) {
+            i++;
+        }
+&nbsp;
+        bytes32 transactionHash = keccak256(
+            abi.encode(
+                msg.sender,
+                _target,
+                _gasLimit,
+                _data
+            )
+        );
+&nbsp;
+        bytes32 timestampAndBlockNumber;
+        assembly {
+            timestampAndBlockNumber := timestamp()
+            timestampAndBlockNumber := or(timestampAndBlockNumber, shl(40, number()))
+        }
+&nbsp;
+        iOVM_ChainStorageContainer queueRef = queue();
+&nbsp;
+        queueRef.push(transactionHash);
+        queueRef.push(timestampAndBlockNumber);
+&nbsp;
+        // The underlying queue data structure stores 2 elements
+        // per insertion, so to get the real queue length we need
+        // to divide by 2 and subtract 1.
+        uint256 queueIndex = queueRef.length() / 2 - 1;
+        emit TransactionEnqueued(
+            msg.sender,
+            _target,
+            _gasLimit,
+            _data,
+            queueIndex,
+            block.timestamp
+        );
+    }
+&nbsp;
+    /**
+     * Appends a given number of queued transactions as a single batch.
+     * param _numQueuedTransactions Number of transactions to append.
+     */
+    function appendQueueBatch(
+        uint256 // _numQueuedTransactions
+    )
+        override
+        public
+        pure
+    {
+        // TEMPORARY: Disable `appendQueueBatch` for minnet
+        revert("appendQueueBatch is currently disabled.");
+&nbsp;
+        // _numQueuedTransactions = Lib_Math.min(_numQueuedTransactions, getNumPendingQueueElements());
+        // require(
+        //     _numQueuedTransactions &gt; 0,
+        //     "Must append more than zero transactions."
+        // );
+&nbsp;
+        // bytes32[] memory leaves = new bytes32[](_numQueuedTransactions);
+        // uint40 nextQueueIndex = getNextQueueIndex();
+&nbsp;
+        // for (uint256 i = 0; i &lt; _numQueuedTransactions; i++) {
+        //     if (msg.sender != resolve("OVM_Sequencer")) {
+        //         Lib_OVMCodec.QueueElement memory el = getQueueElement(nextQueueIndex);
+        //         require(
+        //             el.timestamp + forceInclusionPeriodSeconds &lt; block.timestamp,
+        //             "Queue transactions cannot be submitted during the sequencer inclusion period."
+        //         );
+        //     }
+        //     leaves[i] = _getQueueLeafHash(nextQueueIndex);
+        //     nextQueueIndex++;
+        // }
+&nbsp;
+        // Lib_OVMCodec.QueueElement memory lastElement = getQueueElement(nextQueueIndex - 1);
+&nbsp;
+        // _appendBatch(
+        //     Lib_MerkleTree.getMerkleRoot(leaves),
+        //     _numQueuedTransactions,
+        //     _numQueuedTransactions,
+        //     lastElement.timestamp,
+        //     lastElement.blockNumber
+        // );
+&nbsp;
+        // emit QueueBatchAppended(
+        //     nextQueueIndex - _numQueuedTransactions,
+        //     _numQueuedTransactions,
+        //     getTotalElements()
+        // );
+    }
+&nbsp;
+    /**
+     * Allows the sequencer to append a batch of transactions.
+     * @dev This function uses a custom encoding scheme for efficiency reasons.
+     * .param _shouldStartAtElement Specific batch we expect to start appending to.
+     * .param _totalElementsToAppend Total number of batch elements we expect to append.
+     * .param _contexts Array of batch contexts.
+     * .param _transactionDataFields Array of raw transaction data.
+     */
+    function appendSequencerBatch()
+        override
+        public
+    {
+        uint40 shouldStartAtElement;
+        uint24 totalElementsToAppend;
+        uint24 numContexts;
+        assembly {
+            shouldStartAtElement  := shr(216, calldataload(4))
+            totalElementsToAppend := shr(232, calldataload(9))
+            numContexts           := shr(232, calldataload(12))
+        }
+&nbsp;
+        require(
+            shouldStartAtElement == getTotalElements(),
+            "Actual batch start index does not match expected start index."
+        );
+&nbsp;
+        require(
+            msg.sender == resolve("OVM_Sequencer"),
+            "Function can only be called by the Sequencer."
+        );
+&nbsp;
+        require(
+            numContexts &gt; 0,
+            "Must provide at least one batch context."
+        );
+&nbsp;
+        require(
+            totalElementsToAppend &gt; 0,
+            "Must append at least one element."
+        );
+&nbsp;
+        uint40 nextTransactionPtr = uint40(BATCH_CONTEXT_START_POS + BATCH_CONTEXT_SIZE * numContexts);
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            msg.data.length &gt;= nextTransactionPtr,
+            "Not enough BatchContexts provided."
+        );
+&nbsp;
+        // Take a reference to the queue and its length so we don't have to keep resolving it.
+        // Length isn't going to change during the course of execution, so it's fine to simply
+        // resolve this once at the start. Saves gas.
+        iOVM_ChainStorageContainer queueRef = queue();
+        uint40 queueLength = _getQueueLength(queueRef);
+&nbsp;
+        // Reserve some memory to save gas on hashing later on. This is a relatively safe estimate
+        // for the average transaction size that will prevent having to resize this chunk of memory
+        // later on. Saves gas.
+        bytes memory hashMemory = new bytes((msg.data.length / totalElementsToAppend) * 2);
+&nbsp;
+        // Initialize the array of canonical chain leaves that we will append.
+        bytes32[] memory leaves = new bytes32[](totalElementsToAppend);
+&nbsp;
+        // Each leaf index corresponds to a tx, either sequenced or enqueued.
+        uint32 leafIndex = 0;
+&nbsp;
+        // Counter for number of sequencer transactions appended so far.
+        uint32 numSequencerTransactions = 0;
+&nbsp;
+        // We will sequentially append leaves which are pointers to the queue.
+        // The initial queue index is what is currently in storage.
+        uint40 nextQueueIndex = getNextQueueIndex();
+&nbsp;
+        BatchContext memory curContext;
+        for (uint32 i = 0; i &lt; numContexts; i++) {
+            BatchContext memory nextContext = _getBatchContext(i);
+&nbsp;
+            if (i == 0) {
+                // Execute a special check for the first batch.
+                _validateFirstBatchContext(nextContext);
+            }
+&nbsp;
+            // Execute this check on every single batch, including the first one.
+            _validateNextBatchContext(
+                curContext,
+                nextContext,
+                nextQueueIndex,
+                queueRef
+            );
+&nbsp;
+            // Now we can update our current context.
+            curContext = nextContext;
+&nbsp;
+            // Process sequencer transactions first.
+            for (uint32 j = 0; j &lt; curContext.numSequencedTransactions; j++) {
+                uint256 txDataLength;
+                assembly {
+                    txDataLength := shr(232, calldataload(nextTransactionPtr))
+                }
+&nbsp;
+                leaves[leafIndex] = _getSequencerLeafHash(
+                    curContext,
+                    nextTransactionPtr,
+                    txDataLength,
+                    hashMemory
+                );
+&nbsp;
+                nextTransactionPtr += uint40(TX_DATA_HEADER_SIZE + txDataLength);
+                numSequencerTransactions++;
+                leafIndex++;
+            }
+&nbsp;
+            // Now process any subsequent queue transactions.
+            for (uint32 j = 0; j &lt; curContext.numSubsequentQueueTransactions; j++) {
+                require(
+                    nextQueueIndex &lt; queueLength,
+                    "Not enough queued transactions to append."
+                );
+&nbsp;
+                leaves[leafIndex] = _getQueueLeafHash(nextQueueIndex);
+                nextQueueIndex++;
+                leafIndex++;
+            }
+        }
+&nbsp;
+        _validateFinalBatchContext(
+            curContext,
+            nextQueueIndex,
+            queueLength,
+            queueRef
+        );
+&nbsp;
+        require(
+            msg.data.length == nextTransactionPtr,
+            "Not all sequencer transactions were processed."
+        );
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            leafIndex == totalElementsToAppend,
+            "Actual transaction index does not match expected total elements to append."
+        );
+&nbsp;
+        // Generate the required metadata that we need to append this batch
+        uint40 numQueuedTransactions = totalElementsToAppend - numSequencerTransactions;
+        uint40 blockTimestamp;
+        uint40 blockNumber;
+        if (curContext.numSubsequentQueueTransactions == 0) {
+            // The last element is a sequencer tx, therefore pull timestamp and block number from the last context.
+            blockTimestamp = uint40(curContext.timestamp);
+            blockNumber = uint40(curContext.blockNumber);
+        } else {
+            // The last element is a queue tx, therefore pull timestamp and block number from the queue element.
+            // curContext.numSubsequentQueueTransactions &gt; 0 which means that we've processed at least one queue element.
+            // We increment nextQueueIndex after processing each queue element,
+            // so the index of the last element we processed is nextQueueIndex - 1.
+            Lib_OVMCodec.QueueElement memory lastElement = _getQueueElement(
+                nextQueueIndex - 1,
+                queueRef
+            );
+&nbsp;
+            blockTimestamp = lastElement.timestamp;
+            blockNumber = lastElement.blockNumber;
+        }
+&nbsp;
+        // For efficiency reasons getMerkleRoot modifies the `leaves` argument in place
+        // while calculating the root hash therefore any arguments passed to it must not
+        // be used again afterwards
+        _appendBatch(
+            Lib_MerkleTree.getMerkleRoot(leaves),
+            totalElementsToAppend,
+            numQueuedTransactions,
+            blockTimestamp,
+            blockNumber
+        );
+&nbsp;
+        emit SequencerBatchAppended(
+            nextQueueIndex - numQueuedTransactions,
+            numQueuedTransactions,
+            getTotalElements()
+        );
+    }
+&nbsp;
+    /**
+     * Verifies whether a transaction is included in the chain.
+     * @param _transaction Transaction to verify.
+     * @param _txChainElement Transaction chain element corresponding to the transaction.
+     * @param _batchHeader Header of the batch the transaction was included in.
+     * @param _inclusionProof Inclusion proof for the provided transaction chain element.
+     * @return True if the transaction exists in the CTC, false if not.
+     */
+    function verifyTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        Lib_OVMCodec.TransactionChainElement memory _txChainElement,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
+    )
+        override
+        public
+        view
+        returns (
+            bool
+        )
+    {
+        if (_txChainElement.isSequenced == true) {
+            return _verifySequencerTransaction(
+                _transaction,
+                _txChainElement,
+                _batchHeader,
+                _inclusionProof
+            );
+        } else {
+            return _verifyQueueTransaction(
+                _transaction,
+                _txChainElement.queueIndex,
+                _batchHeader,
+                _inclusionProof
+            );
+        }
+    }
+&nbsp;
+&nbsp;
+    /**********************
+     * Internal Functions *
+     **********************/
+&nbsp;
+    /**
+     * Returns the BatchContext located at a particular index.
+     * @param _index The index of the BatchContext
+     * @return The BatchContext at the specified index.
+     */
+    function _getBatchContext(
+        uint256 _index
+    )
+        internal
+        pure
+        returns (
+            BatchContext memory
+        )
+    {
+        uint256 contextPtr = 15 + _index * BATCH_CONTEXT_SIZE;
+        uint256 numSequencedTransactions;
+        uint256 numSubsequentQueueTransactions;
+        uint256 ctxTimestamp;
+        uint256 ctxBlockNumber;
+&nbsp;
+        assembly {
+            numSequencedTransactions       := shr(232, calldataload(contextPtr))
+            numSubsequentQueueTransactions := shr(232, calldataload(add(contextPtr, 3)))
+            ctxTimestamp                   := shr(216, calldataload(add(contextPtr, 6)))
+            ctxBlockNumber                 := shr(216, calldataload(add(contextPtr, 11)))
+        }
+&nbsp;
+        return BatchContext({
+            numSequencedTransactions: numSequencedTransactions,
+            numSubsequentQueueTransactions: numSubsequentQueueTransactions,
+            timestamp: ctxTimestamp,
+            blockNumber: ctxBlockNumber
+        });
+    }
+&nbsp;
+    /**
+     * Parses the batch context from the extra data.
+     * @return Total number of elements submitted.
+     * @return Index of the next queue element.
+     */
+    function _getBatchExtraData()
+        internal
+        view
+        returns (
+            uint40,
+            uint40,
+            uint40,
+            uint40
+        )
+    {
+        bytes27 extraData = batches().getGlobalMetadata();
+&nbsp;
+        uint40 totalElements;
+        uint40 nextQueueIndex;
+        uint40 lastTimestamp;
+        uint40 lastBlockNumber;
+        assembly {
+            extraData       :=  shr(40, extraData)
+            totalElements   :=  and(extraData, 0x000000000000000000000000000000000000000000000000000000FFFFFFFFFF)
+            nextQueueIndex  :=  shr(40, and(extraData, 0x00000000000000000000000000000000000000000000FFFFFFFFFF0000000000))
+            lastTimestamp   :=  shr(80, and(extraData, 0x0000000000000000000000000000000000FFFFFFFFFF00000000000000000000))
+            lastBlockNumber :=  shr(120, and(extraData, 0x000000000000000000000000FFFFFFFFFF000000000000000000000000000000))
+        }
+&nbsp;
+        return (
+            totalElements,
+            nextQueueIndex,
+            lastTimestamp,
+            lastBlockNumber
+        );
+    }
+&nbsp;
+    /**
+     * Encodes the batch context for the extra data.
+     * @param _totalElements Total number of elements submitted.
+     * @param _nextQueueIndex Index of the next queue element.
+     * @param _timestamp Timestamp for the last batch.
+     * @param _blockNumber Block number of the last batch.
+     * @return Encoded batch context.
+     */
+    function _makeBatchExtraData(
+        uint40 _totalElements,
+        uint40 _nextQueueIndex,
+        uint40 _timestamp,
+        uint40 _blockNumber
+    )
+        internal
+        pure
+        returns (
+            bytes27
+        )
+    {
+        bytes27 extraData;
+        assembly {
+            extraData := _totalElements
+            extraData := or(extraData, shl(40, _nextQueueIndex))
+            extraData := or(extraData, shl(80, _timestamp))
+            extraData := or(extraData, shl(120, _blockNumber))
+            extraData := shl(40, extraData)
+        }
+&nbsp;
+        return extraData;
+    }
+&nbsp;
+    /**
+     * Retrieves the hash of a queue element.
+     * @param _index Index of the queue element to retrieve a hash for.
+     * @return Hash of the queue element.
+     */
+    function _getQueueLeafHash(
+        uint256 _index
+    )
+        internal
+        pure
+        returns (
+            bytes32
+        )
+    {
+        return _hashTransactionChainElement(
+            Lib_OVMCodec.TransactionChainElement({
+                isSequenced: false,
+                queueIndex: _index,
+                timestamp: 0,
+                blockNumber: 0,
+                txData: hex""
+            })
+        );
+    }
+&nbsp;
+    /**
+     * Gets the queue element at a particular index.
+     * @param _index Index of the queue element to access.
+     * @return _element Queue element at the given index.
+     */
+    function _getQueueElement(
+        uint256 _index,
+        iOVM_ChainStorageContainer _queueRef
+    )
+        internal
+        view
+        returns (
+            Lib_OVMCodec.QueueElement memory _element
+        )
+    {
+        // The underlying queue data structure stores 2 elements
+        // per insertion, so to get the actual desired queue index
+        // we need to multiply by 2.
+        uint40 trueIndex = uint40(_index * 2);
+        bytes32 transactionHash = _queueRef.get(trueIndex);
+        bytes32 timestampAndBlockNumber = _queueRef.get(trueIndex + 1);
+&nbsp;
+        uint40 elementTimestamp;
+        uint40 elementBlockNumber;
+        assembly {
+            elementTimestamp   :=         and(timestampAndBlockNumber, 0x000000000000000000000000000000000000000000000000000000FFFFFFFFFF)
+            elementBlockNumber := shr(40, and(timestampAndBlockNumber, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000))
+        }
+&nbsp;
+        return Lib_OVMCodec.QueueElement({
+            transactionHash: transactionHash,
+            timestamp: elementTimestamp,
+            blockNumber: elementBlockNumber
+        });
+    }
+&nbsp;
+    /**
+     * Retrieves the length of the queue.
+     * @return Length of the queue.
+     */
+    function _getQueueLength(
+        iOVM_ChainStorageContainer _queueRef
+    )
+        internal
+        view
+        returns (
+            uint40
+        )
+    {
+        // The underlying queue data structure stores 2 elements
+        // per insertion, so to get the real queue length we need
+        // to divide by 2.
+        return uint40(_queueRef.length() / 2);
+    }
+&nbsp;
+    /**
+     * Retrieves the hash of a sequencer element.
+     * @param _context Batch context for the given element.
+     * @param _nextTransactionPtr Pointer to the next transaction in the calldata.
+     * @param _txDataLength Length of the transaction item.
+     * @return Hash of the sequencer element.
+     */
+    function _getSequencerLeafHash(
+        BatchContext memory _context,
+        uint256 _nextTransactionPtr,
+        uint256 _txDataLength,
+        bytes memory _hashMemory
+    )
+        internal
+        pure
+        returns (
+            bytes32
+        )
+    {
+        // Only allocate more memory if we didn't reserve enough to begin with.
+        if (BYTES_TILL_TX_DATA + _txDataLength &gt; _hashMemory.length) {
+            _hashMemory = new bytes(BYTES_TILL_TX_DATA + _txDataLength);
+        }
+&nbsp;
+        uint256 ctxTimestamp = _context.timestamp;
+        uint256 ctxBlockNumber = _context.blockNumber;
+&nbsp;
+        bytes32 leafHash;
+        assembly {
+            let chainElementStart := add(_hashMemory, 0x20)
+&nbsp;
+            // Set the first byte equal to `1` to indicate this is a sequencer chain element.
+            // This distinguishes sequencer ChainElements from queue ChainElements because
+            // all queue ChainElements are ABI encoded and the first byte of ABI encoded
+            // elements is always zero
+            mstore8(chainElementStart, 1)
+&nbsp;
+            mstore(add(chainElementStart, 1), ctxTimestamp)
+            mstore(add(chainElementStart, 33), ctxBlockNumber)
+&nbsp;
+            calldatacopy(add(chainElementStart, BYTES_TILL_TX_DATA), add(_nextTransactionPtr, 3), _txDataLength)
+&nbsp;
+            leafHash := keccak256(chainElementStart, add(BYTES_TILL_TX_DATA, _txDataLength))
+        }
+&nbsp;
+        return leafHash;
+    }
+&nbsp;
+    /**
+     * Retrieves the hash of a sequencer element.
+     * @param _txChainElement The chain element which is hashed to calculate the leaf.
+     * @return Hash of the sequencer element.
+     */
+    function _getSequencerLeafHash(
+        Lib_OVMCodec.TransactionChainElement memory _txChainElement
+    )
+        internal
+        view
+        returns(
+            bytes32
+        )
+    {
+        bytes memory txData = _txChainElement.txData;
+        uint256 txDataLength = _txChainElement.txData.length;
+&nbsp;
+        bytes memory chainElement = new bytes(BYTES_TILL_TX_DATA + txDataLength);
+        uint256 ctxTimestamp = _txChainElement.timestamp;
+        uint256 ctxBlockNumber = _txChainElement.blockNumber;
+&nbsp;
+        bytes32 leafHash;
+        assembly {
+            let chainElementStart := add(chainElement, 0x20)
+&nbsp;
+            // Set the first byte equal to `1` to indicate this is a sequencer chain element.
+            // This distinguishes sequencer ChainElements from queue ChainElements because
+            // all queue ChainElements are ABI encoded and the first byte of ABI encoded
+            // elements is always zero
+            mstore8(chainElementStart, 1)
+&nbsp;
+            mstore(add(chainElementStart, 1), ctxTimestamp)
+            mstore(add(chainElementStart, 33), ctxBlockNumber)
+&nbsp;
+            pop(staticcall(gas(), 0x04, add(txData, 0x20), txDataLength, add(chainElementStart, BYTES_TILL_TX_DATA), txDataLength))
+&nbsp;
+            leafHash := keccak256(chainElementStart, add(BYTES_TILL_TX_DATA, txDataLength))
+        }
+&nbsp;
+        return leafHash;
+    }
+&nbsp;
+    /**
+     * Inserts a batch into the chain of batches.
+     * @param _transactionRoot Root of the transaction tree for this batch.
+     * @param _batchSize Number of elements in the batch.
+     * @param _numQueuedTransactions Number of queue transactions in the batch.
+     * @param _timestamp The latest batch timestamp.
+     * @param _blockNumber The latest batch blockNumber.
+     */
+    function _appendBatch(
+        bytes32 _transactionRoot,
+        uint256 _batchSize,
+        uint256 _numQueuedTransactions,
+        uint40 _timestamp,
+        uint40 _blockNumber
+    )
+        internal
+    {
+        iOVM_ChainStorageContainer batchesRef = batches();
+        (uint40 totalElements, uint40 nextQueueIndex,,) = _getBatchExtraData();
+&nbsp;
+        Lib_OVMCodec.ChainBatchHeader memory header = Lib_OVMCodec.ChainBatchHeader({
+            batchIndex: batchesRef.length(),
+            batchRoot: _transactionRoot,
+            batchSize: _batchSize,
+            prevTotalElements: totalElements,
+            extraData: hex""
+        });
+&nbsp;
+        emit TransactionBatchAppended(
+            header.batchIndex,
+            header.batchRoot,
+            header.batchSize,
+            header.prevTotalElements,
+            header.extraData
+        );
+&nbsp;
+        bytes32 batchHeaderHash = Lib_OVMCodec.hashBatchHeader(header);
+        bytes27 latestBatchContext = _makeBatchExtraData(
+            totalElements + uint40(header.batchSize),
+            nextQueueIndex + uint40(_numQueuedTransactions),
+            _timestamp,
+            _blockNumber
+        );
+&nbsp;
+        batchesRef.push(batchHeaderHash, latestBatchContext);
+    }
+&nbsp;
+    /**
+     * Checks that the first batch context in a sequencer submission is valid
+     * @param _firstContext The batch context to validate.
+     */
+    function _validateFirstBatchContext(
+        BatchContext memory _firstContext
+    )
+        internal
+        view
+    {
+        // If there are existing elements, this batch must have the same context 
+        // or a later timestamp and block number.
+        if (getTotalElements() &gt; 0) {
+            (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
+&nbsp;
+            require(
+                _firstContext.blockNumber &gt;= lastBlockNumber,
+                "Context block number is lower than last submitted."
+            );
+&nbsp;
+            <span class="missing-if-branch" title="if path not taken" >I</span>require(
+                _firstContext.timestamp &gt;= lastTimestamp,
+                "Context timestamp is lower than last submitted."
+            );
+        }
+&nbsp;
+        // Sequencer cannot submit contexts which are more than the force inclusion period old.
+        require(
+            _firstContext.timestamp + forceInclusionPeriodSeconds &gt;= block.timestamp,
+            "Context timestamp too far in the past."
+        );
+&nbsp;
+        require(
+            _firstContext.blockNumber + forceInclusionPeriodBlocks &gt;= block.number,
+            "Context block number too far in the past."
+        );
+    }
+&nbsp;
+    /**
+     * Checks that a given batch context has a time context which is below a given que element
+     * @param _context The batch context to validate has values lower.
+     * @param _queueIndex Index of the queue element we are validating came later than the context.
+     * @param _queueRef The storage container for the queue.
+     */
+    function _validateContextBeforeEnqueue(
+        BatchContext memory _context,
+        uint40 _queueIndex,
+        iOVM_ChainStorageContainer _queueRef
+    )
+        internal
+        view
+    {
+            Lib_OVMCodec.QueueElement memory nextQueueElement = _getQueueElement(
+                _queueIndex,
+                _queueRef
+            );
+&nbsp;
+            // If the force inclusion period has passed for an enqueued transaction, it MUST be the next chain element.
+            require(
+                block.timestamp &lt; nextQueueElement.timestamp + forceInclusionPeriodSeconds,
+                "Previously enqueued batches have expired and must be appended before a new sequencer batch."
+            );
+&nbsp;
+            // Just like sequencer transaction times must be increasing relative to each other,
+            // We also require that they be increasing relative to any interspersed queue elements.
+            require(
+                _context.timestamp &lt;= nextQueueElement.timestamp,
+                "Sequencer transaction timestamp exceeds that of next queue element."
+            );
+&nbsp;
+            require(
+                _context.blockNumber &lt;= nextQueueElement.blockNumber,
+                "Sequencer transaction blockNumber exceeds that of next queue element."
+            );
+    }
+&nbsp;
+    /**
+     * Checks that a given batch context is valid based on its previous context, and the next queue elemtent.
+     * @param _prevContext The previously validated batch context.
+     * @param _nextContext The batch context to validate with this call.
+     * @param _nextQueueIndex Index of the next queue element to process for the _nextContext's subsequentQueueElements.
+     * @param _queueRef The storage container for the queue.
+     */
+    function _validateNextBatchContext(
+        BatchContext memory _prevContext,
+        BatchContext memory _nextContext,
+        uint40 _nextQueueIndex,
+        iOVM_ChainStorageContainer _queueRef
+    )
+        internal
+        view
+    {
+        // All sequencer transactions' times must be greater than or equal to the previous ones.
+        require(
+            _nextContext.timestamp &gt;= _prevContext.timestamp,
+            "Context timestamp values must monotonically increase."
+        );
+&nbsp;
+        require(
+            _nextContext.blockNumber &gt;= _prevContext.blockNumber,
+            "Context blockNumber values must monotonically increase."
+        );
+&nbsp;
+        // If there is going to be a queue element pulled in from this context:
+        if (_nextContext.numSubsequentQueueTransactions &gt; 0) {
+            _validateContextBeforeEnqueue(
+                _nextContext,
+                _nextQueueIndex,
+                _queueRef
+            );
+        }
+    }
+&nbsp;
+    /**
+     * Checks that the final batch context in a sequencer submission is valid.
+     * @param _finalContext The batch context to validate.
+     * @param _queueLength The length of the queue at the start of the batchAppend call.
+     * @param _nextQueueIndex The next element in the queue that will be pulled into the CTC.
+     * @param _queueRef The storage container for the queue.
+     */
+    function _validateFinalBatchContext(
+        BatchContext memory _finalContext,
+        uint40 _nextQueueIndex,
+        uint40 _queueLength,
+        iOVM_ChainStorageContainer _queueRef
+    )
+        internal
+        view
+    {
+        // If the queue is not now empty, check the mononoticity of whatever the next batch that will come in is.
+        if (_queueLength - _nextQueueIndex &gt; 0 &amp;&amp; _finalContext.numSubsequentQueueTransactions == 0) {
+            _validateContextBeforeEnqueue(
+                _finalContext,
+                _nextQueueIndex,
+                _queueRef
+            );
+        }
+        // Batches cannot be added from the future, or subsequent enqueue() contexts would violate monotonicity.
+        require(_finalContext.timestamp &lt;= block.timestamp, "Context timestamp is from the future.");
+        require(_finalContext.blockNumber &lt;= block.number, "Context block number is from the future.");
+    }
+&nbsp;
+    /**
+     * Hashes a transaction chain element.
+     * @param _element Chain element to hash.
+     * @return Hash of the chain element.
+     */
+    function _hashTransactionChainElement(
+        Lib_OVMCodec.TransactionChainElement memory _element
+    )
+        internal
+        pure
+        returns (
+            bytes32
+        )
+    {
+        return keccak256(
+            abi.encode(
+                _element.isSequenced,
+                _element.queueIndex,
+                _element.timestamp,
+                _element.blockNumber,
+                _element.txData
+            )
+        );
+    }
+&nbsp;
+    /**
+     * Verifies a sequencer transaction, returning true if it was indeed included in the CTC
+     * @param _transaction The transaction we are verifying inclusion of.
+     * @param _txChainElement The chain element that the transaction is claimed to be a part of.
+     * @param _batchHeader Header of the batch the transaction was included in.
+     * @param _inclusionProof An inclusion proof into the CTC at a particular index.
+     * @return True if the transaction was included in the specified location, else false.
+     */
+    function _verifySequencerTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        Lib_OVMCodec.TransactionChainElement memory _txChainElement,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
+    )
+        internal
+        view
+        returns (
+            bool
+        )
+    {
+        OVM_ExecutionManager ovmExecutionManager = OVM_ExecutionManager(resolve("OVM_ExecutionManager"));
+        uint256 gasLimit = ovmExecutionManager.getMaxTransactionGasLimit();
+        bytes32 leafHash = _getSequencerLeafHash(_txChainElement);
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            _verifyElement(
+                leafHash,
+                _batchHeader,
+                _inclusionProof
+            ),
+            "Invalid Sequencer transaction inclusion proof."
+        );
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            _transaction.blockNumber        == _txChainElement.blockNumber
+            &amp;&amp; _transaction.timestamp       == _txChainElement.timestamp
+            &amp;&amp; _transaction.entrypoint      == resolve("OVM_DecompressionPrecompileAddress")
+            &amp;&amp; _transaction.gasLimit        == gasLimit
+            &amp;&amp; _transaction.l1TxOrigin      == address(0)
+            &amp;&amp; _transaction.l1QueueOrigin   == Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE
+            &amp;&amp; keccak256(_transaction.data) == keccak256(_txChainElement.txData),
+            "Invalid Sequencer transaction."
+        );
+&nbsp;
+        return true;
+    }
+&nbsp;
+    /**
+     * Verifies a queue transaction, returning true if it was indeed included in the CTC
+     * @param _transaction The transaction we are verifying inclusion of.
+     * @param _queueIndex The queueIndex of the queued transaction.
+     * @param _batchHeader Header of the batch the transaction was included in.
+     * @param _inclusionProof An inclusion proof into the CTC at a particular index (should point to queue tx).
+     * @return True if the transaction was included in the specified location, else false.
+     */
+    function _verifyQueueTransaction(
+        Lib_OVMCodec.Transaction memory _transaction,
+        uint256 _queueIndex,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _inclusionProof
+    )
+        internal
+        view
+        returns (
+            bool
+        )
+    {
+        bytes32 leafHash = _getQueueLeafHash(_queueIndex);
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            _verifyElement(
+                leafHash,
+                _batchHeader,
+                _inclusionProof
+            ),
+            "Invalid Queue transaction inclusion proof."
+        );
+&nbsp;
+        bytes32 transactionHash = keccak256(
+            abi.encode(
+                _transaction.l1TxOrigin,
+                _transaction.entrypoint,
+                _transaction.gasLimit,
+                _transaction.data
+            )
+        );
+&nbsp;
+        Lib_OVMCodec.QueueElement memory el = getQueueElement(_queueIndex);
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            el.transactionHash      == transactionHash
+            &amp;&amp; el.timestamp   == _transaction.timestamp
+            &amp;&amp; el.blockNumber == _transaction.blockNumber,
+            "Invalid Queue transaction."
+        );
+&nbsp;
+        return true;
+    }
+&nbsp;
+    /**
+     * Verifies a batch inclusion proof.
+     * @param _element Hash of the element to verify a proof for.
+     * @param _batchHeader Header of the batch in which the element was included.
+     * @param _proof Merkle inclusion proof for the element.
+     */
+    function _verifyElement(
+        bytes32 _element,
+        Lib_OVMCodec.ChainBatchHeader memory _batchHeader,
+        Lib_OVMCodec.ChainInclusionProof memory _proof
+    )
+        internal
+        view
+        returns (
+            bool
+        )
+    {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            Lib_OVMCodec.hashBatchHeader(_batchHeader) == batches().get(uint32(_batchHeader.batchIndex)),
+            "Invalid batch header."
+        );
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            Lib_MerkleTree.verify(
+                _batchHeader.batchRoot,
+                _element,
+                _proof.index,
+                _proof.siblings,
+                _batchHeader.batchSize
+            ),
+            "Invalid inclusion proof."
+        );
+&nbsp;
+        return true;
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Mar 24 2021 20:31:28 GMT-0400 (Eastern Daylight Time)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>
