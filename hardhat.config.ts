@@ -8,7 +8,6 @@ import {
 // Hardhat plugins
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
-import 'hardhat-typechain'
 import 'hardhat-deploy'
 import '@typechain/hardhat'
 import '@eth-optimism/plugins/hardhat/compiler'
