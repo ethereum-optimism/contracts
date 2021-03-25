@@ -4219,11 +4219,6 @@ hardhat-deploy@^0.7.0-beta.50:
     murmur-128 "^0.2.1"
     qs "^6.9.4"
 
-hardhat-typechain@^0.3.4:
-  version "0.3.5"
-  resolved "https://registry.yarnpkg.com/hardhat-typechain/-/hardhat-typechain-0.3.5.tgz#8e50616a9da348b33bd001168c8fda9c66b7b4af"
-  integrity sha512-w9lm8sxqTJACY+V7vijiH+NkPExnmtiQEjsV9JKD1KgMdVk2q8y+RhvU/c4B7+7b1+HylRUCxpOIvFuB3rE4+w==
-
 hardhat@^2.0.8:
   version "2.0.10"
   resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.0.10.tgz#9b50da13b6915bb9b61b7f38f8f2b9b352447462"
