@@ -7,6 +7,7 @@
     "build/contracts/*",
     "build/dumps/*json",
     "build/artifacts/**/*.json",
+    "build/artifacts-ovm/**/*.json",
     "build/types/**/*.ts"
   ],
   "license": "MIT",
@@ -19,8 +20,9 @@
     "build:contracts": "hardhat compile --show-stack-traces",
     "build:contracts:ovm": "TARGET=ovm hardhat compile --show-stack-traces",
     "build:dump": "ts-node \"bin/take-dump.ts\"",
-    "build:copy": "yarn run build:copy:artifacts && yarn run build:copy:contracts",
+    "build:copy": "yarn run build:copy:artifacts && yarn build:copy:artifacts:ovm && yarn run build:copy:contracts",
     "build:copy:artifacts": "copyfiles -u 1 \"artifacts/**/*.json\" \"build/artifacts\"",
+    "build:copy:artifacts:ovm": "copyfiles -u 1 \"artifacts-ovm/**/*.json\" \"build/artifacts-ovm\"",
     "build:copy:contracts": "copyfiles -u 2 \"contracts/optimistic-ethereum/**/*.sol\" \"build/contracts\"",
     "build:typechain": "hardhat typechain",
     "test": "yarn run test:contracts",
@@ -30,7 +32,7 @@
     "lint:typescript": "tslint --format stylish --project .",
     "lint:fix": "yarn run lint:fix:typescript",
     "lint:fix:typescript": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test}/**/*.ts\"",
-    "clean": "rm -rf ./artifacts ./build ./cache",
+    "clean": "rm -rf ./build ./artifacts ./artifacts-ovm ./cache ./cache-ovm",
     "deploy": "./bin/deploy.js",
     "serve": "./bin/serve_dump.sh"
   },
@@ -47,7 +49,7 @@
     "glob": "^7.1.6"
   },
   "devDependencies": {
-    "@eth-optimism/plugins": "^1.0.0-alpha.1",
+    "@eth-optimism/plugins": "^1.0.0-alpha.2",
     "@eth-optimism/smock": "^1.0.0-alpha.3",
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
