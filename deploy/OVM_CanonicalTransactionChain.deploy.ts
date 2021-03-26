@@ -10,9 +10,9 @@ const deployFn: DeployFunction = async (hre) => {
     from: deployer,
     args: [
       Lib_AddressManager.address,
-      600, // _forceInclusionPeriodSeconds
-      10, // _forceInclusionPeriodBlocks
-      9_000_000, // _maxTransactionGasLimit
+      (hre as any).deployConfig.ctcForceInclusionPeriodSeconds,
+      (hre as any).deployConfig.ctcForceInclusionPeriodBlocks,
+      (hre as any).deployConfig.ctcMaxTransactionGasLimit,
     ],
     log: true,
   })

@@ -31,7 +31,7 @@
     "lint": "yarn run lint:typescript",
     "lint:typescript": "tslint --format stylish --project .",
     "lint:fix": "yarn run lint:fix:typescript",
-    "lint:fix:typescript": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test,deploy}/**/*.ts\"",
+    "lint:fix:typescript": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test,deploy,hardhat}/**/*.ts\"",
     "clean": "rm -rf ./build ./artifacts ./artifacts-ovm ./cache ./cache-ovm",
     "deploy": "./bin/deploy.js",
     "serve": "./bin/serve_dump.sh",

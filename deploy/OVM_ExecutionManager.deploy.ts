@@ -11,13 +11,16 @@ const deployFn: DeployFunction = async (hre) => {
     args: [
       Lib_AddressManager.address,
       {
-        minTransactionGasLimit: 20_000,
-        maxTransactionGasLimit: 9_000_000,
-        maxGasPerQueuePerEpoch: 9_000_000,
-        secondsPerEpoch: 0,
+        minTransactionGasLimit: (hre as any).deployConfig
+          .emMinTransactionGasLimit,
+        maxTransactionGasLimit: (hre as any).deployConfig
+          .emMaxGasPerQueuePerEpoch,
+        maxGasPerQueuePerEpoch: (hre as any).deployConfig
+          .emMaxGasPerQueuePerEpoch,
+        secondsPerEpoch: (hre as any).deployConfig.emSecondsPerEpoch,
       },
       {
-        ovmCHAINID: 10,
+        ovmCHAINID: (hre as any).deployConfig.emOvmChainId,
       },
     ],
     log: true,

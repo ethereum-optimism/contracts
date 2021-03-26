@@ -10,8 +10,8 @@ const deployFn: DeployFunction = async (hre) => {
     from: deployer,
     args: [
       Lib_AddressManager.address,
-      60000, // _fraudProofWindow
-      60000, // _sequencerPublishWindow
+      (hre as any).deployConfig.sccFraudProofWindow,
+      (hre as any).deployConfig.sccSequencerPublishWindow,
     ],
     log: true,
   })

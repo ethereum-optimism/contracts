@@ -11,6 +11,7 @@ import '@nomiclabs/hardhat-waffle'
 import 'hardhat-deploy'
 import '@typechain/hardhat'
 import '@eth-optimism/plugins/hardhat/compiler'
+import './hardhat'
 
 const config: HardhatUserConfig = {
   networks: {
