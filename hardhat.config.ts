@@ -22,15 +22,6 @@ const config: HardhatUserConfig = {
       saveDeployments: false,
       tags: ['test', 'local'],
     },
-    goerli: {
-      accounts: [
-        '',
-      ],
-      url: '',
-      live: true,
-      saveDeployments: true,
-      tags: ['test', 'goerli'],
-    },
   },
   mocha: {
     timeout: 50000,

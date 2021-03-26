@@ -32,17 +32,21 @@ export const getDeployedContract = async (
     }
   }
 
+  // Temporarily override Object.defineProperty to bypass ether's object protection.
   const def = Object.defineProperty
-  Object.defineProperty = (obj, name, prop) => {
+  Object.defineProperty = (obj, propName, prop) => {
     prop.writable = true
-    return def(obj, name, prop)
+    return def(obj, propName, prop)
   }
+
   const contract = new Contract(deployed.address, iface, signerOrProvider)
+
+  // Now reset Object.defineProperty
   Object.defineProperty = def
 
-  for (const name of Object.keys(contract.functions)) {
-    const fn = contract[name].bind(contract)
-    ;(contract as any)[name] = async (...args: any) => {
+  for (const fnName of Object.keys(contract.functions)) {
+    const fn = contract[fnName].bind(contract)
+    ;(contract as any)[fnName] = async (...args: any) => {
       const result = await fn(...args)
       if (typeof result === 'object' && typeof result.wait === 'function') {
         await result.wait()
