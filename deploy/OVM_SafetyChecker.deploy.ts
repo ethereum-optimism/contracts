@@ -1,26 +1,32 @@
+/* Imports: External */
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
+/* Imports: Internal */
+import { getDeployedContract } from '../src/hardhat-deploy-ethers'
+
 const deployFn: DeployFunction = async (hre) => {
-  const { deploy, execute } = hre.deployments
+  const { deploy } = hre.deployments
   const { deployer } = await hre.getNamedAccounts()
 
-  const contract = await deploy('OVM_SafetyChecker', {
+  const Lib_AddressManager = await getDeployedContract(
+    hre,
+    'Lib_AddressManager',
+    {
+      signerOrProvider: deployer,
+    }
+  )
+
+  const result = await deploy('OVM_SafetyChecker', {
     from: deployer,
     args: [],
     log: true,
   })
 
-  if (contract.newlyDeployed) {
-    await execute(
-      'Lib_AddressManager',
-      {
-        from: deployer,
-      },
-      'setAddress',
-      'OVM_SafetyChecker',
-      contract.address
-    )
+  if (!result.newlyDeployed) {
+    return
   }
+
+  await Lib_AddressManager.setAddress('OVM_SafetyChecker', result.address)
 }
 
 deployFn.tags = ['OVM_SafetyChecker']

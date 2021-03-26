@@ -16,9 +16,9 @@ const deployFn: DeployFunction = async (hre) => {
     }
   )
 
-  const result = await deploy('OVM_StateManagerFactory', {
+  const result = await deploy('mockOVM_BondManager', {
     from: deployer,
-    args: [],
+    args: [Lib_AddressManager.address],
     log: true,
   })
 
@@ -26,9 +26,10 @@ const deployFn: DeployFunction = async (hre) => {
     return
   }
 
-  await Lib_AddressManager.setAddress('OVM_StateManagerFactory', result.address)
+  await Lib_AddressManager.setAddress('OVM_BondManager', result.address)
 }
 
-deployFn.tags = ['OVM_StateManagerFactory']
+deployFn.dependencies = ['Lib_AddressManager']
+deployFn.tags = ['mockOVM_BondManager']
 
 export default deployFn

@@ -22,6 +22,15 @@ const config: HardhatUserConfig = {
       saveDeployments: false,
       tags: ['test', 'local'],
     },
+    goerli: {
+      accounts: [
+        '0xe103483d1895337a75facd0bc4d80e5672b35de7cee684e0e92e3e49557450f4',
+      ],
+      url: 'https://goerli.infura.io/v3/3220334641dc41dca4f0d0ab2c65712e',
+      live: true,
+      saveDeployments: true,
+      tags: ['test', 'goerli'],
+    },
   },
   mocha: {
     timeout: 50000,
