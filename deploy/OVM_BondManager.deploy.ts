@@ -6,12 +6,9 @@ const deployFn: DeployFunction = async (hre) => {
 
   const Lib_AddressManager = await hre.deployments.get('Lib_AddressManager')
 
-  const contract = await deploy('OVM_BondManager', {
+  const contract = await deploy('mockOVM_BondManager', {
     from: deployer,
-    args: [
-      '0x0000000000000000000000000000000000000000',
-      Lib_AddressManager.address,
-    ],
+    args: [Lib_AddressManager.address],
     log: true,
   })
 
