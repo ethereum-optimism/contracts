@@ -26,7 +26,7 @@ const config: HardhatUserConfig = {
       accounts: [
         '',
       ],
-      url: 'https://goerli.infura.io/v3/3220334641dc41dca4f0d0ab2c65712e',
+      url: '',
       live: true,
       saveDeployments: true,
       tags: ['test', 'goerli'],
