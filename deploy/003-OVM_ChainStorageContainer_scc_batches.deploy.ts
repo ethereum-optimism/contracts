@@ -2,35 +2,16 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
 /* Imports: Internal */
-import { getDeployedContract } from '../src/hardhat-deploy-ethers'
+import { deploy } from '../src/hardhat-deploy-ethers'
 
 const deployFn: DeployFunction = async (hre) => {
-  const { deploy } = hre.deployments
-  const { deployer } = await hre.getNamedAccounts()
-
-  const Lib_AddressManager = await getDeployedContract(
+  const cfg = {
     hre,
-    'Lib_AddressManager',
-    {
-      signerOrProvider: deployer,
-    }
-  )
-
-  const result = await deploy('OVM_ChainStorageContainer:SCC:queue', {
+    name: 'OVM_ChainStorageContainer:SCC:queue',
     contract: 'OVM_ChainStorageContainer',
-    from: deployer,
-    args: [Lib_AddressManager.address, 'OVM_StateCommitmentChain'],
-    log: true,
-  })
-
-  if (!result.newlyDeployed) {
-    return
+    args: ['OVM_StateCommitmentChain'],
   }
-
-  await Lib_AddressManager.setAddress(
-    'OVM_ChainStorageContainer:SCC:queue',
-    result.address
-  )
+  await deploy(cfg)
 }
 
 deployFn.dependencies = ['Lib_AddressManager']
