@@ -21,13 +21,6 @@ const config: HardhatUserConfig = {
       saveDeployments: false,
       tags: ['test', 'local'],
     },
-    kovan: {
-      url: 'https://kovan.infura.io/v3/',
-      accounts: [''],
-      live: true,
-      saveDeployments: true,
-      tags: ['test', 'kovan'],
-    },
   },
   mocha: {
     timeout: 50000,
