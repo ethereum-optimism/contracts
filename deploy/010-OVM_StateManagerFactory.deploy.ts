@@ -2,31 +2,16 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
 /* Imports: Internal */
-import { getDeployedContract } from '../src/hardhat-deploy-ethers'
+import { deploy } from '../src/hardhat-deploy-ethers'
 
 const deployFn: DeployFunction = async (hre) => {
-  const { deploy } = hre.deployments
-  const { deployer } = await hre.getNamedAccounts()
-
-  const Lib_AddressManager = await getDeployedContract(
+  const cfg = {
     hre,
-    'Lib_AddressManager',
-    {
-      signerOrProvider: deployer,
-    }
-  )
-
-  const result = await deploy('OVM_StateManagerFactory', {
-    from: deployer,
+    name: 'OVM_StateManagerFactory',
     args: [],
-    log: true,
-  })
-
-  if (!result.newlyDeployed) {
-    return
+    withAddressManager: false,
   }
-
-  await Lib_AddressManager.setAddress('OVM_StateManagerFactory', result.address)
+  await deploy(cfg)
 }
 
 deployFn.tags = ['OVM_StateManagerFactory']
