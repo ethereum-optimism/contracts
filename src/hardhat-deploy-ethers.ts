@@ -4,15 +4,18 @@ import { Provider } from '@ethersproject/abstract-provider'
 import { Signer } from '@ethersproject/abstract-signer'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 
-export const deploy = async (cfg: {
+export const deployAndRegister = async ({
+  hre,
+  name,
+  args,
+  contract,
+}: {
   hre: HardhatRuntimeEnvironment
   name: string
   args: any[]
   contract?: string
-  withAddressManager?: boolean
 }) => {
-  let { hre, name, args, contract, withAddressManager } = cfg
-  const { deploy: hhDeploy } = hre.deployments
+  const { deploy } = hre.deployments
 
   // TODO: Cache these 2 across calls?
   const { deployer } = await hre.getNamedAccounts()
@@ -24,12 +27,7 @@ export const deploy = async (cfg: {
     }
   )
 
-  // by default use the address manager
-  if (withAddressManager == undefined || withAddressManager == true) {
-    args = [Lib_AddressManager.address, ...args]
-  }
-
-  const result = await hhDeploy(name, {
+  const result = await deploy(name, {
     contract,
     from: deployer,
     args,

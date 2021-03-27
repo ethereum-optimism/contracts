@@ -16,7 +16,6 @@ const deployFn: DeployFunction = async (hre) => {
     }
   )
 
-  // TODO: Why is this mocked?
   const result = await deploy('mockOVM_BondManager', {
     from: deployer,
     args: [Lib_AddressManager.address],

@@ -2,19 +2,27 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
 /* Imports: Internal */
-import { deploy } from '../src/hardhat-deploy-ethers'
+import {
+  deployAndRegister,
+  getDeployedContract,
+} from '../src/hardhat-deploy-ethers'
 
 const deployFn: DeployFunction = async (hre) => {
-  const cfg = {
+  const Lib_AddressManager = await getDeployedContract(
+    hre,
+    'Lib_AddressManager'
+  )
+
+  await deployAndRegister({
     hre,
     name: 'OVM_CanonicalTransactionChain',
     args: [
+      Lib_AddressManager.address,
       (hre as any).deployConfig.ctcForceInclusionPeriodSeconds,
       (hre as any).deployConfig.ctcForceInclusionPeriodBlocks,
       (hre as any).deployConfig.ctcMaxTransactionGasLimit,
     ],
-  }
-  await deploy(cfg)
+  })
 }
 
 deployFn.dependencies = ['Lib_AddressManager']

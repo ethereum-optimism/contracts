@@ -2,15 +2,22 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
 /* Imports: Internal */
-import { deploy } from '../src/hardhat-deploy-ethers'
+import {
+  deployAndRegister,
+  getDeployedContract,
+} from '../src/hardhat-deploy-ethers'
 
 const deployFn: DeployFunction = async (hre) => {
-  const cfg = {
+  const Lib_AddressManager = await getDeployedContract(
+    hre,
+    'Lib_AddressManager'
+  )
+
+  await deployAndRegister({
     hre,
     name: 'OVM_FraudVerifier',
-    args: [],
-  }
-  await deploy(cfg)
+    args: [Lib_AddressManager.address],
+  })
 }
 
 deployFn.dependencies = ['Lib_AddressManager']
