@@ -11,7 +11,6 @@ interface iOVM_ExecutionManager {
      *********/
 
     enum RevertFlag {
-        DID_NOT_REVERT,
         OUT_OF_GAS,
         INTENTIONAL_REVERT,
         EXCEEDS_NUISANCE_GAS,
@@ -120,7 +119,7 @@ interface iOVM_ExecutionManager {
      ******************************/
 
     function ovmGETNONCE() external returns (uint256 _nonce);
-    function ovmSETNONCE(uint256 _nonce) external;
+    function ovmINCREMENTNONCE() external;
     function ovmCREATEEOA(bytes32 _messageHash, uint8 _v, bytes32 _r, bytes32 _s) external;
 
 

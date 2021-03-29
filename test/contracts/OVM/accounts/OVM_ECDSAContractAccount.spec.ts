@@ -16,26 +16,26 @@ import {
   decodeSolidityError,
 } from '../../../helpers'
 
-const callPrecompile = async (
-  Helper_PrecompileCaller: Contract,
-  precompile: Contract,
+const callPredeploy = async (
+  Helper_PredeployCaller: Contract,
+  predeploy: Contract,
   functionName: string,
   functionParams?: any[],
   gasLimit?: number
 ): Promise<any> => {
   if (gasLimit) {
-    return Helper_PrecompileCaller.callPrecompile(
-      precompile.address,
-      precompile.interface.encodeFunctionData(
+    return Helper_PredeployCaller.callPredeploy(
+      predeploy.address,
+      predeploy.interface.encodeFunctionData(
         functionName,
         functionParams || []
       ),
       { gasLimit }
     )
   }
-  return Helper_PrecompileCaller.callPrecompile(
-    precompile.address,
-    precompile.interface.encodeFunctionData(functionName, functionParams || [])
+  return Helper_PredeployCaller.callPredeploy(
+    predeploy.address,
+    predeploy.interface.encodeFunctionData(functionName, functionParams || [])
   )
 }
 
@@ -48,16 +48,16 @@ describe('OVM_ECDSAContractAccount', () => {
   })
 
   let Mock__OVM_ExecutionManager: MockContract
-  let Helper_PrecompileCaller: Contract
+  let Helper_PredeployCaller: Contract
   before(async () => {
     Mock__OVM_ExecutionManager = await smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 
-    Helper_PrecompileCaller = await (
-      await ethers.getContractFactory('Helper_PrecompileCaller')
+    Helper_PredeployCaller = await (
+      await ethers.getContractFactory('Helper_PredeployCaller')
     ).deploy()
-    Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
+    Helper_PredeployCaller.setTarget(Mock__OVM_ExecutionManager.address)
   })
 
   let Factory__OVM_ECDSAContractAccount: ContractFactory
@@ -91,8 +91,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const message = serializeNativeTransaction(DEFAULT_EIP155_TX)
       const sig = await signNativeTransaction(wallet, DEFAULT_EIP155_TX)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [
@@ -109,18 +109,14 @@ describe('OVM_ECDSAContractAccount', () => {
       expect(ovmCALL._gasLimit).to.equal(DEFAULT_EIP155_TX.gasLimit)
       expect(ovmCALL._address).to.equal(DEFAULT_EIP155_TX.to)
       expect(ovmCALL._calldata).to.equal(DEFAULT_EIP155_TX.data)
-
-      const ovmSETNONCE: any =
-        Mock__OVM_ExecutionManager.smocked.ovmSETNONCE.calls[0]
-      expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce + 1)
     })
 
     it(`should successfully execute an ETHSignedTransaction`, async () => {
       const message = serializeEthSignTransaction(DEFAULT_EIP155_TX)
       const sig = await signEthSignMessage(wallet, DEFAULT_EIP155_TX)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [
@@ -137,10 +133,6 @@ describe('OVM_ECDSAContractAccount', () => {
       expect(ovmCALL._gasLimit).to.equal(DEFAULT_EIP155_TX.gasLimit)
       expect(ovmCALL._address).to.equal(DEFAULT_EIP155_TX.to)
       expect(ovmCALL._calldata).to.equal(DEFAULT_EIP155_TX.data)
-
-      const ovmSETNONCE: any =
-        Mock__OVM_ExecutionManager.smocked.ovmSETNONCE.calls[0]
-      expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce + 1)
     })
 
     it(`should ovmCREATE if EIP155Transaction.to is zero address`, async () => {
@@ -148,8 +140,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const message = serializeNativeTransaction(createTx)
       const sig = await signNativeTransaction(wallet, createTx)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [
@@ -170,8 +162,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const message = serializeNativeTransaction(DEFAULT_EIP155_TX)
       const sig = await signNativeTransaction(badWallet, DEFAULT_EIP155_TX)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [
@@ -197,8 +189,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const message = serializeNativeTransaction(alteredNonceTx)
       const sig = await signNativeTransaction(wallet, alteredNonceTx)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [
@@ -224,8 +216,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const message = serializeNativeTransaction(alteredChainIdTx)
       const sig = await signNativeTransaction(wallet, alteredChainIdTx)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [
@@ -252,8 +244,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const message = serializeNativeTransaction(alteredInsufficientGasTx)
       const sig = await signNativeTransaction(wallet, alteredInsufficientGasTx)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [
@@ -278,8 +270,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const sig = await signNativeTransaction(wallet, DEFAULT_EIP155_TX)
       Mock__OVM_ExecutionManager.smocked.ovmCALL.will.return.with([false, '0x'])
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [

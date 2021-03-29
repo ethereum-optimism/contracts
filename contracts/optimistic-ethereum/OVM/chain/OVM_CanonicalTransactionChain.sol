@@ -313,14 +313,12 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
         iOVM_ChainStorageContainer queueRef = queue();
 
-        queueRef.push2(
-            transactionHash,
-            timestampAndBlockNumber
-        );
+        queueRef.push(transactionHash);
+        queueRef.push(timestampAndBlockNumber);
 
         // The underlying queue data structure stores 2 elements
         // per insertion, so to get the real queue length we need
-        // to divide by 2 and subtract 1. See the usage of `push2(..)`.
+        // to divide by 2 and subtract 1.
         uint256 queueIndex = queueRef.length() / 2 - 1;
         emit TransactionEnqueued(
             msg.sender,
@@ -334,13 +332,14 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
 
     /**
      * Appends a given number of queued transactions as a single batch.
-     * @param _numQueuedTransactions Number of transactions to append.
+     * param _numQueuedTransactions Number of transactions to append.
      */
     function appendQueueBatch(
-        uint256 _numQueuedTransactions
+        uint256 // _numQueuedTransactions
     )
         override
         public
+        pure
     {
         // TEMPORARY: Disable `appendQueueBatch` for minnet
         revert("appendQueueBatch is currently disabled.");
@@ -469,7 +468,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
                 curContext,
                 nextContext,
                 nextQueueIndex,
-                queueLength,
                 queueRef
             );
 
@@ -547,6 +545,9 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
             blockNumber = lastElement.blockNumber;
         }
 
+        // For efficiency reasons getMerkleRoot modifies the `leaves` argument in place
+        // while calculating the root hash therefore any arguments passed to it must not
+        // be used again afterwards
         _appendBatch(
             Lib_MerkleTree.getMerkleRoot(leaves),
             totalElementsToAppend,
@@ -751,11 +752,10 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     {
         // The underlying queue data structure stores 2 elements
         // per insertion, so to get the actual desired queue index
-        // we need to multiply by 2. See the usage of `push2(..)`.
-        (
-            bytes32 transactionHash,
-            bytes32 timestampAndBlockNumber
-        ) = _queueRef.get2(uint40(_index * 2));
+        // we need to multiply by 2.
+        uint40 trueIndex = uint40(_index * 2);
+        bytes32 transactionHash = _queueRef.get(trueIndex);
+        bytes32 timestampAndBlockNumber = _queueRef.get(trueIndex + 1);
 
         uint40 elementTimestamp;
         uint40 elementBlockNumber;
@@ -786,7 +786,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
     {
         // The underlying queue data structure stores 2 elements
         // per insertion, so to get the real queue length we need
-        // to divide by 2. See the usage of `push2(..)`.
+        // to divide by 2.
         return uint40(_queueRef.length() / 2);
     }
 
@@ -937,21 +937,22 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         internal
         view
     {
-        // If there are existing elements, this batch must come later.
+        // If there are existing elements, this batch must have the same context 
+        // or a later timestamp and block number.
         if (getTotalElements() > 0) {
             (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
-    
+
             require(
                 _firstContext.blockNumber >= lastBlockNumber,
                 "Context block number is lower than last submitted."
             );
-    
+
             require(
                 _firstContext.timestamp >= lastTimestamp,
                 "Context timestamp is lower than last submitted."
             );
         }
-    
+
         // Sequencer cannot submit contexts which are more than the force inclusion period old.
         require(
             _firstContext.timestamp + forceInclusionPeriodSeconds >= block.timestamp,
@@ -1007,20 +1008,18 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
      * @param _prevContext The previously validated batch context.
      * @param _nextContext The batch context to validate with this call.
      * @param _nextQueueIndex Index of the next queue element to process for the _nextContext's subsequentQueueElements.
-     * @param _queueLength The length of the queue at the start of the batchAppend call.
      * @param _queueRef The storage container for the queue.
      */
     function _validateNextBatchContext(
         BatchContext memory _prevContext,
         BatchContext memory _nextContext,
         uint40 _nextQueueIndex,
-        uint40 _queueLength,
         iOVM_ChainStorageContainer _queueRef
     )
         internal
         view
     {
-        // All sequencer transactions' times must increase from the previous ones.
+        // All sequencer transactions' times must be greater than or equal to the previous ones.
         require(
             _nextContext.timestamp >= _prevContext.timestamp,
             "Context timestamp values must monotonically increase."

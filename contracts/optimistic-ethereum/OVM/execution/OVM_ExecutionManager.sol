@@ -17,7 +17,7 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
-import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol";
+import { OVM_DeployerWhitelist } from "../predeploys/OVM_DeployerWhitelist.sol";
 
 /**
  * @title OVM_ExecutionManager
@@ -229,8 +229,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             return;
         }
 
-        // Check gas right before the call to get total gas consumed by OVM transaction.
-        uint256 gasProvided = gasleft();
+        // TEMPORARY: Gas metering is disabled for minnet.
+        // // Check gas right before the call to get total gas consumed by OVM transaction.
+        // uint256 gasProvided = gasleft();
 
         // Run the transaction, make sure to meter the gas usage.
         ovmCALL(
@@ -238,10 +239,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             _transaction.entrypoint,
             _transaction.data
         );
-        uint256 gasUsed = gasProvided - gasleft();
 
         // TEMPORARY: Gas metering is disabled for minnet.
         // // Update the cumulative gas based on the amount of gas used.
+        // uint256 gasUsed = gasProvided - gasleft();
         // _updateCumulativeGas(gasUsed, _transaction.l1QueueOrigin);
 
         // Wipe the execution context.
@@ -499,17 +500,20 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /**
-     * Sets the nonce of the current ovmADDRESS.
-     * @param _nonce New nonce for the current contract.
+     * Bumps the nonce of the current ovmADDRESS by one.
      */
-    function ovmSETNONCE(
-        uint256 _nonce
-    )
+    function ovmINCREMENTNONCE()
         override
         public
         notStatic
     {
-        _setAccountNonce(ovmADDRESS(), _nonce);
+        address account = ovmADDRESS();
+        uint256 nonce = _getAccountNonce(account);
+
+        // Prevent overflow.
+        if (nonce + 1 > nonce) {
+            _setAccountNonce(account, nonce + 1);
+        }
     }
 
     /**
@@ -678,8 +682,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // DELEGATECALL does not change anything about the message context.
         MessageContext memory nextMessageContext = messageContext;
         
-        bool isStaticEntrypoint = false;
-
         return _callContract(
             nextMessageContext,
             _gasLimit,
@@ -832,11 +834,11 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /********************************************
-     * Public Functions: Deployment Witelisting *
+     * Public Functions: Deployment Whitelisting *
      ********************************************/
 
     /**
-     * Checks whether the given address is on the whitelst to ovmCREATE/ovmCREATE2, and reverts if not.
+     * Checks whether the given address is on the whitelist to ovmCREATE/ovmCREATE2, and reverts if not.
      * @param _deployerAddress Address attempting to deploy a contract.
      */
     function _checkDeployerAllowed(
@@ -844,7 +846,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         internal
     {
-        // From an OVM semanitcs perspectibe, this will appear the identical to
+        // From an OVM semantics perspective, this will appear identical to
         // the deployer ovmCALLing the whitelist.  This is fine--in a sense, we are forcing them to.
         (bool success, bytes memory data) = ovmCALL(
             gasleft(),
@@ -888,8 +890,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         nextMessageContext.ovmCALLER = messageContext.ovmADDRESS;
         nextMessageContext.ovmADDRESS = _contractAddress;
 
-        // _handleExternalMessage deals with common checks between call-type and create-type messages.
-        // the _isCreate bool then triggers some create-type-only logic.
+        // Run the common logic which occurs between call-type and create-type messages,
+        // passing in the creation bytecode and `true` to trigger create-specific logic.
         (bool success, bytes memory data) = _handleExternalMessage(
             nextMessageContext,
             gasleft(),
@@ -932,6 +934,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             (uint256(_contract) & uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000))
             == uint256(0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000)
         ) {
+            // EVM does not return data in the success case, see: https://github.com/ethereum/go-ethereum/blob/aae7660410f0ef90279e14afaaf2f429fdc2a186/core/vm/instructions.go#L600-L604
             return (true, hex'');
         }
 
@@ -988,14 +991,14 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         messageRecord.nuisanceGasLeft = nuisanceGasLimit;
 
         // Make the call and make sure to pass in the gas limit. Another instance of hidden
-        // complexity. `_target` is guaranteed to be a safe contract, meaning its return/revert
+        // complexity. `_contract` is guaranteed to be a safe contract, meaning its return/revert
         // behavior can be controlled. In particular, we enforce that flags are passed through
         // revert data as to retrieve execution metadata that would normally be reverted out of
         // existence.
 
         (bool success, bytes memory returndata) =
             _isCreate
-            ? _handleExternalCreate(_gasLimit, _data, _contract)
+            ? _handleContractCreation(_gasLimit, _data, _contract)
             : _contract.call{gas: _gasLimit}(_data);
 
         // Switch back to the original message context now that we're out of the call.
@@ -1073,7 +1076,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * @return Whether or not the call succeeded.
      * @return If creation fails: revert data. Otherwise: empty.
      */
-    function _handleExternalCreate(
+    function _handleContractCreation(
         uint _gasLimit,
         bytes memory _creationCode,
         address _address
@@ -1086,6 +1089,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // Check that there is not already code at this address.
         if (_hasEmptyAccount(_address) == false) {
+            // Note: in the EVM, this case burns all allotted gas.  For improved
+            // developer experience, we do return the remaining ones.
             return (
                 false,
                 _encodeRevertData(
@@ -1113,7 +1118,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         address ethAddress = Lib_EthUtils.createContract(_creationCode);
         
         if (ethAddress == address(0)) {
-            // If the creation fails, the EVM lets us grab its revert data.  This may contain a revert flag
+            // If the creation fails, the EVM lets us grab its revert data. This may contain a revert flag
             // to be used above in _handleExternalMessage.
             uint256 revertDataSize;
             assembly { revertDataSize := returndatasize() }
@@ -1137,7 +1142,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 false,
                 _encodeRevertData(
                     RevertFlag.UNSAFE_BYTECODE,
-                    Lib_ErrorUtils.encodeRevertString("Constrcutor attempted to deploy unsafe opcodes.")
+                    Lib_ErrorUtils.encodeRevertString("Constructor attempted to deploy unsafe bytecode.")
                 )
             );
         }
@@ -1150,7 +1155,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             Lib_EthUtils.getCodeHash(ethAddress)
         );
 
-        // Succressfuly deployments will not give acces to returndata, in both the EVM and the OVM.
+        // Successful deployments will not give access to returndata, in both the EVM and the OVM.
         return (true, hex'');
     }
 
@@ -1668,12 +1673,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * Validates the gas limit for a given transaction.
      * @param _gasLimit Gas limit provided by the transaction.
-     * @param _queueOrigin Queue from which the transaction originated.
+     * param _queueOrigin Queue from which the transaction originated.
      * @return _valid Whether or not the gas limit is valid.
      */
     function _isValidGasLimit(
         uint256 _gasLimit,
-        Lib_OVMCodec.QueueOrigin _queueOrigin
+        Lib_OVMCodec.QueueOrigin // _queueOrigin
     )
         view
         internal
@@ -1887,6 +1892,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             if (created == address(0)) {
                 return (false, revertData);
             } else {
+                // The eth_call RPC endpoint for to = undefined will return the deployed bytecode 
+                // in the success case, differing from standard create messages.
                 return (true, Lib_EthUtils.getCode(created));
             }
         } else {

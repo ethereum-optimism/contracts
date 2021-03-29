@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 /* Interface Imports */
 import { iOVM_L1TokenGateway } from "../../../iOVM/bridge/tokens/iOVM_L1TokenGateway.sol";
 import { Abs_L1TokenGateway } from "./Abs_L1TokenGateway.sol";
-import { iOVM_ERC20 } from "../../../iOVM/precompiles/iOVM_ERC20.sol";
+import { iOVM_ERC20 } from "../../../iOVM/predeploys/iOVM_ERC20.sol";
 
 /**
  * @title OVM_L1ERC20Gateway
@@ -61,12 +61,12 @@ contract OVM_L1ERC20Gateway is Abs_L1TokenGateway {
      * transfers the funds to itself for future withdrawals
      *
      * @param _from L1 address ETH is being deposited from
-     * @param _to L2 address that the ETH is being deposited to
+     * param _to L2 address that the ETH is being deposited to
      * @param _amount Amount of ERC20 to send
      */
     function _handleInitiateDeposit(
         address _from,
-        address _to,
+        address, // _to,
         uint256 _amount
     )
         internal

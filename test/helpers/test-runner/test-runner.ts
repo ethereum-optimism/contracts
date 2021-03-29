@@ -28,14 +28,12 @@ import {
   isTestStep_EXTCODEHASH,
   isTestStep_EXTCODECOPY,
   isTestStep_REVERT,
-  isTestStep_SETNONCE,
 } from './test.types'
 import { encodeRevertData, REVERT_FLAGS } from '../codec'
 import {
   OVM_TX_GAS_LIMIT,
   RUN_OVM_TEST_GAS,
   NON_NULL_BYTES32,
-  NULL_BYTES32,
 } from '../constants'
 import { getStorageXOR } from '../'
 import { UNSAFE_BYTECODE } from '../dummy'
@@ -71,7 +69,7 @@ export class ExecutionManagerTestRunner {
       contractStorage: {
         ['0x4200000000000000000000000000000000000002']: {
           '0x0000000000000000000000000000000000000000000000000000000000000010': getStorageXOR(
-            NULL_BYTES32
+            ethers.constants.HashZero
           ),
         },
       },
@@ -403,7 +401,6 @@ export class ExecutionManagerTestRunner {
     if (
       isTestStep_SSTORE(step) ||
       isTestStep_SLOAD(step) ||
-      isTestStep_SETNONCE(step) ||
       isTestStep_EXTCODESIZE(step) ||
       isTestStep_EXTCODEHASH(step) ||
       isTestStep_EXTCODECOPY(step) ||

@@ -23,18 +23,18 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
      * Executes a signed transaction.
      * @param _transaction Signed EOA transaction.
      * @param _signatureType Hashing scheme used for the transaction (e.g., ETH signed message).
-     * @param _v Signature `v` parameter.
-     * @param _r Signature `r` parameter.
-     * @param _s Signature `s` parameter.
+     * param _v Signature `v` parameter.
+     * param _r Signature `r` parameter.
+     * param _s Signature `s` parameter.
      * @return _success Whether or not the call returned (rather than reverted).
      * @return _returndata Data returned by the call.
      */
     function execute(
         bytes memory _transaction,
         Lib_OVMCodec.EOASignatureType _signatureType,
-        uint8 _v,
-        bytes32 _r,
-        bytes32 _s
+        uint8, // _v,
+        bytes32, // _r,
+        bytes32 // _s
     )
         override
         public
@@ -65,7 +65,7 @@ contract mockOVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             // We only want to bump the nonce for `ovmCALL` because `ovmCREATE` automatically bumps
             // the nonce of the calling account. Normally an EOA would bump the nonce for both
             // cases, but since this is a contract we'd end up bumping the nonce twice.
-            Lib_SafeExecutionManagerWrapper.safeSETNONCE(decodedTx.nonce + 1);
+            Lib_SafeExecutionManagerWrapper.safeINCREMENTNONCE();
 
             return Lib_SafeExecutionManagerWrapper.safeCALL(
                 decodedTx.gasLimit,
