@@ -19,7 +19,8 @@ interface iOVM_ExecutionManager {
         UNSAFE_BYTECODE,
         CREATE_COLLISION,
         STATIC_VIOLATION,
-        CREATOR_NOT_ALLOWED
+        CREATOR_NOT_ALLOWED,
+        CALLER_NOT_ALLOWED
     }
 
     enum GasMetadataKey {
@@ -155,8 +156,11 @@ interface iOVM_ExecutionManager {
 
     function getMaxTransactionGasLimit() external view returns (uint _maxTransactionGasLimit);
 
+
     /*********************
      * Upgrade Functions *
      *********************/
-    function ovmUPGRADECODE(address _address, bytes memory _code) external;
+
+    function ovmSETCODE(address _address, bytes memory _code) external;
+    function ovmSETSTORAGE(address _address, bytes32 _key, bytes32 _value) external;
 }

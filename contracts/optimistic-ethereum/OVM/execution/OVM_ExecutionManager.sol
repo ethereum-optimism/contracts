@@ -36,9 +36,34 @@ import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol"
  */
 contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
-    function ovmUPGRADECODE(address _address, bytes memory _code) external override {
+    function ovmSETCODE(
+        address _address,
+        bytes memory _code
+    )
+        override
+        external
+        onlyCallableBy(address(0x4200000000000000000000000000000000000009))
+    {
+        // TODO: enforce checkAccountLoad etc etc
         ovmStateManager.putAccountCode(_address, _code);
     }
+
+    function ovmSETSTORAGE(
+        address _address,
+        bytes32 _key,
+        bytes32 _value
+    )
+        override
+        external
+        onlyCallableBy(address(0x4200000000000000000000000000000000000009))
+    {
+        _putContractStorage(
+            _address,
+            _key,
+            _value
+        );
+    }
+    
 
     /********************************
      * External Contract References *
@@ -142,6 +167,18 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     modifier notStatic() {
         if (messageContext.isStatic == true) {
             _revertWithFlag(RevertFlag.STATIC_VIOLATION);
+        }
+        _;
+    }
+
+    /**
+     * Only allows the given OVM contract to call the EM function.
+     */
+    modifier onlyCallableBy(
+        address _allowed
+    ) {
+        if (ovmADDRESS() != _allowed) {
+            _revertWithFlag(RevertFlag.CALLER_NOT_ALLOWED);
         }
         _;
     }

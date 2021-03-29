@@ -8,6 +8,9 @@ import { Lib_ECDSAUtils } from "../../libraries/utils/Lib_ECDSAUtils.sol";
 import { Lib_SafeExecutionManagerWrapper } from "../../libraries/wrappers/Lib_SafeExecutionManagerWrapper.sol";
 
 contract OVM_Upgrader {
+    // Account which can initiate upgrades on L1 by approving a hash onion.
+    address public l1UpgradeAuthorizer;
+
     function doUpgrade(
         address _address,
         bytes memory _code
