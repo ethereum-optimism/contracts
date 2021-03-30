@@ -15,8 +15,6 @@ import {
 const UPGRADER_ADDRESS = '0x4200000000000000000000000000000000000009'
 const UPGRADED_ADDRESS = '0x1234123412341234123412341234123412341234'
 
-// three tests here: no auth reverts, auth reverts without verified, success
-
 const sharedPreState = {
   ExecutionManager: {
     ovmStateManager: '$OVM_STATE_MANAGER',
@@ -45,6 +43,22 @@ const sharedPreState = {
   },
 }
 
+const verifiedUpgradePreState = {
+  StateManager: {
+    accounts: {
+      [UPGRADED_ADDRESS]: {
+        codeHash: NON_NULL_BYTES32,
+        ethAddress: '$OVM_CALL_HELPER',
+      },
+    },
+    verifiedContractStorage: {
+      [UPGRADED_ADDRESS]: {
+        [NON_NULL_BYTES32]: true,
+      },
+    },
+  },
+}
+
 const test_ovmSETSTORAGEFunctionality: TestDefinition = {
   name: 'Functionality tests for ovmSETSTORAGE',
   preState: sharedPreState,
@@ -52,33 +66,19 @@ const test_ovmSETSTORAGEFunctionality: TestDefinition = {
     {
       name: 'ovmSETSTORAGE -- success case',
       focus: true,
-      preState: {
-        StateManager: {
-            accounts: {
-              [UPGRADED_ADDRESS]: {
-                codeHash: NON_NULL_BYTES32,
-                ethAddress: '$OVM_CALL_HELPER',
-              },
-            },
-          verifiedContractStorage: {
-            [UPGRADED_ADDRESS]: {
-              [NON_NULL_BYTES32]: true,
-            },
-          },
-        },
-      },
+      preState: verifiedUpgradePreState,
       postState: {
         StateManager: {
           contractStorage: {
             [UPGRADED_ADDRESS]: {
-              [NON_NULL_BYTES32]: getStorageXOR(ethers.constants.HashZero), // TODO: MAKE THIS BREAK UNTIL NON_NULL_BYTES32
+              [NON_NULL_BYTES32]: getStorageXOR(NON_NULL_BYTES32),
             },
           },
         },
       },
       parameters: [
         {
-          focus: true, // GET THE ABOVE WORKING PLS
+          focus: true,
           name: 'success case',
           steps: [
             {
@@ -102,6 +102,13 @@ const test_ovmSETSTORAGEFunctionality: TestDefinition = {
             },
           ],
         },
+      ],
+    },
+    {
+      name: 'ovmSETSTORAGE -- unauthorized case',
+      focus: true,
+      preState: verifiedUpgradePreState,
+      parameters: [
         {
           focus: true,
           name: 'unauthorized case',
