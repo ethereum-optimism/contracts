@@ -9,26 +9,26 @@ import { MockContract, smockit } from '@eth-optimism/smock'
 import { NON_ZERO_ADDRESS } from '../../../helpers/constants'
 import { DEFAULT_EIP155_TX, decodeSolidityError } from '../../../helpers'
 
-const callPrecompile = async (
-  Helper_PrecompileCaller: Contract,
-  precompile: Contract,
+const callPredeploy = async (
+  Helper_PredeployCaller: Contract,
+  predeploy: Contract,
   functionName: string,
   functionParams?: any[],
   gasLimit?: number
 ): Promise<any> => {
   if (gasLimit) {
-    return Helper_PrecompileCaller.callPrecompile(
-      precompile.address,
-      precompile.interface.encodeFunctionData(
+    return Helper_PredeployCaller.callPredeploy(
+      predeploy.address,
+      predeploy.interface.encodeFunctionData(
         functionName,
         functionParams || []
       ),
       { gasLimit }
     )
   }
-  return Helper_PrecompileCaller.callPrecompile(
-    precompile.address,
-    precompile.interface.encodeFunctionData(functionName, functionParams || [])
+  return Helper_PredeployCaller.callPredeploy(
+    predeploy.address,
+    predeploy.interface.encodeFunctionData(functionName, functionParams || [])
   )
 }
 
@@ -40,16 +40,16 @@ describe('OVM_ECDSAContractAccount', () => {
   })
 
   let Mock__OVM_ExecutionManager: MockContract
-  let Helper_PrecompileCaller: Contract
+  let Helper_PredeployCaller: Contract
   before(async () => {
     Mock__OVM_ExecutionManager = await smockit(
       await ethers.getContractFactory('OVM_ExecutionManager')
     )
 
-    Helper_PrecompileCaller = await (
-      await ethers.getContractFactory('Helper_PrecompileCaller')
+    Helper_PredeployCaller = await (
+      await ethers.getContractFactory('Helper_PredeployCaller')
     ).deploy()
-    Helper_PrecompileCaller.setTarget(Mock__OVM_ExecutionManager.address)
+    Helper_PredeployCaller.setTarget(Mock__OVM_ExecutionManager.address)
   })
 
   let Factory__OVM_ECDSAContractAccount: ContractFactory
@@ -83,11 +83,39 @@ describe('OVM_ECDSAContractAccount', () => {
       const transaction = DEFAULT_EIP155_TX
       const encodedTransaction = await wallet.signTransaction(transaction)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [encodedTransaction]
+      )
+
+      // The ovmCALL is the 2nd call because the first call transfers the fee.
+      const ovmCALL: any = Mock__OVM_ExecutionManager.smocked.ovmCALL.calls[1]
+      expect(ovmCALL._gasLimit).to.equal(DEFAULT_EIP155_TX.gasLimit)
+      expect(ovmCALL._address).to.equal(DEFAULT_EIP155_TX.to)
+      expect(ovmCALL._calldata).to.equal(DEFAULT_EIP155_TX.data)
+
+      const ovmSETNONCE: any =
+        Mock__OVM_ExecutionManager.smocked.ovmSETNONCE.calls[0]
+      expect(ovmSETNONCE._nonce).to.equal(DEFAULT_EIP155_TX.nonce + 1)
+    })
+
+    it(`should successfully execute an ETHSignedTransaction`, async () => {
+      const message = serializeEthSignTransaction(DEFAULT_EIP155_TX)
+      const sig = await signEthSignMessage(wallet, DEFAULT_EIP155_TX)
+
+      await callPredeploy(
+        Helper_PredeployCaller,
+        OVM_ECDSAContractAccount,
+        'execute',
+        [
+          message,
+          1, //isEthSignedMessage
+          `0x${sig.v}`, //v
+          `0x${sig.r}`, //r
+          `0x${sig.s}`, //s
+        ]
       )
 
       // The ovmCALL is the 2nd call because the first call transfers the fee.
@@ -105,8 +133,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const transaction = { ...DEFAULT_EIP155_TX, to: '' }
       const encodedTransaction = await wallet.signTransaction(transaction)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [encodedTransaction]
@@ -124,8 +152,8 @@ describe('OVM_ECDSAContractAccount', () => {
         '0x' + '00'.repeat(65)
       )
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [encodedTransaction]
@@ -141,8 +169,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const transaction = { ...DEFAULT_EIP155_TX, nonce: 99 }
       const encodedTransaction = await wallet.signTransaction(transaction)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [encodedTransaction]
@@ -158,8 +186,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const transaction = { ...DEFAULT_EIP155_TX, chainId: 421 }
       const encodedTransaction = await wallet.signTransaction(transaction)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [encodedTransaction]
@@ -176,8 +204,8 @@ describe('OVM_ECDSAContractAccount', () => {
       const transaction = { ...DEFAULT_EIP155_TX, gasLimit: 200000000 }
       const encodedTransaction = await wallet.signTransaction(transaction)
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [encodedTransaction],
@@ -197,8 +225,8 @@ describe('OVM_ECDSAContractAccount', () => {
 
       Mock__OVM_ExecutionManager.smocked.ovmCALL.will.return.with([false, '0x'])
 
-      await callPrecompile(
-        Helper_PrecompileCaller,
+      await callPredeploy(
+        Helper_PredeployCaller,
         OVM_ECDSAContractAccount,
         'execute',
         [encodedTransaction],

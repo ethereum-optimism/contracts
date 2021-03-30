@@ -3,7 +3,7 @@ import { expect } from '../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, constants, Contract } from 'ethers'
 import * as rlp from 'rlp'
 
 /* Internal Imports */
@@ -11,10 +11,8 @@ import {
   makeAddressManager,
   NON_NULL_BYTES32,
   NON_ZERO_ADDRESS,
-  NULL_BYTES32,
   setProxyTarget,
   TrieTestGenerator,
-  ZERO_ADDRESS,
 } from '../../../helpers'
 import {
   MockContract,
@@ -85,14 +83,14 @@ describe('OVM_StateTransitioner', () => {
     OVM_StateTransitioner = await Factory__OVM_StateTransitioner.deploy(
       AddressManager.address,
       0,
-      NULL_BYTES32,
-      NULL_BYTES32
+      ethers.constants.HashZero,
+      ethers.constants.HashZero
     )
   })
 
   describe('proveContractState', () => {
     const ovmContractAddress = NON_ZERO_ADDRESS
-    let ethContractAddress = ZERO_ADDRESS
+    let ethContractAddress = constants.AddressZero
     let account: any
     beforeEach(() => {
       Mock__OVM_StateManager.smocked.hasAccount.will.return.with(false)
@@ -100,8 +98,8 @@ describe('OVM_StateTransitioner', () => {
       account = {
         nonce: 0,
         balance: 0,
-        storageRoot: NULL_BYTES32,
-        codeHash: NULL_BYTES32,
+        storageRoot: ethers.constants.HashZero,
+        codeHash: ethers.constants.HashZero,
       }
     })
 
@@ -148,7 +146,7 @@ describe('OVM_StateTransitioner', () => {
             AddressManager.address,
             0,
             test.accountTrieRoot,
-            NULL_BYTES32
+            ethers.constants.HashZero
           )
         })
 
@@ -229,7 +227,11 @@ describe('OVM_StateTransitioner', () => {
 
         it('should revert', async () => {
           await expect(
-            OVM_StateTransitioner.proveStorageSlot(ZERO_ADDRESS, key, proof)
+            OVM_StateTransitioner.proveStorageSlot(
+              constants.AddressZero,
+              key,
+              proof
+            )
           ).to.be.reverted
         })
       })
@@ -259,12 +261,16 @@ describe('OVM_StateTransitioner', () => {
 
         it('should insert the storage slot', async () => {
           await expect(
-            OVM_StateTransitioner.proveStorageSlot(ZERO_ADDRESS, key, proof)
+            OVM_StateTransitioner.proveStorageSlot(
+              constants.AddressZero,
+              key,
+              proof
+            )
           ).to.not.be.reverted
 
           expect(
             Mock__OVM_StateManager.smocked.putContractStorage.calls[0]
-          ).to.deep.equal([ZERO_ADDRESS, key, val])
+          ).to.deep.equal([constants.AddressZero, key, val])
         })
       })
     })
@@ -277,8 +283,8 @@ describe('OVM_StateTransitioner', () => {
         timestamp: '0x12',
         blockNumber: '0x34',
         l1QueueOrigin: '0x00',
-        l1TxOrigin: ZERO_ADDRESS,
-        entrypoint: ZERO_ADDRESS,
+        l1TxOrigin: constants.AddressZero,
+        entrypoint: constants.AddressZero,
         gasLimit: toHexString(gasLimit),
         data: '0x1234',
       }
@@ -334,9 +340,9 @@ describe('OVM_StateTransitioner', () => {
       account = {
         nonce: 0,
         balance: 0,
-        storageRoot: NULL_BYTES32,
-        codeHash: NULL_BYTES32,
-        ethAddress: ZERO_ADDRESS,
+        storageRoot: ethers.constants.HashZero,
+        codeHash: ethers.constants.HashZero,
+        ethAddress: constants.AddressZero,
         isFresh: false,
       }
       Mock__OVM_StateManager.smocked.hasAccount.will.return.with(false)
@@ -422,13 +428,13 @@ describe('OVM_StateTransitioner', () => {
       account = {
         nonce: 0,
         balance: 0,
-        storageRoot: NULL_BYTES32,
-        codeHash: NULL_BYTES32,
+        storageRoot: ethers.constants.HashZero,
+        codeHash: ethers.constants.HashZero,
       }
 
       Mock__OVM_StateManager.smocked.getAccount.will.return.with({
         ...account,
-        ethAddress: ZERO_ADDRESS,
+        ethAddress: constants.AddressZero,
         isFresh: false,
       })
 
@@ -498,7 +504,7 @@ describe('OVM_StateTransitioner', () => {
           Mock__OVM_StateManager.smocked.getAccount.will.return.with({
             ...account,
             storageRoot: storageTest.root,
-            ethAddress: ZERO_ADDRESS,
+            ethAddress: constants.AddressZero,
             isFresh: false,
           })
 

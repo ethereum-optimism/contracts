@@ -18,6 +18,11 @@ library Lib_OVMCodec {
      * Enums *
      *********/
 
+    enum EOASignatureType {
+        EIP155_TRANSACTION,
+        ETH_SIGNED_MESSAGE
+    }
+
     enum QueueOrigin {
         SEQUENCER_QUEUE,
         L1TOL2_QUEUE

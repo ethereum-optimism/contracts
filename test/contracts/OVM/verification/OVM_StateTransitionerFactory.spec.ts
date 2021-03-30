@@ -2,14 +2,12 @@ import { expect } from '../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { ContractFactory, Contract } from 'ethers'
+import { ContractFactory, Contract, constants } from 'ethers'
 
 /* Internal Imports */
 import {
   makeAddressManager,
-  ZERO_ADDRESS,
   DUMMY_OVM_TRANSACTIONS,
-  NULL_BYTES32,
   hashTransaction,
 } from '../../../helpers'
 
@@ -38,15 +36,18 @@ describe('OVM_StateTransitionerFactory', () => {
   describe('create', () => {
     describe('when the sender is not the OVM_FraudVerifier', () => {
       before(async () => {
-        await AddressManager.setAddress('OVM_FraudVerifier', ZERO_ADDRESS)
+        await AddressManager.setAddress(
+          'OVM_FraudVerifier',
+          constants.AddressZero
+        )
       })
 
       it('should revert', async () => {
         await expect(
           OVM_StateTransitionerFactory.create(
             AddressManager.address,
-            NULL_BYTES32,
-            NULL_BYTES32,
+            ethers.constants.HashZero,
+            ethers.constants.HashZero,
             DUMMY_HASH
           )
         ).to.be.revertedWith(

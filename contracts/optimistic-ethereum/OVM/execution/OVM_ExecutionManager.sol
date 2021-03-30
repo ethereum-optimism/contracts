@@ -17,7 +17,7 @@ import { iOVM_SafetyChecker } from "../../iOVM/execution/iOVM_SafetyChecker.sol"
 /* Contract Imports */
 import { OVM_ECDSAContractAccount } from "../accounts/OVM_ECDSAContractAccount.sol";
 import { OVM_ProxyEOA } from "../accounts/OVM_ProxyEOA.sol";
-import { OVM_DeployerWhitelist } from "../precompiles/OVM_DeployerWhitelist.sol";
+import { OVM_DeployerWhitelist } from "../predeploys/OVM_DeployerWhitelist.sol";
 
 /**
  * @title OVM_ExecutionManager
@@ -796,7 +796,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /********************************************
-     * Public Functions: Deployment Witelisting *
+     * Public Functions: Deployment Whitelisting *
      ********************************************/
 
     /**

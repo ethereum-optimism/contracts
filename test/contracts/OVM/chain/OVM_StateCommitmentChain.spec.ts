@@ -2,7 +2,7 @@ import { expect } from '../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Signer, ContractFactory, Contract } from 'ethers'
+import { Signer, ContractFactory, Contract, constants } from 'ethers'
 import { smockit, MockContract } from '@eth-optimism/smock'
 
 /* Internal Imports */
@@ -10,9 +10,7 @@ import {
   makeAddressManager,
   setProxyTarget,
   NON_NULL_BYTES32,
-  ZERO_ADDRESS,
   getEthTime,
-  NULL_BYTES32,
   increaseEthTime,
 } from '../../../helpers'
 
@@ -196,7 +194,7 @@ describe('OVM_StateCommitmentChain', () => {
       batchRoot: NON_NULL_BYTES32,
       batchSize: 1,
       prevTotalElements: 0,
-      extraData: NULL_BYTES32,
+      extraData: ethers.constants.HashZero,
     }
 
     beforeEach(async () => {
@@ -212,7 +210,10 @@ describe('OVM_StateCommitmentChain', () => {
 
     describe('when the sender is not the OVM_FraudVerifier', () => {
       before(async () => {
-        await AddressManager.setAddress('OVM_FraudVerifier', ZERO_ADDRESS)
+        await AddressManager.setAddress(
+          'OVM_FraudVerifier',
+          constants.AddressZero
+        )
       })
 
       it('should revert', async () => {
