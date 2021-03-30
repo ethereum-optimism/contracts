@@ -44,6 +44,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         external
         onlyCallableBy(address(0x4200000000000000000000000000000000000009))
     {
+        _checkAccountLoad(_address);
         // TODO: enforce checkAccountLoad etc etc
         ovmStateManager.putAccountCode(_address, _code);
     }
@@ -1033,6 +1034,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
                 || flag == RevertFlag.UNSAFE_BYTECODE
                 || flag == RevertFlag.STATIC_VIOLATION
                 || flag == RevertFlag.CREATOR_NOT_ALLOWED
+                || flag == RevertFlag.CALLER_NOT_ALLOWED
             ) {
                 transactionRecord.ovmGasRefund = ovmGasRefund;
             }
