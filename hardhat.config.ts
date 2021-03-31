@@ -1,5 +1,5 @@
 import { HardhatUserConfig } from 'hardhat/types'
-import "solidity-coverage"
+import 'solidity-coverage'
 
 import {
   DEFAULT_ACCOUNTS_HARDHAT,
