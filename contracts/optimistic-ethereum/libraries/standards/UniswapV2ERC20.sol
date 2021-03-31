@@ -72,7 +72,10 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function transfer(address to, uint value) external override returns (bool) {
-        _transfer(msg.sender, to, value);
+        require(balanceOf[msg.sender] >= value);
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
         return true;
     }
 
