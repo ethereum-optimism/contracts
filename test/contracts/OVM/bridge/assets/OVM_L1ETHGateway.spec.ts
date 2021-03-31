@@ -1,7 +1,7 @@
 import { expect } from '../../../../setup'
 
 /* External Imports */
-import { ethers } from 'hardhat'
+import { ethers } from '@nomiclabs/buidler'
 import { Signer, ContractFactory, Contract, BigNumber, providers } from 'ethers'
 import {
   smockit,
@@ -23,7 +23,7 @@ const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
   'OVM_XCHAIN: wrong sender of cross-domain message'
 
-describe('OVM_L1ETHGateway', () => {
+describe.only('OVM_L1ETHGateway', () => {
   // init signers
   let l1MessengerImpersonator: Signer
   let alice: Signer
@@ -50,8 +50,8 @@ describe('OVM_L1ETHGateway', () => {
   beforeEach(async () => {
     // Get a new mock L1 messenger
     Mock__OVM_L1CrossDomainMessenger = await smockit(
-      await ethers.getContractFactory('OVM_L1CrossDomainMessenger'),
-      { address: await l1MessengerImpersonator.getAddress() } // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
+      await ethers.getContractFactory('OVM_L1CrossDomainMessenger'), await l1MessengerImpersonator.getAddress()
+      // { address: await l1MessengerImpersonator.getAddress() } // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
     )
 
     // Deploy the contract under test
@@ -165,7 +165,7 @@ describe('OVM_L1ETHGateway', () => {
         gasPrice: 0,
       })
 
-      const depositCallToMessenger =
+      const depositCallToMessenger: any =
         Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
 
       const depositerBalance = await ethers.provider.getBalance(depositer)
@@ -205,7 +205,7 @@ describe('OVM_L1ETHGateway', () => {
         value: depositAmount,
         gasPrice: 0,
       })
-      const depositCallToMessenger =
+      const depositCallToMessenger: any =
         Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
 
       const depositerBalance = await ethers.provider.getBalance(aliceAddress)

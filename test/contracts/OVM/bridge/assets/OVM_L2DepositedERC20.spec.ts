@@ -1,7 +1,7 @@
 import { expect } from '../../../../setup'
 
 /* External Imports */
-import { ethers } from 'hardhat'
+import { ethers } from '@nomiclabs/buidler'
 import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
 import {
   smockit,
@@ -21,7 +21,7 @@ const ERR_INVALID_X_DOMAIN_MSG_SENDER =
 const MOCK_L1GATEWAY_ADDRESS: string =
   '0x1234123412341234123412341234123412341234'
 
-describe('OVM_L2DepositedERC20', () => {
+describe.only('OVM_L2DepositedERC20', () => {
   let alice: Signer
   let bob: Signer
   let Factory__OVM_L1ERC20Gateway: ContractFactory
@@ -44,7 +44,7 @@ describe('OVM_L2DepositedERC20', () => {
     Mock__OVM_L2CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L2CrossDomainMessenger'),
       // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
-      { address: await l2MessengerImpersonator.getAddress() }
+      // { address: await l2MessengerImpersonator.getAddress() }
     )
 
     // Deploy the contract under test
@@ -137,7 +137,7 @@ describe('OVM_L2DepositedERC20', () => {
 
     it('withdraw() burns and sends the correct withdrawal message', async () => {
       await SmoddedL2Gateway.withdraw(withdrawAmount)
-      const withdrawalCallToMessenger =
+      const withdrawalCallToMessenger: any =
         Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
 
       // Assert Alice's balance went down
@@ -172,7 +172,7 @@ describe('OVM_L2DepositedERC20', () => {
 
     it('withdrawTo() burns and sends the correct withdrawal message', async () => {
       await SmoddedL2Gateway.withdrawTo(await bob.getAddress(), withdrawAmount)
-      const withdrawalCallToMessenger =
+      const withdrawalCallToMessenger: any =
         Mock__OVM_L2CrossDomainMessenger.smocked.sendMessage.calls[0]
 
       // Assert Alice's balance went down

@@ -1,7 +1,7 @@
 import { expect } from '../../../../setup'
 
 /* External Imports */
-import { ethers } from 'hardhat'
+import { ethers } from '@nomiclabs/buidler'
 import { Signer, ContractFactory, Contract, BigNumber } from 'ethers'
 import {
   smockit,
@@ -19,7 +19,7 @@ const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
   'OVM_XCHAIN: wrong sender of cross-domain message'
 
-describe('OVM_L1ERC20Gateway', () => {
+describe.only('OVM_L1ERC20Gateway', () => {
   // init signers
   let alice: Signer
   let bob: Signer
@@ -60,7 +60,7 @@ describe('OVM_L1ERC20Gateway', () => {
     // Get a new mock L1 messenger
     Mock__OVM_L1CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L1CrossDomainMessenger'),
-      { address: await l1MessengerImpersonator.getAddress() } // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
+      // { address: await l1MessengerImpersonator.getAddress() } // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
     )
 
     // Deploy the contract under test
@@ -181,7 +181,7 @@ describe('OVM_L1ERC20Gateway', () => {
     it('deposit() escrows the deposit amount and sends the correct deposit message', async () => {
       // alice calls deposit on the gateway and the L1 gateway calls transferFrom on the token
       await OVM_L1ERC20Gateway.deposit(depositAmount)
-      const depositCallToMessenger =
+      const depositCallToMessenger: any =
         Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
 
       const depositerBalance = await L1ERC20.balanceOf(depositer)
@@ -214,7 +214,7 @@ describe('OVM_L1ERC20Gateway', () => {
       // depositor calls deposit on the gateway and the L1 gateway calls transferFrom on the token
       const bobsAddress = await bob.getAddress()
       await OVM_L1ERC20Gateway.depositTo(bobsAddress, depositAmount)
-      const depositCallToMessenger =
+      const depositCallToMessenger:any =
         Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
 
       const depositerBalance = await L1ERC20.balanceOf(depositer)
