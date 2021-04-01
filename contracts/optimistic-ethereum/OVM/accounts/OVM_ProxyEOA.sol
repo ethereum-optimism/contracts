@@ -58,8 +58,8 @@ contract OVM_ProxyEOA {
                 return(add(returndata, 0x20), mload(returndata))
             }
         } else {
-            Lib_SafeExecutionManagerWrapper.safeREVERT(
-                string(returndata)
+            Lib_SafeExecutionManagerWrapper.safeREVERTbytes(
+                returndata
             );
         }
     }
