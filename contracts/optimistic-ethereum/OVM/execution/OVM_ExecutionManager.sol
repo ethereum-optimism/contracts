@@ -1803,37 +1803,25 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         messageRecord.revertFlag = RevertFlag.DID_NOT_REVERT;
     }
 
-    /*****************************
-     * L2-only Helper Functions *
-     *****************************/
+    /*********************
+     * Fallback Function *
+     *********************/
 
-    /**
-     * Unreachable helper function for simulating eth_calls with an OVM message context.
-     * This function will throw an exception in all cases other than when used as a custom entrypoint in L2 Geth to simulate eth_call.
-     * @param _transaction the message transaction to simulate.
-     * @param _from the OVM account the simulated call should be from.
-     */
-    function simulateMessage(
-        Lib_OVMCodec.Transaction memory _transaction,
-        address _from,
-        iOVM_StateManager _ovmStateManager
-    )
+    fallback()
         external
-        returns (
-            bool,
-            bytes memory
-        )
     {
-        // Prevent this call from having any effect unless in a custom-set VM frame
-        require(msg.sender == address(0));
+        address target = resolve("OVM_ExecutionManagerExtension");
 
-        ovmStateManager = _ovmStateManager;
-        _initContext(_transaction);
+        (bool success, bytes memory returndata) = target.delegatecall(msg.data);
 
-        messageRecord.nuisanceGasLeft = uint(-1);
-        messageContext.ovmADDRESS = _transaction.entrypoint;
-        messageContext.ovmCALLER = _from;
-
-        return _transaction.entrypoint.call{gas: _transaction.gasLimit}(_transaction.data);
+        if (success == true) {
+            assembly {
+                return(add(returndata, 0x20), mload(returndata))
+            }
+        } else {
+            assembly {
+                revert(add(returndata, 0x20), mload(returndata))
+            }
+        }
     }
 }

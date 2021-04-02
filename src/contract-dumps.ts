@@ -152,6 +152,7 @@ export const makeStateDump = async (cfg: RollupDeployConfig): Promise<any> => {
       'OVM_StateManager',
       'OVM_ETH',
       'mockOVM_ECDSAContractAccount',
+      'OVM_ExecutionManagerExtension'
     ],
     deployOverrides: {},
     waitForReceipts: false,
