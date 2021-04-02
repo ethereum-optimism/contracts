@@ -14,6 +14,8 @@ import {
 
 const UPGRADER_ADDRESS = '0x4200000000000000000000000000000000000009'
 const UPGRADED_ADDRESS = '0x1234123412341234123412341234123412341234'
+const UPGRADED_CODE = '0x1234'
+const UPGRADED_CODEHASH = ethers.utils.keccak256(UPGRADED_CODE)
 
 const sharedPreState = {
   ExecutionManager: {
@@ -51,26 +53,27 @@ const verifiedUpgradePreState = {
         ethAddress: '$OVM_CALL_HELPER',
       },
     },
-    verifiedContractStorage: {
-      [UPGRADED_ADDRESS]: {
-        [NON_NULL_BYTES32]: true,
-      },
-    },
+    // verifiedContractStorage: {
+    //   [UPGRADED_ADDRESS]: {
+    //     [NON_NULL_BYTES32]: true,
+    //   },
+    // },
   },
 }
 
-const test_ovmSETSTORAGEFunctionality: TestDefinition = {
-  name: 'Functionality tests for ovmSETSTORAGE',
+const test_ovmSETCODEFunctionality: TestDefinition = {
+  name: 'Functionality tests for ovmSETCODE',
   preState: sharedPreState,
   subTests: [
     {
-      name: 'ovmSETSTORAGE -- success case',
+      name: 'ovmSETCODE -- success case',
       preState: verifiedUpgradePreState,
       postState: {
         StateManager: {
-          contractStorage: {
+          accounts: {
             [UPGRADED_ADDRESS]: {
-              [NON_NULL_BYTES32]: getStorageXOR(NON_NULL_BYTES32),
+              codeHash: UPGRADED_CODEHASH,
+              ethAddress: '$OVM_CALL_HELPER',
             },
           },
         },
@@ -86,11 +89,10 @@ const test_ovmSETSTORAGEFunctionality: TestDefinition = {
                 target: UPGRADER_ADDRESS,
                 subSteps: [
                   {
-                    functionName: 'ovmSETSTORAGE',
+                    functionName: 'ovmSETCODE',
                     functionParams: {
                       address: UPGRADED_ADDRESS,
-                      key: NON_NULL_BYTES32,
-                      value: NON_NULL_BYTES32,
+                      code: UPGRADED_CODE,
                     },
                     expectedReturnStatus: true,
                   },
@@ -103,7 +105,7 @@ const test_ovmSETSTORAGEFunctionality: TestDefinition = {
       ],
     },
     {
-      name: 'ovmSETSTORAGE -- unauthorized case',
+      name: 'ovmSETCODE -- unauthorized case',
       preState: verifiedUpgradePreState,
       parameters: [
         {
@@ -116,11 +118,10 @@ const test_ovmSETSTORAGEFunctionality: TestDefinition = {
                 target: '$DUMMY_OVM_ADDRESS_1',
                 subSteps: [
                   {
-                    functionName: 'ovmSETSTORAGE',
+                    functionName: 'ovmSETCODE',
                     functionParams: {
                       address: UPGRADED_ADDRESS,
-                      key: NON_NULL_BYTES32,
-                      value: NON_NULL_BYTES32,
+                      code: UPGRADED_CODE,
                     },
                     expectedReturnStatus: false,
                     expectedReturnValue: {
@@ -139,8 +140,8 @@ const test_ovmSETSTORAGEFunctionality: TestDefinition = {
   ],
 }
 
-const test_ovmSETSTORAGEAccess: TestDefinition = {
-  name: 'State access compliance tests for ovmSETSTORAGE',
+const test_ovmSETCODEAccess: TestDefinition = {
+  name: 'State access compliance tests for ovmSETCODE',
   preState: sharedPreState,
   subTests: [
     {
@@ -157,59 +158,10 @@ const test_ovmSETSTORAGEAccess: TestDefinition = {
                 target: UPGRADER_ADDRESS,
                 subSteps: [
                   {
-                    functionName: 'ovmSETSTORAGE',
+                    functionName: 'ovmSETCODE',
                     functionParams: {
                       address: UPGRADED_ADDRESS,
-                      key: NON_NULL_BYTES32,
-                      value: NON_NULL_BYTES32,
-                    },
-                    expectedReturnStatus: false,
-                    expectedReturnValue: {
-                      flag: REVERT_FLAGS.INVALID_STATE_ACCESS,
-                      onlyValidateFlag: true,
-                    },
-                  },
-                ],
-              },
-              expectedReturnStatus: false,
-              expectedReturnValue: {
-                flag: REVERT_FLAGS.INVALID_STATE_ACCESS,
-                onlyValidateFlag: true,
-              },
-            },
-          ],
-        },
-      ],
-    },
-    {
-      name: 'ovmSETSTORAGE (UNVERIFIED_SLOT)',
-      preState: {
-        StateManager: {
-          accounts: {
-            [UPGRADED_ADDRESS]: {
-              codeHash: NON_NULL_BYTES32,
-              ethAddress: '$OVM_CALL_HELPER',
-            },
-          },
-        },
-      },
-      parameters: [
-        {
-          name: 'ovmSETSTORAGE with a missing storage slot',
-          expectInvalidStateAccess: true,
-          steps: [
-            {
-              functionName: 'ovmCALL',
-              functionParams: {
-                gasLimit: OVM_TX_GAS_LIMIT,
-                target: UPGRADER_ADDRESS,
-                subSteps: [
-                  {
-                    functionName: 'ovmSETSTORAGE',
-                    functionParams: {
-                      address: UPGRADED_ADDRESS,
-                      key: NON_NULL_BYTES32,
-                      value: NON_NULL_BYTES32,
+                      code: UPGRADED_CODE,
                     },
                     expectedReturnStatus: false,
                     expectedReturnValue: {
@@ -232,5 +184,5 @@ const test_ovmSETSTORAGEAccess: TestDefinition = {
   ],
 }
 const runner = new ExecutionManagerTestRunner()
-runner.run(test_ovmSETSTORAGEFunctionality)
-runner.run(test_ovmSETSTORAGEAccess)
+runner.run(test_ovmSETCODEFunctionality)
+runner.run(test_ovmSETCODEAccess)

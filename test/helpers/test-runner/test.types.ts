@@ -172,7 +172,7 @@ export interface TestStep_Run {
 export interface TestStep_SETCODE {
   functionName: 'ovmSETCODE'
   functionParams: {
-    address: string,
+    address: string
     code: string
   }
   expectedReturnStatus: boolean
@@ -182,8 +182,8 @@ export interface TestStep_SETCODE {
 export interface TestStep_SETSTORAGE {
   functionName: 'ovmSETSTORAGE'
   functionParams: {
-    address: string,
-    key: string,
+    address: string
+    key: string
     value: string
   }
   expectedReturnStatus: boolean

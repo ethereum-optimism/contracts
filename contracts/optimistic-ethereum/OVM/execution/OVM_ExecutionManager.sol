@@ -45,7 +45,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         onlyCallableBy(address(0x4200000000000000000000000000000000000009))
     {
         _checkAccountLoad(_address);
-        // TODO: enforce checkAccountLoad etc etc
         ovmStateManager.putAccountCode(_address, _code);
     }
 

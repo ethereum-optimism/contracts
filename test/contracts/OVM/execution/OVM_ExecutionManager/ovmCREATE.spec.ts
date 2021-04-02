@@ -756,7 +756,7 @@ const test_ovmCREATE: TestDefinition = {
           expectedReturnValue: {
             address: ethers.constants.AddressZero,
             revertData: encodeSolidityError(
-              'Constrcutor attempted to deploy unsafe opcodes.'
+              'Constructor attempted to deploy unsafe bytecode.'
             ),
           },
         },

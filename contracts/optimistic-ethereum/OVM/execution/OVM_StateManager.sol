@@ -156,7 +156,8 @@ contract OVM_StateManager is iOVM_StateManager {
         public
         authenticated
     {
-        // TODO: implement me
+        Lib_OVMCodec.Account storage account = accounts[_address];
+        account.codeHash = keccak256(_code);
     }
 
     /**
