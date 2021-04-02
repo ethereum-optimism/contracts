@@ -172,6 +172,14 @@ export const makeContractDeployConfig = async (
         config.ovmGlobalContext,
       ],
     },
+    OVM_ExecutionManagerExtension: {
+      factory: getContractFactory('OVM_ExecutionManagerExtension'),
+      params: [
+        AddressManager.address,
+        config.ovmGasMeteringConfig,
+        config.ovmGlobalContext,
+      ],
+    },
     OVM_StateManager: {
       factory: getContractFactory('OVM_StateManager'),
       params: [await config.deploymentSigner.getAddress()],

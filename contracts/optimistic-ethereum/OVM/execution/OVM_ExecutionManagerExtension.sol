@@ -2,10 +2,31 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
+/* Library Imports */
+import { Lib_OVMCodec } from "../../libraries/codec/Lib_OVMCodec.sol";
+
+/* Interface Imports */
+import { iOVM_StateManager } from "../../iOVM/execution/iOVM_StateManager.sol";
+
 /* Contract Imports */
 import { OVM_ExecutionManager } from "./OVM_ExecutionManager.sol";
 
-contract OVM_ExecutionManagerExtention is OVM_ExecutionManager {
+contract OVM_ExecutionManagerExtension is OVM_ExecutionManager {
+    /**
+     * @param _libAddressManager Address of the Address Manager.
+     */
+    constructor(
+        address _libAddressManager,
+        GasMeterConfig memory _gasMeterConfig,
+        GlobalContext memory _globalContext
+    )
+      OVM_ExecutionManager(
+        _libAddressManager,
+        _gasMeterConfig,
+        _globalContext
+      )
+    {}
+
     /*****************************
      * L2-only Helper Functions *
      *****************************/
