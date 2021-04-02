@@ -35,36 +35,6 @@ import { OVM_DeployerWhitelist } from "../predeploys/OVM_DeployerWhitelist.sol";
  * Runtime target: EVM
  */
 contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
-
-    function ovmSETCODE(
-        address _address,
-        bytes memory _code
-    )
-        override
-        external
-        onlyCallableBy(address(0x4200000000000000000000000000000000000009))
-    {
-        _checkAccountLoad(_address);
-        ovmStateManager.putAccountCode(_address, _code);
-    }
-
-    function ovmSETSTORAGE(
-        address _address,
-        bytes32 _key,
-        bytes32 _value
-    )
-        override
-        external
-        onlyCallableBy(address(0x4200000000000000000000000000000000000009))
-    {
-        _putContractStorage(
-            _address,
-            _key,
-            _value
-        );
-    }
-    
-
     /********************************
      * External Contract References *
      ********************************/
@@ -1856,6 +1826,52 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         messageRecord.nuisanceGasLeft = 0;
     }
+
+
+    /*********************
+     * Upgrade Functions *
+     *********************/
+
+    /**
+     * Sets the code of an ovm contract.
+     * @param _address Gas metadata key to set.
+     * @param _value Value to store at the given key.
+     */
+    function ovmSETCODE(
+        address _address,
+        bytes memory _code
+    )
+        override
+        external
+        onlyCallableBy(resolve("OVM_Upgrader"))
+    {
+        _checkAccountLoad(_address);
+        ovmStateManager.putAccountCode(_address, _code);
+    }
+
+
+    /**
+     * Sets the storage slot of an OVM contract.
+     * @param _address OVM account to set storage of.
+     * @param _key Key to set set.
+     * @param _value Value to store at the given key.
+     */
+    function ovmSETSTORAGE(
+        address _address,
+        bytes32 _key,
+        bytes32 _value
+    )
+        override
+        external
+        onlyCallableBy(resolve("OVM_Upgrader"))
+    {
+        _putContractStorage(
+            _address,
+            _key,
+            _value
+        );
+    }
+
 
     /*****************************
      * L2-only Helper Functions *
