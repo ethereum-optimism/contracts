@@ -10,6 +10,7 @@ import { iOVM_L2DepositedToken } from "../../../iOVM/bridge/tokens/iOVM_L2Deposi
 /* Library Imports */
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
 import { Lib_AddressResolver } from "../../../libraries/resolver/Lib_AddressResolver.sol";
+import { Lib_AddressManager } from "../../../libraries/resolver/Lib_AddressManager.sol";
 
 /**
  * @title OVM_L1ETHGateway
@@ -36,15 +37,28 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
      * Constructor *
      ***************/
 
+    // This contract lives behind a proxy, so the constructor parameters will go unused.
+    constructor()
+        OVM_CrossDomainEnabled(address(0))
+        Lib_AddressResolver(address(0))
+        public
+    {}
+
+    /******************
+     * Initialization *
+     ******************/
+
     /**
      * @param _libAddressManager Address manager for this OE deployment
      * @param _ovmEth L2 OVM_ETH implementation of iOVM_DepositedToken
      */
-    initialize(
+    function initialize(
         address _libAddressManager,
         address _ovmEth
-    ) {
-        require(libAddressManager == address(0), "Contract has already been initialized.");
+    )
+        public
+    {
+        require(libAddressManager == Lib_AddressManager(0), "Contract has already been initialized.");
         libAddressManager = Lib_AddressManager(_libAddressManager);
         ovmEth = _ovmEth;
         messenger = resolve("Proxy__OVM_L1CrossDomainMessenger"); // overrides OVM_CrossDomainEnabled constructor setting because resolve() is not yet accessible
