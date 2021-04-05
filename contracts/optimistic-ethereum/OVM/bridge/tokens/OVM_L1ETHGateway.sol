@@ -40,13 +40,12 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
      * @param _libAddressManager Address manager for this OE deployment
      * @param _ovmEth L2 OVM_ETH implementation of iOVM_DepositedToken
      */
-    constructor(
+    initialize(
         address _libAddressManager,
         address _ovmEth
-    )
-        OVM_CrossDomainEnabled(address(0)) // overridden in constructor code
-        Lib_AddressResolver(_libAddressManager)
-    {
+    ) {
+        require(libAddressManager == address(0), "Contract has already been initialized.");
+        libAddressManager = Lib_AddressManager(_libAddressManager);
         ovmEth = _ovmEth;
         messenger = resolve("Proxy__OVM_L1CrossDomainMessenger"); // overrides OVM_CrossDomainEnabled constructor setting because resolve() is not yet accessible
     }
