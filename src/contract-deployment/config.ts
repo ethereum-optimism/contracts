@@ -115,9 +115,7 @@ export const makeContractDeployConfig = async (
       factory: getContractFactory('Lib_ResolvedDelegateProxy'),
       params: [AddressManager.address, 'OVM_L1ETHGateway'],
       afterDeploy: async (contracts): Promise<void> => {
-        const l1EthGateway = getContractFactory(
-          'OVM_L1ETHGateway'
-        )
+        const l1EthGateway = getContractFactory('OVM_L1ETHGateway')
           .connect(config.deploymentSigner)
           .attach(contracts.Proxy__OVM_L1ETHGateway.address)
         await _sendTx(
