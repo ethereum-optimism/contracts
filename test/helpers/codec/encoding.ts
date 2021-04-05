@@ -24,7 +24,7 @@ export interface SignatureParameters {
 export const DEFAULT_EIP155_TX: EIP155Transaction = {
   to: `0x${'12'.repeat(20)}`,
   nonce: 100,
-  gasLimit: 1000000,
+  gasLimit: 8999999,
   gasPrice: 100000000,
   data: `0x${'99'.repeat(10)}`,
   chainId: 420,
