@@ -323,9 +323,9 @@ library Lib_SafeExecutionManagerWrapper {
     }
 
     /**
-     * Performs a safe asdfasdfasdfasdf call.
+     * Performs a safe ovmSETCODE call.
      */
-    function safeUPGRADE(
+    function safeSETCODE(
         address _address,
         bytes memory _code
     )
@@ -333,7 +333,25 @@ library Lib_SafeExecutionManagerWrapper {
     {
         _safeExecutionManagerInteraction(
             abi.encodeWithSignature(
-                "ovmUPGRADECODE(address,bytes)",
+                "ovmSETCODE(address,bytes)",
+                _address,
+                _code
+            )
+        );
+    }
+
+    /**
+     * Performs a safe ovmSETSTORAGE call.
+     */
+    function ovmSETSTORAGE(
+        address _address,
+        bytes memory _code
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmSETSTORAGE(address,bytes)",
                 _address,
                 _code
             )

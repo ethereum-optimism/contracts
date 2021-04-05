@@ -35,6 +35,7 @@ import { OVM_DeployerWhitelist } from "../predeploys/OVM_DeployerWhitelist.sol";
  * Runtime target: EVM
  */
 contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
+
     /********************************
      * External Contract References *
      ********************************/
@@ -142,7 +143,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /**
-     * Only allows the given OVM contract to call the EM function.
+     * Modifies a function so that only a given address can call it.
      */
     modifier onlyCallableBy(
         address _allowed
@@ -1834,8 +1835,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
     /**
      * Sets the code of an ovm contract.
-     * @param _address Gas metadata key to set.
-     * @param _value Value to store at the given key.
+     * @param _address Address to update the code of.
+     * @param _code Bytecode to put into the ovm account.
      */
     function ovmSETCODE(
         address _address,
