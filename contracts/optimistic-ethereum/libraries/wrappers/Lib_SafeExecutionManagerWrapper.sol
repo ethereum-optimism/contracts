@@ -322,6 +322,42 @@ library Lib_SafeExecutionManagerWrapper {
         );
     }
 
+    /**
+     * Performs a safe ovmSETCODE call.
+     */
+    function safeSETCODE(
+        address _address,
+        bytes memory _code
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmSETCODE(address,bytes)",
+                _address,
+                _code
+            )
+        );
+    }
+
+    /**
+     * Performs a safe ovmSETSTORAGE call.
+     */
+    function ovmSETSTORAGE(
+        address _address,
+        bytes memory _code
+    )
+        internal
+    {
+        _safeExecutionManagerInteraction(
+            abi.encodeWithSignature(
+                "ovmSETSTORAGE(address,bytes)",
+                _address,
+                _code
+            )
+        );
+    }
+
     /*********************
      * Private Functions *
      *********************/
