@@ -61,7 +61,7 @@ contract OVM_L1ETHGateway is iOVM_L1ETHGateway, OVM_CrossDomainEnabled, Lib_Addr
         require(libAddressManager == Lib_AddressManager(0), "Contract has already been initialized.");
         libAddressManager = Lib_AddressManager(_libAddressManager);
         ovmEth = _ovmEth;
-        messenger = resolve("Proxy__OVM_L1CrossDomainMessenger"); // overrides OVM_CrossDomainEnabled constructor setting because resolve() is not yet accessible
+        messenger = resolve("Proxy__OVM_L1CrossDomainMessenger");
     }
 
     /**************
