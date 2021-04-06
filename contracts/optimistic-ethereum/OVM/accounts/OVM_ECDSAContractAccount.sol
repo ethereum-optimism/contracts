@@ -114,7 +114,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
         // Contract creations are signalled by sending a transaction to the zero address.
         if (decodedTx.to == address(0)) {
             (address created, bytes memory revertData) = Lib_SafeExecutionManagerWrapper.safeCREATE(
-                8999999,
+                gasleft(),
                 decodedTx.data
             );
 
@@ -131,7 +131,7 @@ contract OVM_ECDSAContractAccount is iOVM_ECDSAContractAccount {
             Lib_SafeExecutionManagerWrapper.safeINCREMENTNONCE();
 
             return Lib_SafeExecutionManagerWrapper.safeCALL(
-                8999999,
+                gasleft(),
                 decodedTx.to,
                 decodedTx.data
             );
