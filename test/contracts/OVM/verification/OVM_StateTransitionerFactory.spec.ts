@@ -2,7 +2,7 @@ import { expect } from '../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { ContractFactory, Contract, constants } from 'ethers'
+import { ContractFactory, Contract, constants, Signer } from 'ethers'
 
 /* Internal Imports */
 import {
@@ -14,6 +14,11 @@ import {
 const DUMMY_HASH = hashTransaction(DUMMY_OVM_TRANSACTIONS[0])
 
 describe('OVM_StateTransitionerFactory', () => {
+  let signer1: Signer
+  before(async () => {
+    ;[signer1] = await ethers.getSigners()
+  })
+
   let AddressManager: Contract
   before(async () => {
     AddressManager = await makeAddressManager()
@@ -53,6 +58,26 @@ describe('OVM_StateTransitionerFactory', () => {
         ).to.be.revertedWith(
           'Create can only be done by the OVM_FraudVerifier.'
         )
+      })
+    })
+
+    describe('when the sender is the OVM_FraudVerifier', () => {
+      before(async () => {
+        await AddressManager.setAddress(
+          'OVM_FraudVerifier',
+          await signer1.getAddress()
+        )
+      })
+
+      it('should revert', async () => {
+        await expect(
+          OVM_StateTransitionerFactory.connect(signer1).create(
+            AddressManager.address,
+            ethers.constants.HashZero,
+            ethers.constants.HashZero,
+            DUMMY_HASH
+          )
+        ).to.not.be.reverted
       })
     })
   })
