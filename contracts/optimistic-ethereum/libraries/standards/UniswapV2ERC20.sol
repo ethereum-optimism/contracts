@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // +build ovm
 pragma solidity >=0.5.16 <0.8.0;
 
@@ -9,7 +10,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
 
     string public override name;
     string public override symbol;
-    uint8 public override immutable decimals;
+    uint8 public constant override decimals = 18;
     uint public override totalSupply;
     mapping(address => uint) public override balanceOf;
     mapping(address => mapping(address => uint)) public override allowance;
@@ -20,11 +21,11 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     mapping(address => uint) public override nonces;
 
     constructor(
-        uint8 _decimals,
         string memory _name,
         string memory _symbol
-    ) public {
-        decimals = _decimals;
+    )
+        public
+    {
         name = _name;
         symbol = _symbol;
 
@@ -72,10 +73,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function transfer(address to, uint value) external override returns (bool) {
-        require(balanceOf[msg.sender] >= value);
-        balanceOf[msg.sender] -= value;
-        balanceOf[to] += value;
-        emit Transfer(msg.sender, to, value);
+        _transfer(msg.sender, to, value);
         return true;
     }
 

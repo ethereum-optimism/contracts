@@ -15,9 +15,6 @@ contract OVM_CrossDomainEnabled {
     // Messenger contract used to send and recieve messages from the other domain.
     address public messenger;
 
-    uint32 public constant DEFAULT_FINALIZE_DEPOSIT_L2_GAS = 700000;
-    uint32 public constant DEFAULT_FINALIZE_WITHDRAWAL_L1_GAS = 100000;
-
     /***************
      * Constructor *
      ***************/    

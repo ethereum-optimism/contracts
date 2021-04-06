@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// +build ovm
 pragma solidity >0.5.0;
 pragma experimental ABIEncoderV2;
 
@@ -22,7 +21,6 @@ interface iOVM_L1ETHGateway {
         address indexed _to,
         uint256 _amount
     );
-
 
     /********************
      * Public Functions *
@@ -47,4 +45,11 @@ interface iOVM_L1ETHGateway {
         uint _amount
     )
         external;
+
+    function getFinalizeDepositL2Gas()
+        external
+        view
+        returns(
+            uint32
+        );
 }

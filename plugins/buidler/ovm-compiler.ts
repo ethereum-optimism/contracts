@@ -72,6 +72,8 @@ internalTask(TASK_COMPILE_RUN_COMPILER).setAction(
     const ovmOutput = await ovmCompiler.compile(ovmInput)
     console.log('Compiling evm contracts...')
     const evmOutput = await evmCompiler.compile(evmInput)
+    console.log('ovm', ovmOutput)
+    console.log('evm', evmOutput)
 
     // Filter out any "No input sources specified" errors, but only if one of the two compilations
     // threw the error.

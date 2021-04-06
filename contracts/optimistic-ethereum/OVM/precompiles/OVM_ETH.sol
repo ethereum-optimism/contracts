@@ -6,28 +6,31 @@ pragma solidity >0.5.0 <0.8.0;
 import { Lib_AddressResolver } from "../../libraries/resolver/Lib_AddressResolver.sol";
 
 /* Interface Imports */
-import { iOVM_L1ERC20Gateway } from "../../iOVM/bridge/tokens/iOVM_L1ERC20Gateway.sol";
+import { iOVM_L1TokenGateway } from "../../iOVM/bridge/tokens/iOVM_L1TokenGateway.sol";
 
 /* Contract Imports */
 import { OVM_L2DepositedERC20 } from "../bridge/tokens/OVM_L2DepositedERC20.sol";
 
 /**
  * @title OVM_ETH
- * @dev L2 CONTRACT (COMPILED)
+ * @dev The ETH predeploy provides an ERC20 interface for ETH deposited to Layer 2. Note that 
+ * unlike on Layer 1, Layer 2 accounts do not have a balance field.
+ * 
+ * Compiler used: optimistic-solc
+ * Runtime target: OVM
  */
 contract OVM_ETH is OVM_L2DepositedERC20 {
     constructor(
         address _l2CrossDomainMessenger,
         address _l1ETHGateway
-    ) 
+    )
+        public
         OVM_L2DepositedERC20(
             _l2CrossDomainMessenger,
-            18, // WETH decimals
-            "ovmWETH",
-            "oWETH"
+            "Ether",
+            "ETH"
         )
-        public 
     {
-        init(iOVM_L1ERC20Gateway(_l1ETHGateway));
+        init(iOVM_L1TokenGateway(_l1ETHGateway));
     }
 }

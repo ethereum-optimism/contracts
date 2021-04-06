@@ -3,40 +3,37 @@
 pragma solidity >0.5.0;
 pragma experimental ABIEncoderV2;
 
-/* Interface Imports */
-import { IUniswapV2ERC20 } from "../../../libraries/standards/IUniswapV2ERC20.sol";
-
 /**
- * @title iOVM_L2DepositedERC20
+ * @title iOVM_L1TokenGateway
  */
-interface iOVM_L2DepositedERC20 is IUniswapV2ERC20 {
+interface iOVM_L1TokenGateway {
 
     /**********
      * Events *
      **********/
 
-    event WithdrawalInitiated(
+    event DepositInitiated(
         address indexed _from,
         address _to,
         uint256 _amount
     );
-
-    event DepositFinalized(
+  
+    event WithdrawalFinalized(
         address indexed _to,
         uint256 _amount
-    );    
+    );
 
 
     /********************
      * Public Functions *
      ********************/
 
-    function withdraw(
+    function deposit(
         uint _amount
     )
         external;
 
-    function withdrawTo(
+    function depositTo(
         address _to,
         uint _amount
     )
@@ -47,7 +44,7 @@ interface iOVM_L2DepositedERC20 is IUniswapV2ERC20 {
      * Cross-chain Functions *
      *************************/
 
-    function finalizeDeposit(
+    function finalizeWithdrawal(
         address _to,
         uint _amount
     )
