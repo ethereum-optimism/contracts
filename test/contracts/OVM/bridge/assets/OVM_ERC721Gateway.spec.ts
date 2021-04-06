@@ -2,11 +2,11 @@ import { expect } from '../../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Signer, ContractFactory, Contract } from 'ethers'
+import { Signer, ContractFactory, Contract, constants } from 'ethers'
 import { smockit, MockContract, smoddit } from '@eth-optimism/smock'
 
 /* Internal Imports */
-import { NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../../helpers'
+import { NON_ZERO_ADDRESS } from '../../../../helpers'
 
 const TEST_TOKEN_URI = 'test-uri-goes-here'
 
@@ -70,7 +70,7 @@ describe('OVM_ERC721Gateway', () => {
       )
 
       await expect(
-        OVM_ERC721Gateway.finalizeWithdrawal(ZERO_ADDRESS, 1)
+        OVM_ERC721Gateway.finalizeWithdrawal(constants.AddressZero, 1)
       ).to.be.revertedWith(ERR_INVALID_MESSENGER)
     })
 
@@ -80,7 +80,7 @@ describe('OVM_ERC721Gateway', () => {
       )
 
       await expect(
-        OVM_ERC721Gateway.finalizeWithdrawal(ZERO_ADDRESS, 1, {
+        OVM_ERC721Gateway.finalizeWithdrawal(constants.AddressZero, 1, {
           from: Mock__OVM_L1CrossDomainMessenger.address,
         })
       ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
@@ -113,7 +113,7 @@ describe('OVM_ERC721Gateway', () => {
 
       const OVM_DepositedERC721 = await (
         await ethers.getContractFactory('OVM_DepositedERC721')
-      ).deploy(ZERO_ADDRESS, '', '')
+      ).deploy(constants.AddressZero, '', '')
       const defaultFinalizeWithdrawalGas = await OVM_DepositedERC721.getFinalizeWithdrawalGas()
       await expect(gasUsed.gt((defaultFinalizeWithdrawalGas * 11) / 10))
     })

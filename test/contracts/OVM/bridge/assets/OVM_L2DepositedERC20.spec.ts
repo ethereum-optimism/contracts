@@ -2,7 +2,7 @@ import { expect } from '../../../../setup'
 
 /* External Imports */
 import { ethers } from 'hardhat'
-import { Signer, ContractFactory, Contract } from 'ethers'
+import { Signer, ContractFactory, Contract, constants } from 'ethers'
 import {
   smockit,
   MockContract,
@@ -11,7 +11,7 @@ import {
 } from '@eth-optimism/smock'
 
 /* Internal Imports */
-import { NON_ZERO_ADDRESS, ZERO_ADDRESS } from '../../../../helpers'
+import { NON_ZERO_ADDRESS } from '../../../../helpers'
 
 const ERR_INVALID_MESSENGER = 'OVM_XCHAIN: messenger contract unauthenticated'
 const ERR_INVALID_X_DOMAIN_MSG_SENDER =
@@ -68,7 +68,7 @@ describe('OVM_L2DepositedERC20', () => {
       await OVM_L2DepositedERC20.init(NON_ZERO_ADDRESS)
 
       await expect(
-        OVM_L2DepositedERC20.finalizeDeposit(ZERO_ADDRESS, 0)
+        OVM_L2DepositedERC20.finalizeDeposit(constants.AddressZero, 0)
       ).to.be.revertedWith(ERR_INVALID_MESSENGER)
     })
 
@@ -78,7 +78,7 @@ describe('OVM_L2DepositedERC20', () => {
       )
 
       await expect(
-        OVM_L2DepositedERC20.finalizeDeposit(ZERO_ADDRESS, 0, {
+        OVM_L2DepositedERC20.finalizeDeposit(constants.AddressZero, 0, {
           from: Mock__OVM_L2CrossDomainMessenger.address,
         })
       ).to.be.revertedWith(ERR_INVALID_X_DOMAIN_MSG_SENDER)
@@ -204,7 +204,7 @@ describe('OVM_L2DepositedERC20', () => {
       ).deploy(NON_ZERO_ADDRESS, 'ovmWETH', 'oWETH')
 
       await expect(
-        OVM_L2DepositedERC20.finalizeDeposit(ZERO_ADDRESS, 1)
+        OVM_L2DepositedERC20.finalizeDeposit(constants.AddressZero, 1)
       ).to.be.revertedWith(ERR_NOT_YET_INITIALISED)
     })
 
@@ -217,9 +217,9 @@ describe('OVM_L2DepositedERC20', () => {
         OVM_L2DepositedERC20,
         'Initialized'
       )
-      await expect(OVM_L2DepositedERC20.init(ZERO_ADDRESS)).to.be.revertedWith(
-        ERR_ALREADY_INITIALISED
-      )
+      await expect(
+        OVM_L2DepositedERC20.init(constants.AddressZero)
+      ).to.be.revertedWith(ERR_ALREADY_INITIALISED)
     })
   })
 })
