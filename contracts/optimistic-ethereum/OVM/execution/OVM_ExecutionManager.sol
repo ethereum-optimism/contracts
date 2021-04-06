@@ -159,7 +159,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
-        require(transactionContext.ovmNUMBER == 0, "Only be callable at the start of a transaction");
+        require(transactionContext.ovmNUMBER == 0, "Only callable at the start of a transaction");
+        require(_transaction.blockNumber != 0, "Prevent reentrancy by disallowing default context values");
+
         // Store our OVM_StateManager instance (significantly easier than attempting to pass the
         // address around in calldata).
         ovmStateManager = iOVM_StateManager(_ovmStateManager);
@@ -362,7 +364,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * Opcodes: Contract Creation *
      ******************************/
 
-    /**
+    /**np
      * @notice Overrides CREATE.
      * @param _bytecode Code to be used to CREATE a new contract.
      * @return Address of the created contract.
@@ -640,7 +642,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // DELEGATECALL does not change anything about the message context.
         MessageContext memory nextMessageContext = messageContext;
-        
+
         return _callContract(
             nextMessageContext,
             _gasLimit,
@@ -915,7 +917,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * Handles all interactions which involve the execution manager calling out to untrusted code (both calls and creates).
      * Ensures that OVM-related measures are enforced, including L2 gas refunds, nuisance gas, and flagged reversions.
-     * 
+     *
      * @param _nextMessageContext Message context to be used for the external message.
      * @param _gasLimit Amount of gas to be passed into this message.
      * @param _contract OVM address being called or deployed to
@@ -1028,7 +1030,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * Handles the creation-specific safety measures required for OVM contract deployment.
      * This function sanitizes the return types for creation messages to match calls (bool, bytes).
      * This allows for consistent handling of both types of messages in _handleExternalMessage().
-     * 
+     *
      * @param _gasLimit Amount of gas to be passed into this creation.
      * @param _creationCode Code to pass into CREATE for deployment.
      * @param _address OVM address being deployed to.
@@ -1075,7 +1077,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Actually execute the EVM create message,
         address ethAddress = Lib_EthUtils.createContract(_creationCode);
-        
+
         if (ethAddress == address(0)) {
             // If the creation fails, the EVM lets us grab its revert data. This may contain a revert flag
             // to be used above in _handleExternalMessage.
@@ -1851,7 +1853,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             if (created == address(0)) {
                 return (false, revertData);
             } else {
-                // The eth_call RPC endpoint for to = undefined will return the deployed bytecode 
+                // The eth_call RPC endpoint for to = undefined will return the deployed bytecode
                 // in the success case, differing from standard create messages.
                 return (true, Lib_EthUtils.getCode(created));
             }
