@@ -154,7 +154,7 @@ describe('OVM_ERC721Gateway', () => {
       await ERC721.approve(OVM_ERC721Gateway.address, depositTokenId)
     })
 
-    it('deposit() escrows the deposit amount and sends the correct deposit message', async () => {
+    it('deposit() escrows the deposit token and sends the correct deposit message', async () => {
       // expect depositer to be initial owner
       const initialTokenOwner = await ERC721.ownerOf(depositTokenId)
       expect(initialTokenOwner).to.equal(depositer)
@@ -185,7 +185,7 @@ describe('OVM_ERC721Gateway', () => {
       expect(depositCallToMessenger._gasLimit).to.equal(finalizeDepositGasLimit)
     })
 
-    it('depositTo() escrows the deposit amount and sends the correct deposit message', async () => {
+    it('depositTo() escrows the deposit token and sends the correct deposit message', async () => {
       // depositor calls deposit on the gateway and the L1 gateway calls transferFrom on the token
       const aliceAddress = await alice.getAddress()
 
@@ -202,6 +202,21 @@ describe('OVM_ERC721Gateway', () => {
           [aliceAddress, depositTokenId, TEST_TOKEN_URI]
         )
       )
+    })
+
+    it('safeTransfer of a token to the gateway escrows it and initiates a deposit', async () => {
+      const initialTokenOwner = await ERC721.ownerOf(depositTokenId)
+
+      // depositer safeTransfers a token to the gateway, which leads to a call onERC721Received which initiates a deposit
+      await expect(ERC721['safeTransferFrom(address,address,uint256)'](initialTokenOwner, OVM_ERC721Gateway.address, depositTokenId)).to.emit(
+        OVM_ERC721Gateway,
+        'DepositInitiated'
+      )
+
+      // expect the gateway to be the new owner of the token
+      const newTokenOwner = await ERC721.ownerOf(depositTokenId)
+      expect(newTokenOwner).to.equal(OVM_ERC721Gateway.address)
+
     })
   })
 })

@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import { iOVM_ERC721Gateway } from "../../../iOVM/bridge/tokens/iOVM_ERC721Gateway.sol";
 import { iOVM_DepositedERC721 } from "../../../iOVM/bridge/tokens/iOVM_DepositedERC721.sol";
 import { IERC721Metadata } from "../../../libraries/standards/ERC721/extensions/IERC721Metadata.sol";
+import { IERC721Receiver } from "../../../libraries/standards/ERC721/IERC721Receiver.sol";
 
 /* Library Imports */
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
@@ -25,7 +26,7 @@ import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomai
  * Compiler used: solc, optimistic-solc
  * Runtime target: EVM or OVM
  */
-abstract contract Abs_ERC721Gateway is iOVM_ERC721Gateway, OVM_CrossDomainEnabled {
+abstract contract Abs_ERC721Gateway is iOVM_ERC721Gateway, OVM_CrossDomainEnabled, IERC721Receiver {
 
     /********************************
      * External Contract References *
@@ -146,6 +147,62 @@ abstract contract Abs_ERC721Gateway is iOVM_ERC721Gateway, OVM_CrossDomainEnable
     }
 
     /**
+     * @dev deposit received ERC721s to the other side
+     * @param _operator the address calling the contract
+     * @param _from the address that the ERC721 is being transferred from
+     * @param _tokenId the token being transferred
+     * @param _data Additional data with no specified format
+     */
+    function onERC721Received(
+        address _operator,
+        address _from,
+        uint256 _tokenId,
+        bytes memory _data
+    )
+        external
+        override
+        returns (
+            bytes4
+        )
+    {
+        _sendDepositMessage(_from, _from, _tokenId);
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
+    /**
+     * @dev Sends a message to deposit a token on the other side
+     *
+     * @param _from Account depositing from
+     * @param _to Account to give the deposit to
+     * @param _tokenId ERC721 token being deposited
+     */
+    function _sendDepositMessage(
+        address _from,
+        address _to,
+        uint _tokenId
+    )
+        internal
+    {
+
+        // Construct calldata for depositedERC721.finalizeDeposit(_to, _tokenId, _tokenURI)
+        bytes memory data = abi.encodeWithSelector(
+            iOVM_DepositedERC721.finalizeDeposit.selector,
+            _to,
+            _tokenId,
+            IERC721Metadata(originalToken).tokenURI(_tokenId)
+        );
+
+        // Send calldata into L2
+        sendCrossDomainMessage(
+            depositedToken,
+            data,
+            getFinalizeDepositGas()
+        );
+
+        emit DepositInitiated(_from, _to, _tokenId);
+    }
+
+    /**
      * @dev Performs the logic for deposits by informing the Deposited Token
      * contract on the other side of the deposit and calling a handler to lock the funds. (e.g. transferFrom)
      *
@@ -167,26 +224,16 @@ abstract contract Abs_ERC721Gateway is iOVM_ERC721Gateway, OVM_CrossDomainEnable
             _tokenId
         );
 
-        // Construct calldata for depositedERC721.finalizeDeposit(_to, _tokenId, _tokenURI)
-        bytes memory data = abi.encodeWithSelector(
-            iOVM_DepositedERC721.finalizeDeposit.selector,
+        _sendDepositMessage(
+            _from,
             _to,
-            _tokenId,
-            IERC721Metadata(originalToken).tokenURI(_tokenId)
+            _tokenId
         );
 
-        // Send calldata into L2
-        sendCrossDomainMessage(
-            depositedToken,
-            data,
-            getFinalizeDepositGas()
-        );
-
-        emit DepositInitiated(_from, _to, _tokenId);
     }
 
     /*************************
-     * Cross-chain Functions *
+     * Withdrawing *
      *************************/
 
     /**
