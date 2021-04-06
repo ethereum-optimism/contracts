@@ -164,16 +164,20 @@ describe('OVM_L2CrossDomainMessenger', () => {
         Mock__OVM_L1CrossDomainMessenger.address
       )
       target = await AddressManager.getAddress('OVM_L2ToL1MessagePasser')
-      message = Mock__OVM_L2ToL1MessagePasser.interface.encodeFunctionData('passMessageToL1(bytes)', [
-        NON_NULL_BYTES32,
-      ])
+      message = Mock__OVM_L2ToL1MessagePasser.interface.encodeFunctionData(
+        'passMessageToL1(bytes)',
+        [NON_NULL_BYTES32]
+      )
 
-      const resProm = OVM_L2CrossDomainMessenger.relayMessage(target, sender, message, 0)
+      const resProm = OVM_L2CrossDomainMessenger.relayMessage(
+        target,
+        sender,
+        message,
+        0
+      )
 
       // The call to relayMessage() should succeed.
-      await expect(
-        resProm
-      ).to.not.be.reverted
+      await expect(resProm).to.not.be.reverted
 
       // There should be no 'relayedMessage' event logged in the receipt.
       const logs = (
@@ -187,7 +191,7 @@ describe('OVM_L2CrossDomainMessenger', () => {
       expect(
         await OVM_L2CrossDomainMessenger.successfulMessages(
           solidityKeccak256(
-            ["bytes"],
+            ['bytes'],
             [getXDomainCalldata(await signer.getAddress(), target, message, 0)]
           )
         )
