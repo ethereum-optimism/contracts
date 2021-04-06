@@ -208,15 +208,17 @@ describe('OVM_ERC721Gateway', () => {
       const initialTokenOwner = await ERC721.ownerOf(depositTokenId)
 
       // depositer safeTransfers a token to the gateway, which leads to a call onERC721Received which initiates a deposit
-      await expect(ERC721['safeTransferFrom(address,address,uint256)'](initialTokenOwner, OVM_ERC721Gateway.address, depositTokenId)).to.emit(
-        OVM_ERC721Gateway,
-        'DepositInitiated'
-      )
+      await expect(
+        ERC721['safeTransferFrom(address,address,uint256)'](
+          initialTokenOwner,
+          OVM_ERC721Gateway.address,
+          depositTokenId
+        )
+      ).to.emit(OVM_ERC721Gateway, 'DepositInitiated')
 
       // expect the gateway to be the new owner of the token
       const newTokenOwner = await ERC721.ownerOf(depositTokenId)
       expect(newTokenOwner).to.equal(OVM_ERC721Gateway.address)
-
     })
   })
 })
