@@ -79,6 +79,7 @@ export const getDeployedContract = async (
   // Now reset Object.defineProperty
   Object.defineProperty = def
 
+  // Override each function call to also `.wait()` so as to simplify the deploy scripts' syntax.
   for (const fnName of Object.keys(contract.functions)) {
     const fn = contract[fnName].bind(contract)
     ;(contract as any)[fnName] = async (...args: any) => {
