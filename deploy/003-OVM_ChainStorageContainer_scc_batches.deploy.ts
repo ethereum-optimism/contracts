@@ -15,13 +15,13 @@ const deployFn: DeployFunction = async (hre) => {
 
   await deployAndRegister({
     hre,
-    name: 'OVM_ChainStorageContainer:SCC:queue',
+    name: 'OVM_ChainStorageContainer:SCC:batches',
     contract: 'OVM_ChainStorageContainer',
     args: [Lib_AddressManager.address, 'OVM_StateCommitmentChain'],
   })
 }
 
 deployFn.dependencies = ['Lib_AddressManager']
-deployFn.tags = ['OVM_ChainStorageContainer_scc_queue']
+deployFn.tags = ['OVM_ChainStorageContainer_scc_batches']
 
 export default deployFn
