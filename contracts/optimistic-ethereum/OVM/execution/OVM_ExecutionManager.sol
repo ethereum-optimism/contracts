@@ -67,6 +67,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     uint256 constant NUISANCE_GAS_PER_CONTRACT_BYTE = 100;
     uint256 constant MIN_GAS_FOR_INVALID_STATE_ACCESS = 30000;
 
+    /**************************
+     * Default Context Values *
+     **************************/
+
+    uint256 constant DEFAULT_UINT256 = 0xdefa017defa017defa017defa017defa017defa017defa017defa017defa017d;
+    // works: bytes32 constant DEFAULT_UINT256 = 0xdefa017defa017defa017defa017defa017defa017defa017defa017defa017d;
 
     /***************
      * Constructor *
@@ -159,8 +165,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
-        require(transactionContext.ovmNUMBER == 0, "Only callable at the start of a transaction");
-        require(_transaction.blockNumber != 0, "Prevent reentrancy by disallowing default context values");
+        require(transactionContext.ovmNUMBER == DEFAULT_UINT256, "Only callable at the start of a transaction");
 
         // Store our OVM_StateManager instance (significantly easier than attempting to pass the
         // address around in calldata).
@@ -185,10 +190,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Make sure the transaction's gas limit is valid. We don't revert here because we reserve
         // reverts for INVALID_STATE_ACCESS.
-        if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) {
+        if (_isValidInput(_transaction) == false) {
             _resetContext();
             return;
         }
+
+
 
         // TEMPORARY: Gas metering is disabled for minnet.
         // // Check gas right before the call to get total gas consumed by OVM transaction.
@@ -364,7 +371,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * Opcodes: Contract Creation *
      ******************************/
 
-    /**np
+    /**
      * @notice Overrides CREATE.
      * @param _bytecode Code to be used to CREATE a new contract.
      * @return Address of the created contract.
@@ -1632,6 +1639,32 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     }
 
     /**
+     * Validates the input values of a transaction.
+     * @return _valid Whether or not the transaction data is valid.
+     */
+    function _isValidInput(
+        Lib_OVMCodec.Transaction memory _transaction
+    )
+        view
+        internal
+        returns (
+            bool _valid
+        )
+    {
+        // Prevent reentrancy to run():
+        // This check prevents calling run with the default ovmNumber.
+        // Combined with the first check in run():
+        // require(transactionContext.ovmNUMBER == DEFAULT_UINT256), a reentrant call is effectively prevented.
+        // Since this value is already being written to storage, we save much gas compared to
+        // using the standard nonReentrant pattern.
+        if (_transaction.blockNumber != DEFAULT_UINT256) return false;
+
+        if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) return false;
+
+        return true;
+    }
+
+    /**
      * Validates the gas limit for a given transaction.
      * @param _gasLimit Gas limit provided by the transaction.
      * param _queueOrigin Queue from which the transaction originated.
@@ -1803,7 +1836,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         transactionContext.ovmL1TXORIGIN = address(0);
         transactionContext.ovmTIMESTAMP = 0;
-        transactionContext.ovmNUMBER = 0;
+        transactionContext.ovmNUMBER = DEFAULT_UINT256;
         transactionContext.ovmGASLIMIT = 0;
         transactionContext.ovmTXGASLIMIT = 0;
         transactionContext.ovmL1QUEUEORIGIN = Lib_OVMCodec.QueueOrigin.SEQUENCER_QUEUE;

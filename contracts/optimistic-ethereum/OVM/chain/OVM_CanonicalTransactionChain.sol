@@ -937,7 +937,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, Lib_Ad
         internal
         view
     {
-        // If there are existing elements, this batch must have the same context 
+        // If there are existing elements, this batch must have the same context
         // or a later timestamp and block number.
         if (getTotalElements() > 0) {
             (,, uint40 lastTimestamp, uint40 lastBlockNumber) = _getBatchExtraData();
