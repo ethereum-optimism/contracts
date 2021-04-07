@@ -3,6 +3,7 @@ import { expect } from '../../../setup'
 /* External Imports */
 import { ethers } from 'hardhat'
 import { ContractFactory, Contract, constants, Signer } from 'ethers'
+import { MockContract, smockit } from '@eth-optimism/smock'
 
 /* Internal Imports */
 import {
@@ -32,15 +33,26 @@ describe('OVM_StateTransitionerFactory', () => {
   })
 
   let OVM_StateTransitionerFactory: Contract
+  let Mock__OVM_StateManagerFactory: MockContract
   beforeEach(async () => {
     OVM_StateTransitionerFactory = await Factory__OVM_StateTransitionerFactory.deploy(
       AddressManager.address
+    )
+
+    Mock__OVM_StateManagerFactory = await smockit('OVM_StateManagerFactory')
+    Mock__OVM_StateManagerFactory.smocked.create.will.return.with(
+      ethers.constants.AddressZero
+    )
+
+    await AddressManager.setAddress(
+      'OVM_StateManagerFactory',
+      Mock__OVM_StateManagerFactory.address
     )
   })
 
   describe('create', () => {
     describe('when the sender is not the OVM_FraudVerifier', () => {
-      before(async () => {
+      beforeEach(async () => {
         await AddressManager.setAddress(
           'OVM_FraudVerifier',
           constants.AddressZero
@@ -62,14 +74,14 @@ describe('OVM_StateTransitionerFactory', () => {
     })
 
     describe('when the sender is the OVM_FraudVerifier', () => {
-      before(async () => {
+      beforeEach(async () => {
         await AddressManager.setAddress(
           'OVM_FraudVerifier',
           await signer1.getAddress()
         )
       })
 
-      it('should revert', async () => {
+      it('should not revert', async () => {
         await expect(
           OVM_StateTransitionerFactory.connect(signer1).create(
             AddressManager.address,
