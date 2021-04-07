@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/types'
 import 'solidity-coverage'
+import * as dotenv from 'dotenv'
 
 import {
   DEFAULT_ACCOUNTS_HARDHAT,
@@ -14,6 +15,9 @@ import '@typechain/hardhat'
 import '@eth-optimism/plugins/hardhat/compiler'
 import './hh'
 
+// Load environment variables from .env
+dotenv.config()
+
 const config: HardhatUserConfig = {
   networks: {
     hardhat: {
@@ -21,7 +25,7 @@ const config: HardhatUserConfig = {
       blockGasLimit: RUN_OVM_TEST_GAS * 2,
       live: false,
       saveDeployments: false,
-      tags: ['test', 'local'],
+      tags: ['local'],
     },
   },
   mocha: {
@@ -51,6 +55,45 @@ const config: HardhatUserConfig = {
       default: 0,
     },
   },
+}
+
+if (
+  process.env.CONTRACTS_GOERLI_DEPLOYER_KEY &&
+  process.env.CONTRACTS_GOERLI_RPC_URL
+) {
+  config.networks.goerli = {
+    accounts: [process.env.CONTRACTS_GOERLI_DEPLOYER_KEY],
+    url: process.env.CONTRACTS_GOERLI_RPC_URL,
+    live: true,
+    saveDeployments: true,
+    tags: ['goerli'],
+  }
+}
+
+if (
+  process.env.CONTRACTS_KOVAN_DEPLOYER_KEY &&
+  process.env.CONTRACTS_KOVAN_RPC_URL
+) {
+  config.networks.kovan = {
+    accounts: [process.env.CONTRACTS_KOVAN_DEPLOYER_KEY],
+    url: process.env.CONTRACTS_KOVAN_RPC_URL,
+    live: true,
+    saveDeployments: true,
+    tags: ['kovan'],
+  }
+}
+
+if (
+  process.env.CONTRACTS_MAINNET_DEPLOYER_KEY &&
+  process.env.CONTRACTS_MAINNET_RPC_URL
+) {
+  config.networks.mainnet = {
+    accounts: [process.env.CONTRACTS_MAINNET_DEPLOYER_KEY],
+    url: process.env.CONTRACTS_KOVAN_RPC_URL,
+    live: true,
+    saveDeployments: true,
+    tags: ['mainnet'],
+  }
 }
 
 export default config
