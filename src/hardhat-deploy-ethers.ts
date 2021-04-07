@@ -35,7 +35,19 @@ export const deployAndRegister = async ({
   })
 
   if (result.newlyDeployed) {
-    await Lib_AddressManager.setAddress(name, result.address)
+    const tx = await Lib_AddressManager.setAddress(name, result.address)
+    await tx.wait()
+
+    const remoteAddress = await Lib_AddressManager.getAddress(name)
+    if (remoteAddress !== result.address) {
+      throw new Error(
+        `\n**FATAL ERROR. THIS SHOULD NEVER HAPPEN. CHECK YOUR DEPLOYMENT.**:\n` +
+          `Call to Lib_AddressManager.setAddress(${name}) was unsuccessful.\n` +
+          `Attempted to set address to: ${result.address}\n` +
+          `Actual address was set to: ${remoteAddress}\n` +
+          `This could indicate a compromised deployment.`
+      )
+    }
   }
 }
 

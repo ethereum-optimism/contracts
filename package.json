@@ -35,9 +35,7 @@
     "lint:fix": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test}/**/*.ts\"",
     "clean": "rm -rf ./build ./artifacts ./artifacts-ovm ./cache ./cache-ovm",
     "deploy": "./bin/deploy.js",
-    "serve": "./bin/serve_dump.sh",
-    "deploy:hh": "hardhat deploy",
-    "verify": "hardhat etherscan-verify"
+    "serve": "./bin/serve_dump.sh"
   },
   "peerDependencies": {
     "ethers": "^5.0.0"
