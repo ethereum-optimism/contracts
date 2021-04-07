@@ -4,6 +4,47 @@ import { Provider } from '@ethersproject/abstract-provider'
 import { Signer } from '@ethersproject/abstract-signer'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 
+export const registerAddress = async ({
+  hre,
+  name,
+  address,
+}): Promise<void> => {
+  // TODO: Cache these 2 across calls?
+  const { deployer } = await hre.getNamedAccounts()
+  const Lib_AddressManager = await getDeployedContract(
+    hre,
+    'Lib_AddressManager',
+    {
+      signerOrProvider: deployer,
+    }
+  )
+
+  const currentAddress = await Lib_AddressManager.getAddress(name)
+  if (address === currentAddress) {
+    console.log(
+      `Not setting address for ${name} because it's already set to the correct value.`
+    )
+    return
+  }
+
+  console.log(`Setting address for ${name} to ${address}...`)
+  const tx = await Lib_AddressManager.setAddress(name, address)
+  await tx.wait()
+
+  const remoteAddress = await Lib_AddressManager.getAddress(name)
+  if (remoteAddress !== address) {
+    throw new Error(
+      `\n**FATAL ERROR. THIS SHOULD NEVER HAPPEN. CHECK YOUR DEPLOYMENT.**:\n` +
+        `Call to Lib_AddressManager.setAddress(${name}) was unsuccessful.\n` +
+        `Attempted to set address to: ${address}\n` +
+        `Actual address was set to: ${remoteAddress}\n` +
+        `This could indicate a compromised deployment.`
+    )
+  }
+
+  console.log(`Successfully set address for ${name}!`)
+}
+
 export const deployAndRegister = async ({
   hre,
   name,
@@ -16,16 +57,7 @@ export const deployAndRegister = async ({
   contract?: string
 }) => {
   const { deploy } = hre.deployments
-
-  // TODO: Cache these 2 across calls?
   const { deployer } = await hre.getNamedAccounts()
-  const Lib_AddressManager = await getDeployedContract(
-    hre,
-    'Lib_AddressManager',
-    {
-      signerOrProvider: deployer,
-    }
-  )
 
   const result = await deploy(name, {
     contract,
@@ -35,19 +67,11 @@ export const deployAndRegister = async ({
   })
 
   if (result.newlyDeployed) {
-    const tx = await Lib_AddressManager.setAddress(name, result.address)
-    await tx.wait()
-
-    const remoteAddress = await Lib_AddressManager.getAddress(name)
-    if (remoteAddress !== result.address) {
-      throw new Error(
-        `\n**FATAL ERROR. THIS SHOULD NEVER HAPPEN. CHECK YOUR DEPLOYMENT.**:\n` +
-          `Call to Lib_AddressManager.setAddress(${name}) was unsuccessful.\n` +
-          `Attempted to set address to: ${result.address}\n` +
-          `Actual address was set to: ${remoteAddress}\n` +
-          `This could indicate a compromised deployment.`
-      )
-    }
+    await registerAddress({
+      hre,
+      name,
+      address: result.address,
+    })
   }
 }
 
