@@ -188,6 +188,7 @@ const test_ovmCREATE: TestDefinition = {
     },
     {
       name: 'ovmCREATE => ovmREVERT, ovmEXTCODESIZE(CREATED)',
+      // focus: true,
       steps: [
         {
           functionName: 'ovmCREATE',
