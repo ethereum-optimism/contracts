@@ -206,9 +206,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Wipe the execution context.
         _resetContext();
-
-        // Reset the ovmStateManager.
-        ovmStateManager = iOVM_StateManager(address(0));
     }
 
 
@@ -1813,6 +1810,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         messageContext.isStatic = false;
 
         messageRecord.nuisanceGasLeft = 0;
+
+        // Reset the ovmStateManager.
+        ovmStateManager = iOVM_StateManager(address(0));
     }
 
     /*****************************
