@@ -37,10 +37,10 @@ describe('OVM_ERC721Gateway', () => {
   let Mock__OVM_L1CrossDomainMessenger: MockContract
   let finalizeDepositGasLimit: number
   beforeEach(async () => {
-    // Create a special signer which will enable us to send messages from the L1Messenger contract
+    // Create a special signer which will enable us to send messages from the Messenger contract
     let l1MessengerImpersonator: Signer
     ;[l1MessengerImpersonator, alice] = await ethers.getSigners()
-    // Get a new mock L1 messenger
+    // Get a new mock messenger
     Mock__OVM_L1CrossDomainMessenger = await smockit(
       await ethers.getContractFactory('OVM_L1CrossDomainMessenger'),
       { address: await l1MessengerImpersonator.getAddress() } // This allows us to use an ethers override {from: Mock__OVM_L2CrossDomainMessenger.address} to mock calls
@@ -129,10 +129,10 @@ describe('OVM_ERC721Gateway', () => {
     const depositTokenId = 321
 
     beforeEach(async () => {
-      // Deploy the L1 ERC20 token, Alice will receive the full initialSupply
+      // Deploy the ERC721 token
       ERC721 = await Factory__ERC721.deploy('TestERC721', 'ERC')
 
-      // get a new mock L1 messenger
+      // get a new mock messenger
       Mock__OVM_L1CrossDomainMessenger = await smockit(
         await ethers.getContractFactory('OVM_L1CrossDomainMessenger')
       )
@@ -150,7 +150,7 @@ describe('OVM_ERC721Gateway', () => {
 
       await ERC721.mint(depositer, depositTokenId, TEST_TOKEN_URI)
 
-      // the Signer sets approve for the L1 Gateway
+      // the Signer sets approve for the Gateway
       await ERC721.approve(OVM_ERC721Gateway.address, depositTokenId)
     })
 
@@ -169,13 +169,13 @@ describe('OVM_ERC721Gateway', () => {
       expect(newTokenOwner).to.equal(OVM_ERC721Gateway.address)
 
       // Check the correct cross-chain call was sent:
-      // Message should be sent to the L2ERC20Gateway on L2
+      // Message should be sent to the Deposited ERC721
       expect(depositCallToMessenger._target).to.equal(
         Mock__OVM_DepositedERC721.address
       )
-      // Message data should be a call telling the L2ERC20Gateway to finalize the deposit
+      // Message data should be a call telling the ERC721Gateway to finalize the deposit
 
-      // the L1 gateway sends the correct message to the L1 messenger, including TokenURI
+      // the gateway sends the correct message to the messenger, including TokenURI
       expect(depositCallToMessenger._message).to.equal(
         await Mock__OVM_DepositedERC721.interface.encodeFunctionData(
           'finalizeDeposit',
@@ -186,7 +186,7 @@ describe('OVM_ERC721Gateway', () => {
     })
 
     it('depositTo() escrows the deposit token and sends the correct deposit message', async () => {
-      // depositor calls deposit on the gateway and the L1 gateway calls transferFrom on the token
+      // depositor calls deposit on the gateway and the gateway calls transferFrom on the token
       const aliceAddress = await alice.getAddress()
 
       // depositer calls deposit on the gateway and the gateway calls transferFrom on the token
@@ -194,8 +194,8 @@ describe('OVM_ERC721Gateway', () => {
       const depositCallToMessenger =
         Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
 
-      // Message data should be a call telling the L2ERC20Gateway to finalize the deposit
-      // the L1 gateway sends the correct message to the L1 messenger, including TokenURI
+      // Message data should be a call telling the ERC721Gateway to finalize the deposit
+      // the gateway sends the correct message to the messenger, including TokenURI
       expect(depositCallToMessenger._message).to.equal(
         await Mock__OVM_DepositedERC721.interface.encodeFunctionData(
           'finalizeDeposit',
@@ -216,9 +216,26 @@ describe('OVM_ERC721Gateway', () => {
         )
       ).to.emit(OVM_ERC721Gateway, 'DepositInitiated')
 
-      // expect the gateway to be the new owner of the token
+      const depositCallToMessenger =
+        Mock__OVM_L1CrossDomainMessenger.smocked.sendMessage.calls[0]
+
+      // Message should be sent to the L2ERC721Gateway
+      expect(depositCallToMessenger._target).to.equal(
+        Mock__OVM_DepositedERC721.address
+      )
+
       const newTokenOwner = await ERC721.ownerOf(depositTokenId)
       expect(newTokenOwner).to.equal(OVM_ERC721Gateway.address)
+      // Message data should be a call telling the ERC721Gateway to finalize the deposit
+
+      // the gateway sends the correct message to the messenger, including TokenURI
+      expect(depositCallToMessenger._message).to.equal(
+        await Mock__OVM_DepositedERC721.interface.encodeFunctionData(
+          'finalizeDeposit',
+          [initialTokenOwner, depositTokenId, TEST_TOKEN_URI]
+        )
+      )
+      expect(depositCallToMessenger._gasLimit).to.equal(finalizeDepositGasLimit)
     })
   })
 })
