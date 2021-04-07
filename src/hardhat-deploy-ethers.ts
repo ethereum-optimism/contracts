@@ -22,12 +22,12 @@ export const registerAddress = async ({
   const currentAddress = await Lib_AddressManager.getAddress(name)
   if (address === currentAddress) {
     console.log(
-      `Not setting address for ${name} because it's already set to the correct value.`
+      `✓ Not registering address for ${name} because it's already been correctly registered`
     )
     return
   }
 
-  console.log(`Setting address for ${name} to ${address}...`)
+  console.log(`Registering address for ${name} to ${address}...`)
   const tx = await Lib_AddressManager.setAddress(name, address)
   await tx.wait()
 
@@ -42,7 +42,7 @@ export const registerAddress = async ({
     )
   }
 
-  console.log(`Successfully set address for ${name}!`)
+  console.log(`✓ Registered address for ${name}`)
 }
 
 export const deployAndRegister = async ({
