@@ -1,5 +1,9 @@
+/* Imports: External */
 import { DeployFunction } from 'hardhat-deploy/dist/types'
+
+/* Imports: Internal */
 import { registerAddress } from '../src/hardhat-deploy-ethers'
+import { predeploys } from '../src/predeploys'
 
 const deployFn: DeployFunction = async (hre) => {
   const { deploy } = hre.deployments
@@ -14,13 +18,13 @@ const deployFn: DeployFunction = async (hre) => {
   await registerAddress({
     hre,
     name: 'OVM_L2CrossDomainMessenger',
-    address: '0x4200000000000000000000000000000000000007',
+    address: predeploys.OVM_L2CrossDomainMessenger,
   })
 
   await registerAddress({
     hre,
     name: 'OVM_DecompressionPrecompileAddress',
-    address: '0x4200000000000000000000000000000000000005',
+    address: predeploys.OVM_SequencerEntrypoint,
   })
 
   await registerAddress({
