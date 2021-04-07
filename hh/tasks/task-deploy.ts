@@ -83,6 +83,7 @@ task('deploy')
     types.string
   )
   .setAction(async (args, hre: any, runSuper) => {
+    // Necessary because hardhat doesn't let us attach non-optional parameters to existing tasks.
     if (args.ovmSequencerAddress === DEFAULT_OVM_SEQUENCER_ADDRESS) {
       throw new Error(
         'argument for --ovm-sequencer-address is required but was not provided'
