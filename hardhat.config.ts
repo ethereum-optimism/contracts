@@ -57,24 +57,18 @@ const config: HardhatUserConfig = {
   },
 }
 
-const registerNetwork = (network: string) => {
-  const rpcUrl = process.env[`CONTRACTS_${network.toUpperCase()}_RPC_URL`]
-  const deployKey =
-    process.env[`CONTRACTS_${network.toUpperCase()}_DEPLOYER_KEY`]
-  if (deployKey && rpcUrl) {
-    config.networks[network] = {
-      accounts: [deployKey],
-      url: rpcUrl,
-      live: true,
-      saveDeployments: true,
-      tags: [network],
-    }
+if (
+  process.env.CONTRACTS_TARGET_NETWORK &&
+  process.env.CONTRACTS_DEPLOYER_KEY &&
+  process.env.CONTRACTS_RPC_URL
+) {
+  config.networks[process.env.CONTRACTS_TARGET_NETWORK] = {
+    accounts: [process.env.CONTRACTS_DEPLOYER_KEY],
+    url: process.env.CONTRACTS_RPC_URL,
+    live: true,
+    saveDeployments: true,
+    tags: [process.env.CONTRACTS_TARGET_NETWORK],
   }
 }
-
-registerNetwork('kovan')
-registerNetwork('goerli')
-registerNetwork('mainnet')
-registerNetwork('custom')
 
 export default config

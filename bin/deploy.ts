@@ -1,8 +1,9 @@
 #!/usr/bin/env ts-node-script
 
 process.env.HARDHAT_NETWORK = 'custom'
-process.env.CONTRACTS_CUSTOM_DEPLOYER_KEY = process.env.DEPLOYER_PRIVATE_KEY
-process.env.CONTRACTS_CUSTOM_RPC_URL =
+process.env.CONTRACTS_TARGET_NETWORK = 'custom'
+process.env.CONTRACTS_DEPLOYER_KEY = process.env.DEPLOYER_PRIVATE_KEY
+process.env.CONTRACTS_RPC_URL =
   process.env.L1_NODE_WEB3_URL || 'http://127.0.0.1:8545'
 
 import hre from 'hardhat'
