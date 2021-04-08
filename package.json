@@ -32,7 +32,7 @@
     "test:coverage": "NODE_OPTIONS=--max_old_space_size=8192 hardhat coverage",
     "lint": "yarn lint:fix && yarn lint:check",
     "lint:check": "tslint --format stylish --project .",
-    "lint:fix": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test,hh,deploy}/**/*.ts\"",
+    "lint:fix": "prettier --config prettier-config.json --write \"hardhat.config.ts\" \"{src,test,hh,deploy,bin}/**/*.ts\"",
     "clean": "rm -rf ./build ./artifacts ./artifacts-ovm ./cache ./cache-ovm",
     "deploy": "./bin/deploy.js",
     "serve": "./bin/serve_dump.sh"

@@ -32,6 +32,12 @@ const deployFn: DeployFunction = async (hre) => {
     name: 'OVM_Sequencer',
     address: (hre as any).deployConfig.ovmSequencerAddress,
   })
+
+  await registerAddress({
+    hre,
+    name: 'OVM_L2BatchMessageRelayer',
+    address: (hre as any).deployConfig.ovmRelayerAddress,
+  })
 }
 
 deployFn.tags = ['Lib_AddressManager', 'required']

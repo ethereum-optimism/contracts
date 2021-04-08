@@ -3,8 +3,8 @@ import { ethers } from 'ethers'
 import { task } from 'hardhat/config'
 import * as types from 'hardhat/internal/core/params/argumentTypes'
 
+const DEFAULT_L1_BLOCK_TIME_SECONDS = 15
 const DEFAULT_CTC_FORCE_INCLUSION_PERIOD_SECONDS = 60 * 60 * 24 * 30 // 30 days
-const DEFAULT_CTC_FORCE_INCLUSION_PERIOD_BLOCKS = (60 * 60 * 24 * 30) / 15 // 30 days in blocks
 const DEFAULT_CTC_MAX_TRANSACTION_GAS_LIMIT = 9_000_000
 const DEFAULT_EM_MIN_TRANSACTION_GAS_LIMIT = 50_000
 const DEFAULT_EM_MAX_TRANSACTION_GAS_LIMIT = 9_000_000
@@ -14,18 +14,19 @@ const DEFAULT_EM_OVM_CHAIN_ID = 420
 const DEFAULT_SCC_FRAUD_PROOF_WINDOW = 60 * 60 * 24 * 7 // 7 days
 const DEFAULT_SCC_SEQUENCER_PUBLISH_WINDOW = 60 * 30 // 30 minutes
 const DEFAULT_OVM_SEQUENCER_ADDRESS = ethers.constants.AddressZero
+const DEFAULT_OVM_RELAYER_ADDRESS = ethers.constants.AddressZero
 
 task('deploy')
+  .addOptionalParam(
+    'l1BlockTimeSeconds',
+    'Number of seconds on average between every L1 block.',
+    DEFAULT_L1_BLOCK_TIME_SECONDS,
+    types.int
+  )
   .addOptionalParam(
     'ctcForceInclusionPeriodSeconds',
     'Number of seconds that the sequencer has to include transactions before the L1 queue.',
     DEFAULT_CTC_FORCE_INCLUSION_PERIOD_SECONDS,
-    types.int
-  )
-  .addOptionalParam(
-    'ctcForceInclusionPeriodBlocks',
-    'Number of blocks that the sequencer has to include transactions before the L1 queue.',
-    DEFAULT_CTC_FORCE_INCLUSION_PERIOD_BLOCKS,
     types.int
   )
   .addOptionalParam(
@@ -82,6 +83,12 @@ task('deploy')
     DEFAULT_OVM_SEQUENCER_ADDRESS,
     types.string
   )
+  .addOptionalParam(
+    'ovmRelayerAddress',
+    'Address of the message relayer. Must be provided or this deployment will fail.',
+    DEFAULT_OVM_RELAYER_ADDRESS,
+    types.string
+  )
   .setAction(async (args, hre: any, runSuper) => {
     // Necessary because hardhat doesn't let us attach non-optional parameters to existing tasks.
     if (args.ovmSequencerAddress === DEFAULT_OVM_SEQUENCER_ADDRESS) {
@@ -95,6 +102,22 @@ task('deploy')
         `argument for --ovm-sequencer-address is not a valid address: ${args.ovmSequencerAddress}`
       )
     }
+
+    if (args.ovmRelayerAddress === DEFAULT_OVM_RELAYER_ADDRESS) {
+      throw new Error(
+        'argument for --ovm-relayer-address is required but was not provided'
+      )
+    }
+
+    if (!ethers.utils.isAddress(args.ovmRelayerAddress)) {
+      throw new Error(
+        `argument for --ovm-relayer-address is not a valid address: ${args.ovmRelayerAddress}`
+      )
+    }
+
+    args.ctcForceInclusionPeriodBlocks = Math.floor(
+      args.ctcForceInclusionPeriodSeconds / args.l1BlockTimeSeconds
+    )
 
     hre.deployConfig = args
     return runSuper(args)

@@ -89,10 +89,23 @@ if (
 ) {
   config.networks.mainnet = {
     accounts: [process.env.CONTRACTS_MAINNET_DEPLOYER_KEY],
-    url: process.env.CONTRACTS_KOVAN_RPC_URL,
+    url: process.env.CONTRACTS_MAINNET_RPC_URL,
     live: true,
     saveDeployments: true,
     tags: ['mainnet'],
+  }
+}
+
+if (
+  process.env.CONTRACTS_CUSTOM_NETWORK_DEPLOYER_KEY &&
+  process.env.CONTRACTS_CUSTOM_NETWORK_RPC_URL
+) {
+  config.networks.custom = {
+    accounts: [process.env.CONTRACTS_CUSTOM_NETWORK_DEPLOYER_KEY],
+    url: process.env.CONTRACTS_CUSTOM_NETWORK_RPC_URL,
+    live: true,
+    saveDeployments: true,
+    tags: ['custom'],
   }
 }
 
