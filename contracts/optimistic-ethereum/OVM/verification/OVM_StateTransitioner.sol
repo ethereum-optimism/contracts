@@ -354,6 +354,8 @@ contract OVM_StateTransitioner is Lib_AddressResolver, Abs_FraudContributor, iOV
         // if that's the case.
         ovmExecutionManager.run(_transaction, address(ovmStateManager));
 
+        // Prevent the Execution Manager from calling this SM again.
+        ovmStateManager.setExecutionManager(address(0));
         phase = TransitionPhase.POST_EXECUTION;
     }
 
