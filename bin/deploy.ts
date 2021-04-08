@@ -2,7 +2,7 @@
 
 process.env.HARDHAT_NETWORK = 'custom'
 process.env.CONTRACTS_CUSTOM_NETWORK_DEPLOYER_KEY =
-  process.env.SEQUENCER_PRIVATE_KEY
+  process.env.DEPLOYER_PRIVATE_KEY
 process.env.CONTRACTS_CUSTOM_NETWORK_RPC_URL =
   process.env.L1_NODE_WEB3_URL || 'http://127.0.0.1:8545'
 
