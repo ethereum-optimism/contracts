@@ -93,6 +93,12 @@ task('deploy')
     undefined,
     types.string
   )
+  .addOptionalParam(
+    'ovmAddressManagerOwner',
+    'Address that will own the Lib_AddressManager. Must be provided or this deployment will fail.',
+    undefined,
+    types.string
+  )
   .setAction(async (args, hre: any, runSuper) => {
     // Necessary because hardhat doesn't let us attach non-optional parameters to existing tasks.
     const validateAddressArg = (argName: string) => {
@@ -111,6 +117,7 @@ task('deploy')
     validateAddressArg('ovmSequencerAddress')
     validateAddressArg('ovmProposerAddress')
     validateAddressArg('ovmRelayerAddress')
+    validateAddressArg('ovmAddressManagerOwner')
 
     args.ctcForceInclusionPeriodBlocks = Math.floor(
       args.ctcForceInclusionPeriodSeconds / args.l1BlockTimeSeconds
