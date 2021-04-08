@@ -13,13 +13,19 @@ const main = async () => {
     })
   })
 
+  const nicknames = {
+    'Lib_AddressManager': 'AddressManager',
+    'mockOVM_BondManager': 'OVM_BondManager'
+  }
+
   const contracts = dirtree(
     path.resolve(__dirname, `../deployments/custom`)
   ).children.filter((child) => {
     return child.extension === '.json'
   }).reduce((contracts, child) => {
+    const contractName = child.name.replace('.json', '')
     const artifact = require(path.resolve(__dirname, `../deployments/custom/${child.name}`))
-    contracts[child.name.replace('.json', '')] = artifact.address
+    contracts[nicknames[contractName] || contractName] = artifact.address
     return contracts
   }, {})
 
