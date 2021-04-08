@@ -78,10 +78,10 @@
   dependencies:
     node-fetch "^2.6.1"
 
-"@eth-optimism/smock@^1.0.0-alpha.3":
-  version "1.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@eth-optimism/smock/-/smock-1.0.0-alpha.3.tgz#5f3e8f137407c4c62f06aed60bac3dc282632f89"
-  integrity sha512-TKqbmElCWQ0qM6qj8JajqOijZVKl47L/5v2NnEWBJERKZ6zkuFxT0Y8HtUCM3r4ZEURuXFbRxRLP/ZTrOG6axg==
+"@eth-optimism/smock@1.0.0-alpha.6":
+  version "1.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@eth-optimism/smock/-/smock-1.0.0-alpha.6.tgz#1206eb33344663a28c982dd1d046ff756705ed09"
+  integrity sha512-Hn3j2iQngX5DNmwVopGsYOvitHnvY+VUFQzS8v/Ghf2lKEih5a2TYEbe7inZ5AG3U8z5iXcxqR7OzXpBWgTqXg==
   dependencies:
     "@eth-optimism/core-utils" "^0.1.10"
     "@ethersproject/abi" "^5.0.13"
