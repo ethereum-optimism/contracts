@@ -3,6 +3,7 @@ import { DeployFunction } from 'hardhat-deploy/dist/types'
 
 /* Imports: Internal */
 import { getDeployedContract } from '../src/hardhat-deploy-ethers'
+import { predeploys } from '../src/predeploys'
 
 const deployFn: DeployFunction = async (hre) => {
   const { deploy } = hre.deployments
@@ -16,9 +17,10 @@ const deployFn: DeployFunction = async (hre) => {
     }
   )
 
-  const result = await deploy('OVM_L1CrossDomainMessenger', {
+  const result = await deploy('Proxy__OVM_L1ETHGateway', {
+    contract: 'Lib_ResolvedDelegateProxy',
     from: deployer,
-    args: [],
+    args: [Lib_AddressManager.address, 'OVM_L1ETHGateway'],
     log: true,
   })
 
@@ -26,34 +28,35 @@ const deployFn: DeployFunction = async (hre) => {
     return
   }
 
-  const OVM_L1CrossDomainMessenger = await getDeployedContract(
+  const Proxy__OVM_L1ETHGateway = await getDeployedContract(
     hre,
-    'OVM_L1CrossDomainMessenger',
+    'Proxy__OVM_L1ETHGateway',
     {
       signerOrProvider: deployer,
+      iface: 'OVM_L1ETHGateway',
     }
   )
 
-  await OVM_L1CrossDomainMessenger.initialize(Lib_AddressManager.address)
+  await Proxy__OVM_L1ETHGateway.initialize(
+    Lib_AddressManager.address,
+    predeploys.OVM_ETH
+  )
 
-  const libAddressManager = await OVM_L1CrossDomainMessenger.libAddressManager()
+  const libAddressManager = await Proxy__OVM_L1ETHGateway.libAddressManager()
   if (libAddressManager !== Lib_AddressManager.address) {
     throw new Error(
       `\n**FATAL ERROR. THIS SHOULD NEVER HAPPEN. CHECK YOUR DEPLOYMENT.**:\n` +
-        `OVM_L1CrossDomainMessenger could not be succesfully initialized.\n` +
+        `Proxy__OVM_L1ETHGateway could not be succesfully initialized.\n` +
         `Attempted to set Lib_AddressManager to: ${Lib_AddressManager.address}\n` +
         `Actual address after initialization: ${libAddressManager}\n` +
         `This could indicate a compromised deployment.`
     )
   }
 
-  await Lib_AddressManager.setAddress(
-    'OVM_L1CrossDomainMessenger',
-    result.address
-  )
+  await Lib_AddressManager.setAddress('Proxy__OVM_L1ETHGateway', result.address)
 }
 
-deployFn.dependencies = ['Lib_AddressManager']
-deployFn.tags = ['OVM_L1CrossDomainMessenger']
+deployFn.dependencies = ['Lib_AddressManager', 'OVM_L1ETHGateway']
+deployFn.tags = ['Proxy__OVM_L1ETHGateway']
 
 export default deployFn
