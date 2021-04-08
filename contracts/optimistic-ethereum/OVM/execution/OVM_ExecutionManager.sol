@@ -164,7 +164,11 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
-        require(transactionContext.ovmNUMBER == DEFAULT_UINT256, "Only callable at the start of a transaction");
+        // Make sure that run() is not re-enterable.  This condition should awlways be satisfied
+        // Once run has been called once, due to the behvaior of _isValidInput().
+        if (transactionContext.ovmNUMBER != DEFAULT_UINT256) {
+            return;
+        }
 
         // Store our OVM_StateManager instance (significantly easier than attempting to pass the
         // address around in calldata).
