@@ -66,6 +66,8 @@ export const deployAndRegister = async ({
     log: true,
   })
 
+  await hre.ethers.provider.waitForTransaction(result.transactionHash)
+
   if (result.newlyDeployed) {
     await registerAddress({
       hre,

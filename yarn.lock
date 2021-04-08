@@ -78,7 +78,7 @@
   dependencies:
     node-fetch "^2.6.1"
 
-"@eth-optimism/smock@^1.0.0-alpha.3":
+"@eth-optimism/smock@1.0.0-alpha.3":
   version "1.0.0-alpha.3"
   resolved "https://registry.yarnpkg.com/@eth-optimism/smock/-/smock-1.0.0-alpha.3.tgz#5f3e8f137407c4c62f06aed60bac3dc282632f89"
   integrity sha512-TKqbmElCWQ0qM6qj8JajqOijZVKl47L/5v2NnEWBJERKZ6zkuFxT0Y8HtUCM3r4ZEURuXFbRxRLP/ZTrOG6axg==
@@ -3014,6 +3014,11 @@ dir-glob@^3.0.1:
   integrity sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==
   dependencies:
     path-type "^4.0.0"
+
+directory-tree@^2.2.7:
+  version "2.2.7"
+  resolved "https://registry.yarnpkg.com/directory-tree/-/directory-tree-2.2.7.tgz#4617c794ee89d5618f03fffb7486c7e49df52ad2"
+  integrity sha512-fgTad/YdV6Y2njsCRK4fl4ZUlGhmb5xj1qrZUIMjvnrKvghVqh8dkB+OUssjYVvb/Q2L+5+8XG0l5uTGI9/8iQ==
 
 dom-walk@^0.1.0:
   version "0.1.2"
