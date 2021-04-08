@@ -1,15 +1,14 @@
 #!/usr/bin/env ts-node-script
 
 process.env.HARDHAT_NETWORK = 'custom'
-process.env.CONTRACTS_CUSTOM_NETWORK_DEPLOYER_KEY =
-  process.env.DEPLOYER_PRIVATE_KEY
-process.env.CONTRACTS_CUSTOM_NETWORK_RPC_URL =
+process.env.CONTRACTS_CUSTOM_DEPLOYER_KEY = process.env.DEPLOYER_PRIVATE_KEY
+process.env.CONTRACTS_CUSTOM_RPC_URL =
   process.env.L1_NODE_WEB3_URL || 'http://127.0.0.1:8545'
 
 import hre from 'hardhat'
 
 const main = async () => {
-  hre.run('deploy', {
+  await hre.run('deploy', {
     l1BlockTimeSeconds: process.env.BLOCK_TIME_SECONDS,
     ctcForceInclusionPeriodSeconds: process.env.FORCE_INCLUSION_PERIOD_SECONDS,
     ctcMaxTransactionGasLimit: process.env.MAX_TRANSACTION_GAS_LIMIT,

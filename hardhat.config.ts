@@ -57,56 +57,24 @@ const config: HardhatUserConfig = {
   },
 }
 
-if (
-  process.env.CONTRACTS_GOERLI_DEPLOYER_KEY &&
-  process.env.CONTRACTS_GOERLI_RPC_URL
-) {
-  config.networks.goerli = {
-    accounts: [process.env.CONTRACTS_GOERLI_DEPLOYER_KEY],
-    url: process.env.CONTRACTS_GOERLI_RPC_URL,
-    live: true,
-    saveDeployments: true,
-    tags: ['goerli'],
+const registerNetwork = (network: string) => {
+  const rpcUrl = process.env[`CONTRACTS_${network.toUpperCase()}_RPC_URL`]
+  const deployKey =
+    process.env[`CONTRACTS_${network.toUpperCase()}_DEPLOYER_KEY`]
+  if (deployKey && rpcUrl) {
+    config.networks[network] = {
+      accounts: [deployKey],
+      url: rpcUrl,
+      live: true,
+      saveDeployments: true,
+      tags: [network],
+    }
   }
 }
 
-if (
-  process.env.CONTRACTS_KOVAN_DEPLOYER_KEY &&
-  process.env.CONTRACTS_KOVAN_RPC_URL
-) {
-  config.networks.kovan = {
-    accounts: [process.env.CONTRACTS_KOVAN_DEPLOYER_KEY],
-    url: process.env.CONTRACTS_KOVAN_RPC_URL,
-    live: true,
-    saveDeployments: true,
-    tags: ['kovan'],
-  }
-}
-
-if (
-  process.env.CONTRACTS_MAINNET_DEPLOYER_KEY &&
-  process.env.CONTRACTS_MAINNET_RPC_URL
-) {
-  config.networks.mainnet = {
-    accounts: [process.env.CONTRACTS_MAINNET_DEPLOYER_KEY],
-    url: process.env.CONTRACTS_MAINNET_RPC_URL,
-    live: true,
-    saveDeployments: true,
-    tags: ['mainnet'],
-  }
-}
-
-if (
-  process.env.CONTRACTS_CUSTOM_NETWORK_DEPLOYER_KEY &&
-  process.env.CONTRACTS_CUSTOM_NETWORK_RPC_URL
-) {
-  config.networks.custom = {
-    accounts: [process.env.CONTRACTS_CUSTOM_NETWORK_DEPLOYER_KEY],
-    url: process.env.CONTRACTS_CUSTOM_NETWORK_RPC_URL,
-    live: true,
-    saveDeployments: true,
-    tags: ['custom'],
-  }
-}
+registerNetwork('kovan')
+registerNetwork('goerli')
+registerNetwork('mainnet')
+registerNetwork('custom')
 
 export default config
