@@ -5,9 +5,13 @@ import { DeployFunction } from 'hardhat-deploy/dist/types'
 import { getDeployedContract } from '../src/hardhat-deploy-ethers'
 
 const deployFn: DeployFunction = async (hre) => {
+  const { deployer } = await hre.getNamedAccounts()
   const Lib_AddressManager = await getDeployedContract(
     hre,
-    'Lib_AddressManager'
+    'Lib_AddressManager',
+    {
+      signerOrProvider: deployer,
+    }
   )
 
   const owner = (hre as any).deployConfig.ovmAddressManagerOwner
