@@ -1654,7 +1654,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Prevent reentrancy to run():
         // This check prevents calling run with the default ovmNumber.
         // Combined with the first check in run():
-        // require(transactionContext.ovmNUMBER == DEFAULT_UINT256), a reentrant call is effectively prevented.
+        //      if (transactionContext.ovmNUMBER != DEFAULT_UINT256) { return; }
+        // It should be impossible to re-enter since run() returns before any other call frames are created.
         // Since this value is already being written to storage, we save much gas compared to
         // using the standard nonReentrant pattern.
         if (_transaction.blockNumber != DEFAULT_UINT256) return false;
