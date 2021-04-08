@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node-script
 
+import { Wallet } from 'ethers'
+
 process.env.HARDHAT_NETWORK = 'custom'
 process.env.CONTRACTS_TARGET_NETWORK = 'custom'
 process.env.CONTRACTS_DEPLOYER_KEY = process.env.DEPLOYER_PRIVATE_KEY
@@ -9,6 +11,9 @@ process.env.CONTRACTS_RPC_URL =
 import hre from 'hardhat'
 
 const main = async () => {
+  const sequencer = new Wallet(process.env.SEQUENCER_PRIVATE_KEY)
+  const deployer = new Wallet(process.env.DEPLOYER_PRIVATE_KEY)
+
   await hre.run('deploy', {
     l1BlockTimeSeconds: process.env.BLOCK_TIME_SECONDS,
     ctcForceInclusionPeriodSeconds: process.env.FORCE_INCLUSION_PERIOD_SECONDS,
@@ -18,10 +23,10 @@ const main = async () => {
     emMaxGasPerQueuePerEpoch: process.env.MAX_GAS_PER_QUEUE_PER_EPOCH,
     emSecondsPerEpoch: process.env.SECONDS_PER_EPOCH,
     emOvmChainId: process.env.CHAIN_ID,
-    sccFraudProofWindow: process.env.FRAUD_PROOF_WINDOW_SECONDS,
+    sccFraudProofWindow: parseInt(process.env.FRAUD_PROOF_WINDOW_SECONDS, 10),
     sccSequencerPublishWindow: process.env.SEQUENCER_PUBLISH_WINDOW_SECONDS,
-    ovmSequencerAddress: process.env.SEQUENCER_ADDRESS,
-    ovmRelayerAddress: process.env.RELAYER_ADDRESS,
+    ovmSequencerAddress: sequencer.address,
+    ovmRelayerAddress: deployer.address,
   })
 }
 
