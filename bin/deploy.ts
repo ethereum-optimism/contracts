@@ -2,6 +2,10 @@
 
 import { Wallet } from 'ethers'
 
+// Ensures that all relevant environment vars are properly set. These lines *must* come before the
+// hardhat import because importing will load the config (which relies on these vars). Necessary
+// because CI currently uses different var names than the ones we've chosen here.
+// TODO: Update CI so that we don't have to do this anymore.
 process.env.HARDHAT_NETWORK = 'custom'
 process.env.CONTRACTS_TARGET_NETWORK = 'custom'
 process.env.CONTRACTS_DEPLOYER_KEY = process.env.DEPLOYER_PRIVATE_KEY

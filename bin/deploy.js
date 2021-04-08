@@ -13,6 +13,9 @@ const main = async () => {
     })
   })
 
+  // Stuff below this line is currently required for CI to work properly. We probably want to
+  // update our CI so this is no longer necessary. But I'm adding it for backwards compat so we can
+  // get the hardhat-deploy stuff merged. Woot.
   const nicknames = {
     'Lib_AddressManager': 'AddressManager',
     'mockOVM_BondManager': 'OVM_BondManager'
@@ -29,6 +32,8 @@ const main = async () => {
     return contracts
   }, {})
 
+  // We *must* console.log here because CI will pipe the output of this script into an
+  // addresses.json file. Also something we should probably remove.
   console.log(JSON.stringify(contracts, null, 2))
 }
 
