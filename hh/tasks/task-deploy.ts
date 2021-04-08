@@ -13,8 +13,6 @@ const DEFAULT_EM_SECONDS_PER_EPOCH = 0
 const DEFAULT_EM_OVM_CHAIN_ID = 420
 const DEFAULT_SCC_FRAUD_PROOF_WINDOW = 60 * 60 * 24 * 7 // 7 days
 const DEFAULT_SCC_SEQUENCER_PUBLISH_WINDOW = 60 * 30 // 30 minutes
-const DEFAULT_OVM_SEQUENCER_ADDRESS = ethers.constants.AddressZero
-const DEFAULT_OVM_RELAYER_ADDRESS = ethers.constants.AddressZero
 
 task('deploy')
   .addOptionalParam(
@@ -80,40 +78,39 @@ task('deploy')
   .addOptionalParam(
     'ovmSequencerAddress',
     'Address of the sequencer. Must be provided or this deployment will fail.',
-    DEFAULT_OVM_SEQUENCER_ADDRESS,
+    undefined,
+    types.string
+  )
+  .addOptionalParam(
+    'ovmProposerAddress',
+    'Address of the account that will propose state roots. Must be provided or this deployment will fail.',
+    undefined,
     types.string
   )
   .addOptionalParam(
     'ovmRelayerAddress',
     'Address of the message relayer. Must be provided or this deployment will fail.',
-    DEFAULT_OVM_RELAYER_ADDRESS,
+    undefined,
     types.string
   )
   .setAction(async (args, hre: any, runSuper) => {
     // Necessary because hardhat doesn't let us attach non-optional parameters to existing tasks.
-    if (args.ovmSequencerAddress === DEFAULT_OVM_SEQUENCER_ADDRESS) {
-      throw new Error(
-        'argument for --ovm-sequencer-address is required but was not provided'
-      )
+    const validateAddressArg = (argName: string) => {
+      if (args[argName] === undefined) {
+        throw new Error(
+          `argument for ${argName} is required but was not provided`
+        )
+      }
+      if (!ethers.utils.isAddress(args[argName])) {
+        throw new Error(
+          `argument for ${argName} is not a valid address: ${args[argName]}`
+        )
+      }
     }
 
-    if (!ethers.utils.isAddress(args.ovmSequencerAddress)) {
-      throw new Error(
-        `argument for --ovm-sequencer-address is not a valid address: ${args.ovmSequencerAddress}`
-      )
-    }
-
-    if (args.ovmRelayerAddress === DEFAULT_OVM_RELAYER_ADDRESS) {
-      throw new Error(
-        'argument for --ovm-relayer-address is required but was not provided'
-      )
-    }
-
-    if (!ethers.utils.isAddress(args.ovmRelayerAddress)) {
-      throw new Error(
-        `argument for --ovm-relayer-address is not a valid address: ${args.ovmRelayerAddress}`
-      )
-    }
+    validateAddressArg('ovmSequencerAddress')
+    validateAddressArg('ovmProposerAddress')
+    validateAddressArg('ovmRelayerAddress')
 
     args.ctcForceInclusionPeriodBlocks = Math.floor(
       args.ctcForceInclusionPeriodSeconds / args.l1BlockTimeSeconds

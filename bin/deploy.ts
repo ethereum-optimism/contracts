@@ -6,7 +6,7 @@ import { Wallet } from 'ethers'
 // hardhat import because importing will load the config (which relies on these vars). Necessary
 // because CI currently uses different var names than the ones we've chosen here.
 // TODO: Update CI so that we don't have to do this anymore.
-process.env.HARDHAT_NETWORK = 'custom'
+process.env.HARDHAT_NETWORK = 'custom' // "custom" here is an arbitrary name. only used for CI.
 process.env.CONTRACTS_TARGET_NETWORK = 'custom'
 process.env.CONTRACTS_DEPLOYER_KEY = process.env.DEPLOYER_PRIVATE_KEY
 process.env.CONTRACTS_RPC_URL =
@@ -29,6 +29,7 @@ const main = async () => {
     sccFraudProofWindow: parseInt(process.env.FRAUD_PROOF_WINDOW_SECONDS, 10),
     sccSequencerPublishWindow: process.env.SEQUENCER_PUBLISH_WINDOW_SECONDS,
     ovmSequencerAddress: sequencer.address,
+    ovmProposerAddress: sequencer.address,
     ovmRelayerAddress: sequencer.address,
   })
 }

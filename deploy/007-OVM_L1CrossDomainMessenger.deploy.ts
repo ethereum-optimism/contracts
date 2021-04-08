@@ -34,6 +34,9 @@ const deployFn: DeployFunction = async (hre) => {
     }
   )
 
+  // NOTE: this initialization is *not* technically required (we only need to initialize the proxy)
+  // but it feels safer to initialize this anyway. Otherwise someone else could come along and
+  // initialize this.
   await OVM_L1CrossDomainMessenger.initialize(Lib_AddressManager.address)
 
   const libAddressManager = await OVM_L1CrossDomainMessenger.libAddressManager()

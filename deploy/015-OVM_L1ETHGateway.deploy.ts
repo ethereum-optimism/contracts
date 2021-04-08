@@ -31,6 +31,9 @@ const deployFn: DeployFunction = async (hre) => {
     signerOrProvider: deployer,
   })
 
+  // NOTE: this initialization is *not* technically required (we only need to initialize the proxy)
+  // but it feels safer to initialize this anyway. Otherwise someone else could come along and
+  // initialize this.
   await OVM_L1ETHGateway.initialize(
     Lib_AddressManager.address,
     predeploys.OVM_ETH
