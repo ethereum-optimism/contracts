@@ -23,7 +23,7 @@ const main = async () => {
     return contracts
   }, {})
 
-  console.log(contracts)
+  console.log(JSON.stringify(contracts, null, 2))
 }
 
 main()
