@@ -312,7 +312,7 @@ describe('OVM_StateTransitioner', () => {
         )
       )
 
-      OVM_StateTransitioner.smodify.set({
+      OVM_StateTransitioner.smodify.put({
         phase: 0,
         transactionHash,
       })
@@ -329,7 +329,7 @@ describe('OVM_StateTransitioner', () => {
 
   describe('commitContractState', () => {
     beforeEach(async () => {
-      OVM_StateTransitioner.smodify.set({
+      OVM_StateTransitioner.smodify.put({
         phase: 1,
       })
     })
@@ -414,7 +414,7 @@ describe('OVM_StateTransitioner', () => {
 
   describe('commitStorageSlot', () => {
     beforeEach(() => {
-      OVM_StateTransitioner.smodify.set({
+      OVM_StateTransitioner.smodify.put({
         phase: 1,
       })
     })
@@ -530,7 +530,7 @@ describe('OVM_StateTransitioner', () => {
 
   describe('completeTransition', () => {
     beforeEach(() => {
-      OVM_StateTransitioner.smodify.set({
+      OVM_StateTransitioner.smodify.put({
         phase: 1,
       })
     })
