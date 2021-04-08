@@ -12,7 +12,6 @@ import hre from 'hardhat'
 
 const main = async () => {
   const sequencer = new Wallet(process.env.SEQUENCER_PRIVATE_KEY)
-  const deployer = new Wallet(process.env.DEPLOYER_PRIVATE_KEY)
 
   await hre.run('deploy', {
     l1BlockTimeSeconds: process.env.BLOCK_TIME_SECONDS,
@@ -26,7 +25,7 @@ const main = async () => {
     sccFraudProofWindow: parseInt(process.env.FRAUD_PROOF_WINDOW_SECONDS, 10),
     sccSequencerPublishWindow: process.env.SEQUENCER_PUBLISH_WINDOW_SECONDS,
     ovmSequencerAddress: sequencer.address,
-    ovmRelayerAddress: deployer.address,
+    ovmRelayerAddress: sequencer.address,
   })
 }
 
