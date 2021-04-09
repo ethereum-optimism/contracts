@@ -81,9 +81,9 @@ export class ExecutionManagerTestRunner {
     },
     ExecutionManager: {
       transactionRecord: {
-        ovmGasRefund: 0
-      }
-    }
+        ovmGasRefund: 0,
+      },
+    },
   }
 
   public run(test: TestDefinition) {
