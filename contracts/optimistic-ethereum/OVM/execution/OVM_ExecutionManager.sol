@@ -959,7 +959,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         bytes memory returndata;
 
         if (_isCreate) {
-            // todo explain me
+            // safeCREATE() is a function which replicates a CREATE message, but uses return values
+            // Which match that of CALL (i.e. bool, bytes).  This allows many security checks to be
+            // to be shared between untrusted call and create call frames.
             (success, returndata) = address(this).call(
                 abi.encodeWithSelector(
                     this.safeCREATE.selector,
@@ -1038,7 +1040,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
     /**
      * Handles the creation-specific safety measures required for OVM contract deployment.
-     * This function sanitizes the return types for creation messages to match calls (bool, bytes).
+     * This function sanitizes the return types for creation messages to match calls (bool, bytes),
+     * by being an external function which the EM can call, that mimics the success/fail case of the CREATE.
      * This allows for consistent handling of both types of messages in _handleExternalMessage().
      * Having this step occur as a separate call frame also allows us to easily revert the 
      * contract deployment in the event that the code is unsafe.
@@ -1054,7 +1057,10 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         external
     {
-        // todo: abort if msg.sender not itself
+        // The only way this should be callable is from within _createContract().
+        if (msg.sender != address(this)) {
+            return;
+        }
         // Check that there is not already code at this address.
         if (_hasEmptyAccount(_address) == false) {
             // Note: in the EVM, this case burns all allotted gas.  For improved
@@ -1081,7 +1087,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         
         if (ethAddress == address(0)) {
             // If the creation fails, the EVM lets us grab its revert data. This may contain a revert flag
-            // to be used above in _handleExternalMessage, so we pass the revert data back up.
+            // to be used above in _handleExternalMessage, so we pass the revert data back up unmodified.
             assembly { 
                 returndatacopy(0,0,returndatasize())
                 revert(0, returndatasize())
