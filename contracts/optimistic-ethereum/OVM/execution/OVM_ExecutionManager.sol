@@ -159,7 +159,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         override
         public
     {
-        require(transactionContext.ovmNUMBER == 0, "Only be callable at the start of a transaction");
+        require(transactionContext.ovmNUMBER == 0, "Only callable at the start of a transaction");
         // Store our OVM_StateManager instance (significantly easier than attempting to pass the
         // address around in calldata).
         ovmStateManager = iOVM_StateManager(_ovmStateManager);
@@ -206,9 +206,6 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
 
         // Wipe the execution context.
         _resetContext();
-
-        // Reset the ovmStateManager.
-        ovmStateManager = iOVM_StateManager(address(0));
     }
 
 
@@ -640,7 +637,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     {
         // DELEGATECALL does not change anything about the message context.
         MessageContext memory nextMessageContext = messageContext;
-        
+
         return _callContract(
             nextMessageContext,
             _gasLimit,
@@ -915,7 +912,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     /**
      * Handles all interactions which involve the execution manager calling out to untrusted code (both calls and creates).
      * Ensures that OVM-related measures are enforced, including L2 gas refunds, nuisance gas, and flagged reversions.
-     * 
+     *
      * @param _nextMessageContext Message context to be used for the external message.
      * @param _gasLimit Amount of gas to be passed into this message.
      * @param _contract OVM address being called or deployed to
@@ -1086,7 +1083,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // Actually execute the EVM create message.
         // NOTE: The inline assembly below means we can NOT make any evm calls between here and then.
         address ethAddress = Lib_EthUtils.createContract(_creationCode);
-        
+
         if (ethAddress == address(0)) {
             // If the creation fails, the EVM lets us grab its revert data. This may contain a revert flag
             // to be used above in _handleExternalMessage, so we pass the revert data back up unmodified.
@@ -1810,6 +1807,9 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         messageContext.isStatic = false;
 
         messageRecord.nuisanceGasLeft = 0;
+
+        // Reset the ovmStateManager.
+        ovmStateManager = iOVM_StateManager(address(0));
     }
 
     /*****************************
@@ -1848,7 +1848,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             if (created == address(0)) {
                 return (false, revertData);
             } else {
-                // The eth_call RPC endpoint for to = undefined will return the deployed bytecode 
+                // The eth_call RPC endpoint for to = undefined will return the deployed bytecode
                 // in the success case, differing from standard create messages.
                 return (true, Lib_EthUtils.getCode(created));
             }
