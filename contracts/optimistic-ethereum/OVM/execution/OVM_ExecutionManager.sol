@@ -1658,7 +1658,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // It should be impossible to re-enter since run() returns before any other call frames are created.
         // Since this value is already being written to storage, we save much gas compared to
         // using the standard nonReentrant pattern.
-        if (_transaction.blockNumber != DEFAULT_UINT256) return false;
+        if (_transaction.blockNumber == DEFAULT_UINT256) return false;
 
         if (_isValidGasLimit(_transaction.gasLimit, _transaction.l1QueueOrigin) == false) return false;
 
