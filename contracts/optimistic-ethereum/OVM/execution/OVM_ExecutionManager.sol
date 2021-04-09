@@ -1057,7 +1057,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         external
     {
-        // The only way this should be callable is from within _createContract().
+        // The only way this should callable is from within _createContract(),
+        // and it should DEFINITELY not be callable by a non-EM code contract.
         if (msg.sender != address(this)) {
             return;
         }
@@ -1082,7 +1083,8 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // We always need to initialize the contract with the default account values.
         _initPendingAccount(_address);
 
-        // Actually execute the EVM create message,
+        // Actually execute the EVM create message.
+        // NOTE: The inline assembly below means we can NOT make any evm calls between here and then.
         address ethAddress = Lib_EthUtils.createContract(_creationCode);
         
         if (ethAddress == address(0)) {

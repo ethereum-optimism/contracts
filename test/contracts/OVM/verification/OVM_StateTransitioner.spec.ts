@@ -312,7 +312,7 @@ describe('OVM_StateTransitioner', () => {
         )
       )
 
-      OVM_StateTransitioner.smodify.put({
+      await OVM_StateTransitioner.smodify.put({
         phase: 0,
         transactionHash,
       })
@@ -329,7 +329,7 @@ describe('OVM_StateTransitioner', () => {
 
   describe('commitContractState', () => {
     beforeEach(async () => {
-      OVM_StateTransitioner.smodify.put({
+      await ({
         phase: 1,
       })
     })
@@ -394,7 +394,7 @@ describe('OVM_StateTransitioner', () => {
           proof = test.accountTrieWitness
           postStateRoot = test.newAccountTrieRoot
 
-          OVM_StateTransitioner.smodify.put({
+          await OVM_StateTransitioner.smodify.put({
             postStateRoot: test.accountTrieRoot,
           })
         })
@@ -414,7 +414,7 @@ describe('OVM_StateTransitioner', () => {
 
   describe('commitStorageSlot', () => {
     beforeEach(() => {
-      OVM_StateTransitioner.smodify.put({
+      await OVM_StateTransitioner.smodify.put({
         phase: 1,
       })
     })
@@ -510,7 +510,7 @@ describe('OVM_StateTransitioner', () => {
 
           storageTrieProof = storageTest.proof
 
-          OVM_StateTransitioner.smodify.put({
+          await OVM_StateTransitioner.smodify.put({
             postStateRoot: test.accountTrieRoot,
           })
         })
@@ -530,7 +530,7 @@ describe('OVM_StateTransitioner', () => {
 
   describe('completeTransition', () => {
     beforeEach(() => {
-      OVM_StateTransitioner.smodify.put({
+      await OVM_StateTransitioner.smodify.put({
         phase: 1,
       })
     })
