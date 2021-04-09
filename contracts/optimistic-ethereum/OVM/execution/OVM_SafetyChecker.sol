@@ -57,12 +57,17 @@ contract OVM_SafetyChecker is iOVM_SafetyChecker {
         // PUSH opcodes
         uint256 opcodePushMask = ~uint256(0xffffffff000000000000000000000000);
 
-        uint256 codeLength;
         uint256 _pc;
         assembly {
             _pc := add(_bytecode, 0x20)
         }
-        codeLength = _pc + _bytecode.length;
+        uint256 codeLength = _pc + _bytecode.length;
+
+        // Simple overflow check.
+        if (codeLength < _pc) {
+            return false;
+        }
+
         do {
             // current opcode: 0x00...0xff
             uint256 opNum;
