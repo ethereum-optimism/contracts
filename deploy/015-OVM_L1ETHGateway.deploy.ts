@@ -2,7 +2,10 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
 /* Imports: Internal */
-import { getDeployedContract } from '../src/hardhat-deploy-ethers'
+import {
+  getDeployedContract,
+  registerAddress,
+} from '../src/hardhat-deploy-ethers'
 import { predeploys } from '../src/predeploys'
 
 const deployFn: DeployFunction = async (hre) => {
@@ -50,7 +53,11 @@ const deployFn: DeployFunction = async (hre) => {
     )
   }
 
-  await Lib_AddressManager.setAddress('OVM_L1ETHGateway', result.address)
+  await registerAddress({
+    hre,
+    name: 'OVM_L1ETHGateway',
+    address: OVM_L1ETHGateway.address,
+  })
 }
 
 deployFn.dependencies = ['Lib_AddressManager']

@@ -2,7 +2,10 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
 /* Imports: Internal */
-import { getDeployedContract } from '../src/hardhat-deploy-ethers'
+import {
+  getDeployedContract,
+  registerAddress,
+} from '../src/hardhat-deploy-ethers'
 
 const deployFn: DeployFunction = async (hre) => {
   const { deploy } = hre.deployments
@@ -50,10 +53,11 @@ const deployFn: DeployFunction = async (hre) => {
     )
   }
 
-  await Lib_AddressManager.setAddress(
-    'OVM_L1CrossDomainMessenger',
-    result.address
-  )
+  await registerAddress({
+    hre,
+    name: 'OVM_L1CrossDomainMessenger',
+    address: OVM_L1CrossDomainMessenger.address,
+  })
 }
 
 deployFn.dependencies = ['Lib_AddressManager']
