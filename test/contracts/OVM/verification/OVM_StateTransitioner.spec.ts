@@ -413,7 +413,7 @@ describe('OVM_StateTransitioner', () => {
   })
 
   describe('commitStorageSlot', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       await OVM_StateTransitioner.smodify.put({
         phase: 1,
       })
@@ -529,7 +529,7 @@ describe('OVM_StateTransitioner', () => {
   })
 
   describe('completeTransition', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       await OVM_StateTransitioner.smodify.put({
         phase: 1,
       })
