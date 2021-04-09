@@ -71,10 +71,10 @@
     tslint-plugin-prettier "^2.3.0"
     typescript "^4.1.5"
 
-"@eth-optimism/plugins@^1.0.0-alpha.2":
-  version "1.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@eth-optimism/plugins/-/plugins-1.0.0-alpha.3.tgz#acda356e1422ed919a21770c3bb03a5576be2e72"
-  integrity sha512-PWogmjeV3ofH8yx7DV4ZcY6QiRFeWwrLFp0HLlgo5g7k3y/TL/oMjDTDrjuQ0DWQC7iaIQErML70KmBT/mdfLw==
+"@eth-optimism/plugins@1.0.0-alpha.2":
+  version "1.0.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/@eth-optimism/plugins/-/plugins-1.0.0-alpha.2.tgz#dc5ad1395944d63e6a592832b2360be59481e092"
+  integrity sha512-OrwMtgJuO4gZjCJX9rtZZQr3Fn+ksbhF9nKyB4+qggJXoatkJmj1+2UHNzuhfG2LaRu35PmJQYiV316K1YTyeg==
   dependencies:
     node-fetch "^2.6.1"
 

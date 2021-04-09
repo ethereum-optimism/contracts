@@ -329,7 +329,7 @@ describe('OVM_StateTransitioner', () => {
 
   describe('commitContractState', () => {
     beforeEach(async () => {
-      await ({
+      await OVM_StateTransitioner.smodify.put({
         phase: 1,
       })
     })
