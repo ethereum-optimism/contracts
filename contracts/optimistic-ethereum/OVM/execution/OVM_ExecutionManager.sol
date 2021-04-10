@@ -236,7 +236,12 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
             address _CALLER
         )
     {
-        return messageContext.ovmCALLER;
+        address caller = messageContext.ovmCALLER;
+        if (caller == address(0)) {
+            _revertWithFlag(RevertFlag.UNINITIALIZED_ACCESS);
+        } else {
+            return caller;
+        }
     }
 
     /**
@@ -361,6 +366,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
     )
         override
         public
+        view
     {
         _revertWithFlag(RevertFlag.INTENTIONAL_REVERT, _data);
     }
@@ -963,7 +969,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         // revert data as to retrieve execution metadata that would normally be reverted out of
         // existence.
 
-        bool success; 
+        bool success;
         bytes memory returndata;
 
         if (_isCreate) {
@@ -1051,15 +1057,15 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
      * This function sanitizes the return types for creation messages to match calls (bool, bytes),
      * by being an external function which the EM can call, that mimics the success/fail case of the CREATE.
      * This allows for consistent handling of both types of messages in _handleExternalMessage().
-     * Having this step occur as a separate call frame also allows us to easily revert the 
+     * Having this step occur as a separate call frame also allows us to easily revert the
      * contract deployment in the event that the code is unsafe.
-     * 
-     * @param _gasLimit Amount of gas to be passed into this creation.
+     *
+     * param _gasLimit Amount of gas to be passed into this creation.
      * @param _creationCode Code to pass into CREATE for deployment.
      * @param _address OVM address being deployed to.
      */
     function safeCREATE(
-        uint _gasLimit,
+        uint // _gasLimit,
         bytes memory _creationCode,
         address _address
     )
@@ -1098,7 +1104,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         if (ethAddress == address(0)) {
             // If the creation fails, the EVM lets us grab its revert data. This may contain a revert flag
             // to be used above in _handleExternalMessage, so we pass the revert data back up unmodified.
-            assembly { 
+            assembly {
                 returndatacopy(0,0,returndatasize())
                 revert(0, returndatasize())
             }
@@ -1546,6 +1552,7 @@ contract OVM_ExecutionManager is iOVM_ExecutionManager, Lib_AddressResolver {
         RevertFlag _flag
     )
         internal
+        view
     {
         _revertWithFlag(_flag, bytes(''));
     }
