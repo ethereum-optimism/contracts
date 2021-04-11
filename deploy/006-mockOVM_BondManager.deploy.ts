@@ -2,7 +2,10 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
 /* Imports: Internal */
-import { getDeployedContract } from '../src/hardhat-deploy-ethers'
+import {
+  getDeployedContract,
+  registerAddress,
+} from '../src/hardhat-deploy-ethers'
 
 const deployFn: DeployFunction = async (hre) => {
   const { deploy } = hre.deployments
@@ -26,7 +29,11 @@ const deployFn: DeployFunction = async (hre) => {
     return
   }
 
-  await Lib_AddressManager.setAddress('OVM_BondManager', result.address)
+  await registerAddress({
+    hre,
+    name: 'OVM_BondManager',
+    address: result.address,
+  })
 }
 
 deployFn.dependencies = ['Lib_AddressManager']
