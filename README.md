@@ -1,3 +1,5 @@
+**[DEPRECATED]** This repository is now deprecated in favour of the new development [monorepo](https://github.com/ethereum-optimism/optimism-monorepo).
+
 # Optimistic Ethereum Smart Contracts
 
 `@eth-optimism/contracts` contains the various Solidity smart contracts used within the Optimistic Ethereum system.
