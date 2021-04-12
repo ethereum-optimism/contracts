@@ -18,11 +18,6 @@ library Lib_OVMCodec {
      * Enums *
      *********/
 
-    enum EOASignatureType {
-        EIP155_TRANSACTION,
-        ETH_SIGNED_MESSAGE
-    }
-
     enum QueueOrigin {
         SEQUENCER_QUEUE,
         L1TOL2_QUEUE
@@ -34,7 +29,7 @@ library Lib_OVMCodec {
      ***********/
 
     struct Account {
-        uint256 nonce;
+        uint64 nonce;
         uint256 balance;
         bytes32 storageRoot;
         bytes32 codeHash;
@@ -43,7 +38,7 @@ library Lib_OVMCodec {
     }
 
     struct EVMAccount {
-        uint256 nonce;
+        uint64 nonce;
         uint256 balance;
         bytes32 storageRoot;
         bytes32 codeHash;
@@ -86,141 +81,9 @@ library Lib_OVMCodec {
         uint40 blockNumber;
     }
 
-    struct EIP155Transaction {
-        uint256 nonce;
-        uint256 gasPrice;
-        uint256 gasLimit;
-        address to;
-        uint256 value;
-        bytes data;
-        uint256 chainId;
-    }
-
-
     /**********************
      * Internal Functions *
      **********************/
-
-    /**
-     * Decodes an EOA transaction (i.e., native Ethereum RLP encoding).
-     * @param _transaction Encoded EOA transaction.
-     * @return Transaction decoded into a struct.
-     */
-    function decodeEIP155Transaction(
-        bytes memory _transaction,
-        bool _isEthSignedMessage
-    )
-        internal
-        pure
-        returns (
-            EIP155Transaction memory
-        )
-    {
-        if (_isEthSignedMessage) {
-            (
-                uint256 _nonce,
-                uint256 _gasLimit,
-                uint256 _gasPrice,
-                uint256 _chainId,
-                address _to,
-                bytes memory _data
-            ) = abi.decode(
-                _transaction,
-                (uint256, uint256, uint256, uint256, address ,bytes)
-            );
-            return EIP155Transaction({
-                nonce: _nonce,
-                gasPrice: _gasPrice,
-                gasLimit: _gasLimit,
-                to: _to,
-                value: 0,
-                data: _data,
-                chainId: _chainId
-            });
-        } else {
-            Lib_RLPReader.RLPItem[] memory decoded = Lib_RLPReader.readList(_transaction);
-
-            return EIP155Transaction({
-                nonce: Lib_RLPReader.readUint256(decoded[0]),
-                gasPrice: Lib_RLPReader.readUint256(decoded[1]),
-                gasLimit: Lib_RLPReader.readUint256(decoded[2]),
-                to: Lib_RLPReader.readAddress(decoded[3]),
-                value: Lib_RLPReader.readUint256(decoded[4]),
-                data: Lib_RLPReader.readBytes(decoded[5]),
-                chainId:  Lib_RLPReader.readUint256(decoded[6])
-            });
-        }
-    }
-
-    /**
-     * Decompresses a compressed EIP155 transaction.
-     * @param _transaction Compressed EIP155 transaction bytes.
-     * @return Transaction parsed into a struct.
-     */
-    function decompressEIP155Transaction(
-        bytes memory _transaction
-    )
-        internal
-        returns (
-            EIP155Transaction memory
-        )
-    {
-        return EIP155Transaction({
-            gasLimit: Lib_BytesUtils.toUint24(_transaction, 0),
-            gasPrice: uint256(Lib_BytesUtils.toUint24(_transaction, 3)) * 1000000,
-            nonce: Lib_BytesUtils.toUint24(_transaction, 6),
-            to: Lib_BytesUtils.toAddress(_transaction, 9),
-            data: Lib_BytesUtils.slice(_transaction, 29),
-            chainId: Lib_SafeExecutionManagerWrapper.safeCHAINID(),
-            value: 0
-        });
-    }
-
-    /**
-     * Encodes an EOA transaction back into the original transaction.
-     * @param _transaction EIP155transaction to encode.
-     * @param _isEthSignedMessage Whether or not this was an eth signed message.
-     * @return Encoded transaction.
-     */
-    function encodeEIP155Transaction(
-        EIP155Transaction memory _transaction,
-        bool _isEthSignedMessage
-    )
-        internal
-        pure
-        returns (
-            bytes memory
-        )
-    {
-        if (_isEthSignedMessage) {
-            return abi.encode(
-                _transaction.nonce,
-                _transaction.gasLimit,
-                _transaction.gasPrice,
-                _transaction.chainId,
-                _transaction.to,
-                _transaction.data
-            );
-        } else {
-            bytes[] memory raw = new bytes[](9);
-
-            raw[0] = Lib_RLPWriter.writeUint(_transaction.nonce);
-            raw[1] = Lib_RLPWriter.writeUint(_transaction.gasPrice);
-            raw[2] = Lib_RLPWriter.writeUint(_transaction.gasLimit);
-            if (_transaction.to == address(0)) {
-                raw[3] = Lib_RLPWriter.writeBytes('');
-            } else {
-                raw[3] = Lib_RLPWriter.writeAddress(_transaction.to);
-            }
-            raw[4] = Lib_RLPWriter.writeUint(0);
-            raw[5] = Lib_RLPWriter.writeBytes(_transaction.data);
-            raw[6] = Lib_RLPWriter.writeUint(_transaction.chainId);
-            raw[7] = Lib_RLPWriter.writeBytes(bytes(''));
-            raw[8] = Lib_RLPWriter.writeBytes(bytes(''));
-
-            return Lib_RLPWriter.writeList(raw);
-        }
-    }
 
     /**
      * Encodes a standard OVM transaction.
@@ -307,7 +170,7 @@ library Lib_OVMCodec {
         // index-by-index circumvents this issue.
         raw[0] = Lib_RLPWriter.writeBytes(
             Lib_Bytes32Utils.removeLeadingZeros(
-                bytes32(_account.nonce)
+                bytes32(uint256(_account.nonce))
             )
         );
         raw[1] = Lib_RLPWriter.writeBytes(
@@ -338,7 +201,7 @@ library Lib_OVMCodec {
         Lib_RLPReader.RLPItem[] memory accountState = Lib_RLPReader.readList(_encoded);
 
         return EVMAccount({
-            nonce: Lib_RLPReader.readUint256(accountState[0]),
+            nonce: uint64(Lib_RLPReader.readUint256(accountState[0])),
             balance: Lib_RLPReader.readUint256(accountState[1]),
             storageRoot: Lib_RLPReader.readBytes32(accountState[2]),
             codeHash: Lib_RLPReader.readBytes32(accountState[3])
